@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,8 +5,6 @@ import {
   ShieldCheck, 
   BrainCircuit, 
   CheckCircle, 
-  XCircle, 
-  History, 
   Zap,
   Filter,
   Check,
@@ -42,7 +39,6 @@ export default function AdminPage() {
   const [requests, setRequests] = useState(initialRequests);
   const [analysis, setAnalysis] = useState<Record<string, ProvideDecisionSupportOutput>>({});
   const [loading, setLoading] = useState<string | null>(null);
-  const [stats, setStats] = useState({ approved: 12, denied: 2 });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,7 +65,7 @@ export default function AdminPage() {
       });
       setAnalysis(prev => ({ ...prev, [req.id]: result }));
       toast({ title: "Análise concluída", description: `Recomendação gerada para ${req.patient}.` });
-    } catch (error) {
+    } catch {
       toast({ title: "Erro na análise", description: "Não foi possível obter suporte da IA agora.", variant: "destructive" });
     } finally {
       setLoading(null);
@@ -82,10 +78,8 @@ export default function AdminPage() {
 
     setRequests(prev => prev.filter(r => r.id !== id));
     if (action === 'APPROVE') {
-      setStats(prev => ({ ...prev, approved: prev.approved + 1 }));
       toast({ title: "Solicitação Aprovada", description: `O transporte para ${req.patient} foi escalado.` });
     } else {
-      setStats(prev => ({ ...prev, denied: prev.denied + 1 }));
       toast({ title: "Solicitação Negada", description: `O pedido de ${req.patient} foi recusado.`, variant: "destructive" });
     }
     

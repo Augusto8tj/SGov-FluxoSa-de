@@ -5,12 +5,6 @@
  */
 
 import { z } from 'genkit';
-import { ai } from '@/ai/genkit';
-
-const ModelTesterInputSchema = z.object({
-  prompt: z.string(),
-  modelId: z.string(),
-});
 
 const ModelTesterOutputSchema = z.object({
   content: z.string(),

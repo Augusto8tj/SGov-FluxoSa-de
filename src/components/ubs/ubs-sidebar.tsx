@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -22,6 +21,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 const menuItems = [
   { title: "Painel UBS", icon: LayoutDashboard, url: "/ubs-portal" },
@@ -53,10 +53,10 @@ export function UbsSidebar() {
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton tooltip={item.title} asChild>
-                <a href={item.url} className="flex items-center gap-3">
+                <Link href={item.url} className="flex items-center gap-3">
                   <item.icon className="size-5" />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
@@ -72,10 +72,10 @@ export function UbsSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Sair" className="text-destructive hover:text-destructive" asChild>
-              <a href="/">
+              <Link href="/">
                 <LogOut className="size-5" />
                 <span>Voltar ao Início</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

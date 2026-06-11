@@ -1,18 +1,13 @@
-
 "use client";
 
 import { useState } from "react";
 import { 
   Plus, 
   Search, 
-  Hospital, 
   MapPin, 
   Phone, 
-  ChevronRight,
   Activity,
-  ArrowUpRight,
-  MoreVertical,
-  Navigation
+  ArrowUpRight
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Plus, 
   Search, 
@@ -18,7 +17,7 @@ import {
   XCircle,
   AlertCircle
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +49,6 @@ import { useToast } from "@/hooks/use-toast";
 import { TransportRequest, Patient } from "@/lib/types";
 import { classifyUrgency } from "@/ai/flows/classify-urgency-flow";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -162,19 +160,14 @@ export default function RequestsPage() {
   
   const { toast } = useToast();
 
-  useEffect(() => {
-    setMounted(true);
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       // Tenta buscar do Firebase, mas usa MOCK para demonstração se estiver vazio ou falhar
       let fetchedRequests: TransportRequest[] = [];
       try {
         fetchedRequests = await requestService.getRequests();
-      } catch (e) {
+      } catch {
         console.warn("Firebase offline ou erro, usando MOCKS");
       }
 
@@ -183,13 +176,18 @@ export default function RequestsPage() {
       // Se não houver requests no Firebase, usa os Mocks para a apresentação
       setRequests(fetchedRequests.length > 0 ? fetchedRequests : MOCK_REQUESTS);
       setPatients(fetchedPatients);
-    } catch (error) {
+    } catch {
       toast({ title: "Aviso", description: "Carregando dados de demonstração local.", variant: "default" });
       setRequests(MOCK_REQUESTS);
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    setMounted(true);
+    loadData();
+  }, [loadData]);
 
   const handleAiUrgency = async () => {
     if (!patientNotes || !destination) {
@@ -204,7 +202,7 @@ export default function RequestsPage() {
         title: "IA: Análise Concluída", 
         description: `Urgência sugerida: ${result.suggestedUrgency.toUpperCase()}. Justificativa: ${result.reasoning.substring(0, 50)}...` 
       });
-    } catch (error) {
+    } catch {
       toast({ variant: "destructive", title: "IA Indisponível", description: "Verifique sua conexão com o Genkit." });
     } finally {
       setIsClassifying(false);
@@ -239,7 +237,7 @@ export default function RequestsPage() {
       setIsDialogOpen(false);
       loadData();
       toast({ title: "Sucesso", description: "Solicitação sincronizada com o banco de dados." });
-    } catch (error) {
+    } catch {
       // Fallback local se o Firebase falhar na gravação
       const newReq = { ...requestData, id: `REQ-NEW-${Math.random()}`, createdAt: new Date().toISOString() } as TransportRequest;
       setRequests(prev => [newReq, ...prev]);
@@ -253,7 +251,7 @@ export default function RequestsPage() {
       await requestService.deleteRequest(id);
       loadData();
       toast({ title: "Removido", description: "Solicitação cancelada." });
-    } catch (error) {
+    } catch {
       setRequests(prev => prev.filter(r => r.id !== id));
       toast({ title: "Removido (Demo)", description: "Solicitação removida localmente." });
     }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Plus, 
   Search, 
   UserPlus, 
   MoreVertical, 
@@ -54,7 +53,7 @@ const MOCK_PATIENTS: Patient[] = [
 export default function PatientsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [patients, setPatients] = useState<Patient[]>(MOCK_PATIENTS);
+  const [patients] = useState<Patient[]>(MOCK_PATIENTS);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   

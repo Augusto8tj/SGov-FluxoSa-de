@@ -1,21 +1,15 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { 
-  MapPin, 
   Ambulance, 
-  ChevronRight, 
   Zap, 
   BrainCircuit, 
   AlertCircle,
   CheckCircle2,
   ClipboardCheck,
-  AlertTriangle,
   Loader2,
   Navigation,
-  Info,
-  Inbox,
   MessageSquare,
   LogOut,
   Heart,
@@ -86,7 +80,7 @@ export default function DriverDashboard() {
       });
       setBriefing(result);
       toast({ title: "Briefing Gerado", description: "Instruções da IA atualizadas." });
-    } catch (error) {
+    } catch {
       toast({ title: "Erro na IA", variant: "destructive" });
     } finally {
       setLoadingAi(false);
@@ -141,7 +135,7 @@ export default function DriverDashboard() {
                 <Star className="h-5 w-5 fill-primary text-primary" />
               </div>
               <p className="text-sm font-semibold text-primary italic">
-                "Excelente conduta. Informações sincronizadas com sucesso."
+                &quot;Excelente conduta. Informações sincronizadas com sucesso.&quot;
               </p>
             </CardContent>
           </Card>
@@ -163,7 +157,7 @@ export default function DriverDashboard() {
           </div>
           
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-black pt-6">
-            <Heart className="h-3 w-3 text-rose-500 fill-rose-500" /> PMRC • Saúde & Ordem Pública
+            <Heart className="h-3 w-3 text-rose-500 fill-rose-500" /> PMRC &bull; Saúde & Ordem Pública
           </div>
         </div>
       </div>
@@ -175,7 +169,7 @@ export default function DriverDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Minha Jornada</h2>
-          <p className="text-xs text-slate-500">Rio Claro, RJ • {format(new Date(), "dd 'de' MMMM", { locale: ptBR })}</p>
+          <p className="text-xs text-slate-500">Rio Claro, RJ &bull; {format(new Date(), "dd 'de' MMMM", { locale: ptBR })}</p>
         </div>
         <Badge variant={checklistDone ? "default" : "outline"} className={cn(checklistDone ? "bg-emerald-600 text-white" : "bg-accent/20 text-primary border-primary/20")}>
           {checklistDone ? "Em Rota" : "Preparação"}
@@ -253,7 +247,7 @@ export default function DriverDashboard() {
           <div className="space-y-4">
             <h3 className="font-bold text-slate-700">Manifesto de Paradas</h3>
             <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
-              {MOCK_MISSION.map((stop, i) => (
+              {MOCK_MISSION.map((stop) => (
                 <div key={stop.id} className="relative pl-8">
                   <div className={cn(
                     "absolute left-1.5 top-1 size-3 rounded-full border-2 border-white shadow-sm",

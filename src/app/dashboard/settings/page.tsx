@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { 
-  Settings, 
   Hospital, 
   User, 
   Ambulance, 
@@ -17,12 +16,8 @@ import {
   Gauge,
   Code,
   AlertCircle,
-  Bug,
   Play,
   Trophy,
-  Timer,
-  CheckCircle2,
-  XCircle,
   BarChart3
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { 
@@ -7,21 +6,18 @@ import {
   Stethoscope, 
   AlertTriangle, 
   FileText,
-  Truck,
   HeartPulse,
   Wind,
   Droplets,
-  ChevronRight,
   Info
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   Accordion, 
   AccordionContent, 
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
 
 export default function GuidelinesPage() {
   return (
@@ -98,7 +94,7 @@ export default function GuidelinesPage() {
               <ul className="text-xs list-decimal pl-4 space-y-2">
                 <li><span className="font-bold">Trava de Segurança:</span> Nunca inicie o trajeto sem conferir o clique duplo de travamento da maca no piso da viatura.</li>
                 <li><span className="font-bold">Cintos:</span> Uso obrigatório dos 3 pontos (tórax e pernas) para o paciente.</li>
-                <li><span className="font-bold">Posicionamento:</span> Cabeceira elevada a 30° para pacientes com histórico respiratório, salvo indicação contrária.</li>
+                <li><span className="font-bold">Posicionamento:</span> Cabeceira elevada a 30&deg; para pacientes com histórico respiratório, salvo indicação contrária.</li>
                 <li><span className="font-bold">Rampa:</span> Utilize sempre o auxílio da trava de inclinação ao operar a rampa hidráulica ou manual.</li>
               </ul>
             </AccordionContent>
@@ -166,7 +162,7 @@ export default function GuidelinesPage() {
             <AccordionContent className="text-slate-600 space-y-3 pt-2 text-xs">
               <p className="font-bold text-primary">Digitalização Obrigatória:</p>
               <p>Todas as paradas devem ser finalizadas no App para registro de geolocalização e horário.</p>
-              <p className="border-l-2 border-primary pl-2 italic">"O não registro no sistema impede a auditoria de produtividade e manutenção do auxílio-condutor."</p>
+              <p className="border-l-2 border-primary pl-2 italic">&quot;O não registro no sistema impede a auditoria de produtividade e manutenção do auxílio-condutor.&quot;</p>
             </AccordionContent>
           </AccordionItem>
         </Accordion>

@@ -1,18 +1,15 @@
-
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { 
   Users, 
   Ambulance, 
   Clock, 
-  AlertCircle,
   MapPin,
   BrainCircuit,
   Zap,
   ArrowRight,
-  Loader2,
-  Inbox
+  Loader2
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -82,7 +79,7 @@ export default function DashboardPage() {
       });
       setAiBriefing(result);
       toast({ title: "Briefing Atualizado", description: "IA gerou novos insights estratégicos." });
-    } catch (error) {
+    } catch {
       toast({ variant: "destructive", title: "IA: Falha na Conexão", description: "Verificando chaves de API..." });
     } finally {
       setLoadingAi(false);

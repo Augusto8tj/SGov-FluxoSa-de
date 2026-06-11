@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { 
   ClipboardList, 
   Users, 
@@ -168,7 +167,7 @@ export default function UbsDashboard() {
                 <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                   <div className="space-y-1">
                     <p className="text-sm font-bold">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.destination} • {item.time}</p>
+                    <p className="text-xs text-muted-foreground">{item.destination} &bull; {item.time}</p>
                   </div>
                   <Badge variant="outline" className={cn(
                     item.status === 'Em Rota' ? "bg-primary/10 text-primary border-primary/20" : "bg-blue-50 text-blue-700 border-blue-200"

@@ -1,12 +1,9 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { 
-  MapPin, 
   Ambulance, 
   User, 
-  ArrowRight, 
   Zap, 
   Loader2, 
   Route as RouteIcon,
@@ -208,10 +205,10 @@ export default function RoutesPage() {
                       </div>
                     </CardContent>
                     <CardFooter className="bg-muted/30 py-3">
-                      <p className="text-xs text-muted-foreground italic flex items-center gap-2">
+                      <div className="text-xs text-muted-foreground italic flex items-center gap-2">
                         <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                         {assignment.notes}
-                      </p>
+                      </div>
                     </CardFooter>
                   </Card>
                 ))}
