@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Plus, 
   Search, 
@@ -9,9 +9,16 @@ import {
   Filter, 
   CheckCircle2, 
   History,
-  AlertTriangle
+  AlertTriangle,
+  Loader2,
+  BrainCircuit,
+  Calendar as CalendarIcon,
+  XCircle,
+  MoreVertical,
+  Edit,
+  Trash2
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -23,20 +30,168 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { TransportRequest, Patient } from "@/lib/types";
+import { classifyUrgency } from "@/ai/flows/classify-urgency-flow";
+import { requestService } from "@/services/request-service";
+import { patientService } from "@/services/patient-service";
 
 export default function UbsRequestsPage() {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isWithinWindow, setIsWithinWindow] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [requests, setRequests] = useState<TransportRequest[]>([]);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  
+  // Dialog State
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [patientId, setPatientId] = useState("");
+  const [patientNotes, setPatientNotes] = useState("");
+  const [destination, setDestination] = useState("");
+  const [urgency, setUrgency] = useState<string>("low");
+  const [scheduledTime, setScheduledTime] = useState("");
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [editingRequest, setEditingRequest] = useState<TransportRequest | null>(null);
+
   const { toast } = useToast();
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [reqs, pats] = await Promise.all([
+        requestService.getRequests(),
+        patientService.getPatients()
+      ]);
+      // Filtra apenas pedidos desta UBS (Simulado como UBS-01 para o portal)
+      setRequests(reqs.filter(r => r.ubsId === "UBS-01" || r.operatorId === "UBS_MGR"));
+      setPatients(pats);
+    } catch {
+      toast({ title: "Erro de Conexão", description: "Usando dados locais de demonstração.", variant: "default" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
     setMounted(true);
     const hour = new Date().getHours();
     setIsWithinWindow(hour >= 8 && hour < 13);
-  }, []);
+    loadData();
+  }, [loadData]);
+
+  const handleAiUrgency = async () => {
+    if (!patientNotes || !destination) {
+      toast({ title: "Incompleto", description: "Preencha destino e notas para a IA analisar.", variant: "destructive" });
+      return;
+    }
+    setIsClassifying(true);
+    try {
+      // Pseudonimização: Envia apenas notas clínicas e destino
+      const result = await classifyUrgency({ patientNotes, destination });
+      setUrgency(result.suggestedUrgency);
+      toast({ 
+        title: "IA: Sugestão de Urgência", 
+        description: `Classificado como ${result.suggestedUrgency.toUpperCase()} com base no protocolo municipal.` 
+      });
+    } catch {
+      toast({ variant: "destructive", title: "IA Indisponível", description: "Não foi possível classificar automaticamente." });
+    } finally {
+      setIsClassifying(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!patientId || !destination) {
+      toast({ title: "Erro", description: "Paciente e Destino são obrigatórios.", variant: "destructive" });
+      return;
+    }
+
+    const patient = patients.find(p => p.id === patientId);
+    const requestData = {
+      patientId,
+      patientName: patient?.name || "Paciente",
+      ubsId: "UBS-01",
+      pickupLocation: "UBS Central",
+      destinationLocation: destination,
+      requestedTime: scheduledTime || new Date().toISOString(),
+      urgencyLevel: urgency as any,
+      status: editingRequest?.status || "PENDING",
+      operatorId: "UBS_MGR",
+    };
+
+    try {
+      if (editingRequest) {
+        await requestService.updateRequest(editingRequest.id, requestData);
+      } else {
+        await requestService.addRequest(requestData as any);
+      }
+      setIsDialogOpen(false);
+      loadData();
+      toast({ title: "Solicitação Enviada", description: "O pedido foi encaminhado para a Secretaria de Saúde." });
+    } catch {
+      toast({ title: "Erro", description: "Falha ao salvar solicitação.", variant: "destructive" });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await requestService.deleteRequest(id);
+      loadData();
+      toast({ title: "Cancelado", description: "Solicitação removida." });
+    } catch {
+      toast({ title: "Erro", description: "Não foi possível cancelar.", variant: "destructive" });
+    }
+  };
+
+  const filteredRequests = requests.filter(req => 
+    req.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    req.destinationLocation.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getUrgencyBadge = (level: string) => {
+    switch (level) {
+      case 'critical': return <Badge className="bg-destructive text-destructive-foreground animate-pulse">Crítico</Badge>;
+      case 'high': return <Badge variant="destructive">Alta</Badge>;
+      case 'medium': return <Badge className="bg-primary text-primary-foreground">Média</Badge>;
+      default: return <Badge variant="secondary">Baixa</Badge>;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'APPROVED': return <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50 gap-1"><CheckCircle2 className="h-3 w-3" /> Aprovado</Badge>;
+      case 'PENDING': return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 gap-1"><Clock className="h-3 w-3" /> Pendente</Badge>;
+      case 'COMPLETED': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 gap-1">Concluído</Badge>;
+      case 'DENIED': return <Badge variant="outline" className="text-rose-600 border-rose-200 bg-rose-50 gap-1"><XCircle className="h-3 w-3" /> Negado</Badge>;
+      default: return <Badge variant="outline">{status}</Badge>;
+    }
+  };
 
   if (!mounted) return null;
 
@@ -56,22 +211,124 @@ export default function UbsRequestsPage() {
           )}
           <Button 
             disabled={!isWithinWindow} 
-            className={cn("gap-2 shadow-md h-11 px-6", !isWithinWindow && "grayscale opacity-50")}
-            onClick={() => !isWithinWindow && toast({ title: "Sistema Fechado", description: "Agendamentos permitidos apenas entre 08h e 13h.", variant: "destructive" })}
+            className={cn("gap-2 shadow-md h-11 px-6 rounded-xl", !isWithinWindow && "grayscale opacity-50")}
+            onClick={() => {
+              if (!isWithinWindow) {
+                toast({ title: "Sistema Fechado", description: "Agendamentos permitidos apenas entre 08h e 13h.", variant: "destructive" });
+                return;
+              }
+              setEditingRequest(null);
+              setPatientId("");
+              setDestination("");
+              setPatientNotes("");
+              setScheduledTime(new Date().toISOString().slice(0, 16));
+              setIsDialogOpen(true);
+            }}
           >
             <Plus className="h-4 w-4" /> Nova Solicitação
           </Button>
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent className="sm:max-w-[550px] w-[95vw] rounded-2xl overflow-y-auto max-h-[90vh]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <CalendarIcon className="h-5 w-5 text-primary" />
+                  {editingRequest ? "Editar Pedido" : "Solicitar Transporte"}
+                </DialogTitle>
+                <DialogDescription>
+                  Janela de agendamento ativa para a UBS Central.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="patient">Paciente</Label>
+                  <Select value={patientId} onValueChange={setPatientId}>
+                    <SelectTrigger id="patient" className="h-11 rounded-xl">
+                      <SelectValue placeholder="Selecione um paciente cadastrado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {patients.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="dest">Destino</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      id="dest"
+                      placeholder="Local de atendimento" 
+                      className="pl-10 h-11 rounded-xl" 
+                      value={destination} 
+                      onChange={(e) => setDestination(e.target.value)} 
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="notes">Notas Clínicas</Label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 text-[10px] text-primary font-bold gap-1" 
+                      onClick={handleAiUrgency} 
+                      disabled={isClassifying}
+                    >
+                      {isClassifying ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3.5 w-3.5" />} 
+                      SUGERIR URGÊNCIA (IA)
+                    </Button>
+                  </div>
+                  <Textarea 
+                    id="notes"
+                    placeholder="Condição do paciente e necessidades especiais..." 
+                    className="min-h-[100px] text-sm rounded-xl" 
+                    value={patientNotes} 
+                    onChange={(e) => setPatientNotes(e.target.value)} 
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label>Urgência</Label>
+                    <Select value={urgency} onValueChange={setUrgency}>
+                      <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Baixa</SelectItem>
+                        <SelectItem value="medium">Média</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="critical">Crítica</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Data/Hora</Label>
+                    <Input 
+                      type="datetime-local" 
+                      className="h-11 rounded-xl" 
+                      value={scheduledTime} 
+                      onChange={(e) => setScheduledTime(e.target.value)} 
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl">Cancelar</Button>
+                <Button onClick={handleSave} className="rounded-xl bg-primary shadow-lg shadow-primary/20">
+                  Confirmar Pedido
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
-      <Card className="bg-primary/5 border-none p-4">
+      <Card className="bg-primary/5 border-none p-4 rounded-xl">
         <div className="flex items-center gap-3">
           <div className="bg-primary/20 p-2 rounded-lg text-primary">
             <History className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">Atenção</p>
-            <p className="text-sm text-foreground/80">O processamento da Secretaria ocorre em ciclos de 30 minutos após seu pedido.</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">Protocolo</p>
+            <p className="text-sm text-foreground/80">Novos pedidos levam cerca de 30 minutos para triagem na Secretaria.</p>
           </div>
         </div>
       </Card>
@@ -79,56 +336,92 @@ export default function UbsRequestsPage() {
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por paciente ou destino..." className="pl-10 h-11" />
+          <Input 
+            placeholder="Buscar por paciente ou destino..." 
+            className="pl-10 h-11 bg-card border-none shadow-sm rounded-xl"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-        <Button variant="outline" size="icon" className="h-11 w-11"><Filter className="h-4 w-4" /></Button>
+        <Button variant="outline" size="icon" className="h-11 w-11 rounded-xl"><Filter className="h-4 w-4" /></Button>
       </div>
 
-      <Card className="border-none shadow-sm overflow-hidden bg-card">
-        <Table>
-          <TableHeader className="bg-muted/30">
-            <TableRow>
-              <TableHead>Paciente</TableHead>
-              <TableHead>Destino</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ação</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[
-              { id: "1", name: "Benedito Silva", dest: "Hospital Municipal", status: "Aprovado", time: "08:00" },
-              { id: "2", name: "Maria de Fátima", dest: "Hemodiálise", status: "Pendente", time: "10:30" },
-            ].map((req) => (
-              <TableRow key={req.id}>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-bold text-sm">{req.name}</span>
-                    <span className="text-[10px] text-muted-foreground uppercase">CNS 123.456...</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" /> {req.dest}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[10px] mt-1">
-                    <Clock className="h-3 w-3" /> Previsto: {req.time}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={cn(
-                    "text-[10px] uppercase font-bold",
-                    req.status === 'Aprovado' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"
-                  )}>
-                    {req.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" className="text-xs h-8">Detalhes</Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      <Card className="border-none shadow-sm overflow-hidden bg-card rounded-2xl">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            <p className="text-xs text-muted-foreground uppercase font-black tracking-widest">Carregando Pedidos...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="border-none">
+                  <TableHead className="font-bold">Paciente</TableHead>
+                  <TableHead className="font-bold">Destino / Horário</TableHead>
+                  <TableHead className="font-bold">Urgência</TableHead>
+                  <TableHead className="font-bold">Status</TableHead>
+                  <TableHead className="text-right font-bold">Ação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredRequests.length > 0 ? (
+                  filteredRequests.map((req) => (
+                    <TableRow key={req.id} className="hover:bg-muted/20 border-muted/50 transition-colors">
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm">{req.patientName}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest">{req.id}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3" /> {req.destinationLocation}
+                          </div>
+                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                            <Clock className="h-3 w-3" /> {new Date(req.requestedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getUrgencyBadge(req.urgencyLevel)}</TableCell>
+                      <TableCell>{getStatusBadge(req.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-xl shadow-xl">
+                            <DropdownMenuItem onClick={() => {
+                              setEditingRequest(req);
+                              setPatientId(req.patientId);
+                              setDestination(req.destinationLocation);
+                              setUrgency(req.urgencyLevel);
+                              setScheduledTime(req.requestedTime.slice(0, 16));
+                              setIsDialogOpen(true);
+                            }}>
+                              <Edit className="h-4 w-4 mr-2" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(req.id)}>
+                              <Trash2 className="h-4 w-4 mr-2" /> Cancelar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic">
+                      Nenhum pedido registrado para sua unidade.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </Card>
     </div>
   );
