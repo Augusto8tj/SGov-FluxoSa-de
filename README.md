@@ -1,3 +1,4 @@
+
 # SGov FluxoSaúde - Rio Claro, RJ
 
 Sistema de Gestão de Transporte Sanitário para a Prefeitura de Rio Claro - RJ.
@@ -24,17 +25,12 @@ git branch -M main
 git push -u origin main
 ```
 
-## 🛠 Tecnologias Utilizadas
-- **Framework**: [Next.js 15](https://nextjs.org/)
-- **Interface**: [React 19](https://react.dev/) + [ShadCN UI](https://ui.shadcn.com/)
-- **Estilização**: [Tailwind CSS](https://tailwindcss.com/)
-- **Inteligência Artificial**: [Genkit](https://firebase.google.com/docs/genkit) (Google Gemini)
-- **Backend**: Firebase (Auth/Firestore)
-
-## 📱 Módulos
-- **Administrativo**: Gestão central, frotas e auditoria.
-- **Portal UBS**: Solicitações e gestão de pacientes pelas unidades.
-- **Módulo Motorista**: Itinerários e checklists mobile-first.
+## 🤖 Inteligência Artificial
+O sistema utiliza **Genkit (Google Gemini)** para:
+- Otimização de rotas em tempo real.
+- Classificação de urgência clínica.
+- Briefing automatizado para motoristas.
+- Insights estratégicos para a secretaria.
 
 ---
 **2026 - Secretaria Municipal de Ordem Pública - PMRC**

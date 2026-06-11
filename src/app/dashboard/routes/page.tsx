@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   MapPin, 
   Ambulance, 
@@ -10,7 +10,8 @@ import {
   Zap, 
   Loader2, 
   Route as RouteIcon,
-  Navigation
+  Navigation,
+  CheckCircle2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,9 +37,14 @@ const mockDrivers = [
 ];
 
 export default function RoutesPage() {
+  const [mounted, setMounted] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
   const [result, setResult] = useState<GenerateOptimizedRoutesOutput | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const runOptimization = async () => {
     setOptimizing(true);
@@ -54,13 +60,23 @@ export default function RoutesPage() {
         enableAiAssistance: true
       });
       setResult(data);
-      toast({ title: "Otimização Concluída", description: data.optimizationSummary || "Rotas geradas para Rio Claro - RJ." });
-    } catch (error) {
-      toast({ title: "Erro na Otimização", description: "Ocorreu um problema ao processar as rotas.", variant: "destructive" });
+      toast({ 
+        title: "Otimização Concluída", 
+        description: data.optimizationSummary || "Rotas geradas para a malha viária de Rio Claro - RJ." 
+      });
+    } catch (error: any) {
+      console.error("Erro na otimização:", error);
+      toast({ 
+        title: "Erro na IA", 
+        description: "Não foi possível conectar ao motor de inteligência artificial.", 
+        variant: "destructive" 
+      });
     } finally {
       setOptimizing(false);
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="space-y-6">
@@ -86,7 +102,7 @@ export default function RoutesPage() {
       <div className="grid gap-6 lg:grid-cols-4">
         <Card className="lg:col-span-1 border-none shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base">Entradas Pendentes (Rio Claro)</CardTitle>
+            <CardTitle className="text-base">Recursos de Entrada</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between text-sm">
@@ -108,6 +124,12 @@ export default function RoutesPage() {
               <Badge variant="secondary">{mockDrivers.length}</Badge>
             </div>
           </CardContent>
+          <CardFooter className="pt-2 border-t mt-2">
+            <div className="flex items-center gap-2">
+              <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">IA Gemini Flash Online</span>
+            </div>
+          </CardFooter>
         </Card>
 
         <div className="lg:col-span-3 space-y-6">
@@ -127,14 +149,26 @@ export default function RoutesPage() {
             <div className="flex flex-col items-center justify-center py-20 space-y-4 text-center">
               <Loader2 className="h-12 w-12 text-primary animate-spin" />
               <div>
-                <p className="text-lg font-semibold animate-pulse">Calculando Rotas...</p>
-                <p className="text-sm text-muted-foreground">Integrando dados geográficos da região Serrana de Rio Claro.</p>
+                <p className="text-lg font-semibold animate-pulse">Consultando IA...</p>
+                <p className="text-sm text-muted-foreground">Integrando dados geográficos e clínicos para roteirização.</p>
               </div>
             </div>
           )}
 
           {result && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+              {result.optimizationSummary && (
+                <Card className="bg-primary/5 border-none shadow-sm">
+                  <CardContent className="pt-6 flex gap-3">
+                    <Zap className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-primary uppercase">Resumo da Inteligência Artificial</p>
+                      <p className="text-sm text-slate-700 leading-relaxed">{result.optimizationSummary}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <div className="grid gap-4 md:grid-cols-2">
                 {result.assignments.map((assignment, idx) => (
                   <Card key={idx} className="border-none shadow-sm overflow-hidden border-l-4 border-l-primary">
@@ -160,7 +194,7 @@ export default function RoutesPage() {
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-sm font-semibold">Parada {i + 1}: {appId}</p>
-                                  <p className="text-xs text-muted-foreground">ID Paciente: {app?.patientId} • {app?.scheduledTime}</p>
+                                  <p className="text-xs text-muted-foreground">Paciente: {app?.patientId} • {app?.scheduledTime}</p>
                                 </div>
                                 {app?.specialNeeds && app.specialNeeds.length > 0 && (
                                   <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none text-[10px]">
@@ -174,7 +208,10 @@ export default function RoutesPage() {
                       </div>
                     </CardContent>
                     <CardFooter className="bg-muted/30 py-3">
-                      <p className="text-xs text-muted-foreground italic">{assignment.notes}</p>
+                      <p className="text-xs text-muted-foreground italic flex items-center gap-2">
+                        <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+                        {assignment.notes}
+                      </p>
                     </CardFooter>
                   </Card>
                 ))}
