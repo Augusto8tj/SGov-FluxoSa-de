@@ -15,13 +15,14 @@ import {
   Edit,
   Trash2,
   Key,
-  MapPin
+  MapPin,
+  Phone
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/tabs";
 import { 
   Table, 
   TableBody, 
@@ -49,8 +50,8 @@ const initialUnits = [
 ];
 
 const initialDrivers = [
-  { id: "D1", name: "Carlos Alberto Silva", license: "Cat. D - 20/05/2026", status: "Disponível" },
-  { id: "D2", name: "Marcos Pereira", license: "Cat. D - 15/02/2025", status: "Disponível" },
+  { id: "D1", name: "Carlos Alberto Silva", license: "Cat. D - 20/05/2026", phone: "(19) 99123-4567", status: "Disponível" },
+  { id: "D2", name: "Marcos Pereira", license: "Cat. D - 15/02/2025", phone: "(19) 98765-4321", status: "Disponível" },
 ];
 
 export default function SettingsPage() {
@@ -63,7 +64,7 @@ export default function SettingsPage() {
   const [newUnit, setNewUnit] = useState({ name: "", address: "" });
 
   const [isDriverDialogOpen, setIsDriverDialogOpen] = useState(false);
-  const [newDriver, setNewDriver] = useState({ name: "", license: "" });
+  const [newDriver, setNewDriver] = useState({ name: "", license: "", phone: "" });
 
   useEffect(() => {
     setMounted(true);
@@ -96,7 +97,7 @@ export default function SettingsPage() {
   };
 
   const handleAddDriver = () => {
-    if (!newDriver.name || !newDriver.license) {
+    if (!newDriver.name || !newDriver.license || !newDriver.phone) {
       toast({ title: "Erro", description: "Preencha todos os campos do motorista.", variant: "destructive" });
       return;
     }
@@ -105,12 +106,13 @@ export default function SettingsPage() {
       id: `D${drivers.length + 1}`,
       name: newDriver.name,
       license: newDriver.license,
+      phone: newDriver.phone,
       status: "Disponível"
     };
 
     setDrivers(prev => [...prev, driver]);
     setIsDriverDialogOpen(false);
-    setNewDriver({ name: "", license: "" });
+    setNewDriver({ name: "", license: "", phone: "" });
     toast({ title: "Motorista Cadastrado", description: `${driver.name} foi adicionado ao sistema.` });
   };
 
@@ -211,7 +213,7 @@ export default function SettingsPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Corpo de Motoristas</CardTitle>
-                <CardDescription>Gestão de condutores e habilitações.</CardDescription>
+                <CardDescription>Gestão de condutores, habilitações e contatos.</CardDescription>
               </div>
               <Dialog open={isDriverDialogOpen} onOpenChange={setIsDriverDialogOpen}>
                 <DialogTrigger asChild>
@@ -241,6 +243,15 @@ export default function SettingsPage() {
                         onChange={(e) => setNewDriver(prev => ({ ...prev, license: e.target.value }))}
                       />
                     </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="driver-phone">Telefone / WhatsApp</Label>
+                      <Input 
+                        id="driver-phone" 
+                        placeholder="(19) 90000-0000" 
+                        value={newDriver.phone}
+                        onChange={(e) => setNewDriver(prev => ({ ...prev, phone: e.target.value }))}
+                      />
+                    </div>
                   </div>
                   <DialogFooter>
                     <Button variant="ghost" onClick={() => setIsDriverDialogOpen(false)}>Cancelar</Button>
@@ -255,6 +266,7 @@ export default function SettingsPage() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>CNH / Vencimento</TableHead>
+                    <TableHead>Telefone / Zap</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -264,6 +276,12 @@ export default function SettingsPage() {
                     <TableRow key={driver.id}>
                       <TableCell className="font-medium">{driver.name}</TableCell>
                       <TableCell>{driver.license}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-3 w-3 text-emerald-600" />
+                          <span className="text-xs">{driver.phone}</span>
+                        </div>
+                      </TableCell>
                       <TableCell><Badge className="bg-emerald-100 text-emerald-700">{driver.status}</Badge></TableCell>
                       <TableCell className="text-right"><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></TableCell>
                     </TableRow>

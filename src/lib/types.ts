@@ -29,6 +29,7 @@ export interface Driver {
   id: string;
   name: string;
   licenseNumber: string;
+  phone?: string;
   available: boolean;
 }
 
