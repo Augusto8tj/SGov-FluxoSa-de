@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Loader2, Ambulance, BrainCircuit, User, Key, Hospital, BadgeCheck } from "lucide-react";
+import { ShieldCheck, Loader2, Ambulance, BrainCircuit, User, Key, Hospital, BadgeCheck, Heart } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -81,18 +81,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 relative">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2 relative">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl ring-4 ring-primary/10">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 overflow-x-hidden">
+      {/* Container Principal Centralizado */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md mx-auto space-y-8 py-10">
+        <div className="text-center space-y-3">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl ring-4 ring-primary/10 transition-transform hover:scale-105">
             <Ambulance className="h-8 w-8" />
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-primary">SGov FluxoSaúde</h1>
-          <p className="text-muted-foreground font-semibold uppercase tracking-widest text-[10px]">Prefeitura de Rio Claro - RJ</p>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black tracking-tight text-primary">SGov FluxoSaúde</h1>
+            <p className="text-muted-foreground font-semibold uppercase tracking-widest text-[10px]">Prefeitura de Rio Claro - RJ</p>
+          </div>
         </div>
 
-        <Card className="border-none shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl overflow-hidden">
-          <CardHeader className="bg-primary/5 pb-6 text-center">
+        <Card className="border-none shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl overflow-hidden w-full">
+          <CardHeader className="bg-primary/5 pb-6 text-center border-b border-primary/5">
             <CardTitle className="text-xl flex items-center justify-center gap-2">
               Acesso Identificado <BadgeCheck className="h-5 w-5 text-primary" />
             </CardTitle>
@@ -180,12 +183,12 @@ export default function LoginPage() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col gap-4 pt-2">
+            <CardFooter className="flex flex-col gap-4 pb-8">
               <Button type="submit" className="w-full h-12 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 rounded-xl" disabled={loading}>
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
                 Entrar no Sistema
               </Button>
-              <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-60">
+              <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-40">
                 <BrainCircuit className="h-3.5 w-3.5 text-primary" /> IA & Sigilo Rio Claro
               </div>
             </CardFooter>
@@ -193,12 +196,18 @@ export default function LoginPage() {
         </Card>
       </div>
 
-      {/* Versão fixada no rodapé da página */}
-      <div className="absolute bottom-6 flex justify-center w-full pointer-events-none">
-        <Badge className="bg-emerald-500 text-white border-none font-black text-[10px] h-6 px-3 shadow-lg pointer-events-auto">
+      {/* Rodapé da Página Reorganizado */}
+      <footer className="w-full py-8 flex flex-col items-center gap-4 mt-auto">
+        <Badge className="bg-emerald-500 text-white border-none font-black text-[10px] h-7 px-4 shadow-lg hover:bg-emerald-600 transition-colors">
           v1.0.0 STABLE
         </Badge>
-      </div>
+        <div className="flex flex-col items-center gap-1.5">
+          <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">
+            <Heart className="h-3 w-3 text-rose-500 fill-rose-500" /> PMRC &bull; Secretaria de Ordem Pública
+          </div>
+          <p className="text-[9px] text-muted-foreground/40 font-medium italic">Sistema Municipal de Gestão de Transporte Sanitário</p>
+        </div>
+      </footer>
     </div>
   );
 }
