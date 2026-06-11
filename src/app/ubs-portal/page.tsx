@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -44,21 +45,21 @@ export default function UbsDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-emerald-700">Olá, Gerente Márcia</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-primary">Olá, Gerente Márcia</h2>
           <p className="text-muted-foreground">Monitoramento de transporte para a UBS Central hoje.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
             size="sm" 
-            className="gap-2 border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+            className="gap-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
             onClick={handleGenerateReport}
             disabled={loadingAi}
           >
             <BrainCircuit className={cn("h-4 w-4", loadingAi && "animate-pulse")} />
             {loadingAi ? "Analisando..." : "Resumo de IA da UBS"}
           </Button>
-          <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+          <Button asChild className="bg-primary hover:bg-primary/90">
             <Link href="/ubs-portal/requests" className="gap-2">
               <PlusCircle className="h-4 w-4" /> Novo Pedido
             </Link>
@@ -67,15 +68,15 @@ export default function UbsDashboard() {
       </div>
 
       {aiReport && (
-        <Card className="border-l-4 border-l-emerald-500 bg-emerald-50/30 border-none shadow-sm">
+        <Card className="border-l-4 border-l-primary bg-primary/5 border-none shadow-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-bold text-emerald-700 flex items-center gap-2">
-                <Zap className="h-4 w-4 fill-emerald-500" /> ANÁLISE DE DEMANDA DA UNIDADE
+              <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
+                <Zap className="h-4 w-4 fill-primary" /> ANÁLISE DE DEMANDA DA UNIDADE
               </CardTitle>
               <Badge className={cn(
                 aiReport.priorityLevel === 'high' ? 'bg-rose-100 text-rose-700' : 
-                aiReport.priorityLevel === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                aiReport.priorityLevel === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'
               )}>
                 Atenção: {aiReport.priorityLevel.toUpperCase()}
               </Badge>
@@ -83,7 +84,7 @@ export default function UbsDashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-foreground/90">{aiReport.summary}</p>
-            <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-white w-fit px-3 py-1 rounded-full shadow-sm border border-emerald-100">
+            <div className="flex items-center gap-2 text-xs font-bold text-primary bg-white dark:bg-slate-900 w-fit px-3 py-1 rounded-full shadow-sm border border-primary/10">
               <ArrowRight className="h-3 w-3" /> Recomendação: {aiReport.recommendation}
             </div>
           </CardContent>
@@ -96,7 +97,7 @@ export default function UbsDashboard() {
           value="12" 
           icon={ClipboardList} 
           description="Total solicitado pela UBS"
-          className="border-l-4 border-l-emerald-500"
+          className="border-l-4 border-l-primary"
         />
         <StatsCard 
           title="Aguardando Secretaria" 
@@ -130,7 +131,7 @@ export default function UbsDashboard() {
           <CardContent className="grid gap-4">
             <Button variant="outline" className="justify-start gap-4 h-14" asChild>
               <Link href="/ubs-portal/requests">
-                <div className="bg-emerald-100 p-2 rounded-lg text-emerald-700">
+                <div className="bg-primary/10 p-2 rounded-lg text-primary">
                   <PlusCircle className="h-5 w-5" />
                 </div>
                 <div className="text-left">
@@ -141,7 +142,7 @@ export default function UbsDashboard() {
             </Button>
             <Button variant="outline" className="justify-start gap-4 h-14" asChild>
               <Link href="/ubs-portal/patients">
-                <div className="bg-blue-100 p-2 rounded-lg text-blue-700">
+                <div className="bg-accent/20 p-2 rounded-lg text-accent-foreground">
                   <Users className="h-5 w-5" />
                 </div>
                 <div className="text-left">
@@ -170,7 +171,7 @@ export default function UbsDashboard() {
                     <p className="text-xs text-muted-foreground">{item.destination} • {item.time}</p>
                   </div>
                   <Badge variant="outline" className={cn(
-                    item.status === 'Em Rota' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-blue-50 text-blue-700 border-blue-200"
+                    item.status === 'Em Rota' ? "bg-primary/10 text-primary border-primary/20" : "bg-blue-50 text-blue-700 border-blue-200"
                   )}>
                     {item.status}
                   </Badge>

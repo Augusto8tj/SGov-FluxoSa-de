@@ -1,14 +1,13 @@
+
 "use client";
 
 import * as React from "react";
 import {
   LayoutDashboard,
   Users,
-  PlusCircle,
   ClipboardList,
   LogOut,
-  Settings,
-  Hospital
+  Settings
 } from "lucide-react";
 
 import {
@@ -37,12 +36,12 @@ export function UbsSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-16 flex items-center justify-center">
         <div className="flex items-center gap-2 px-4 w-full">
-          <div className="h-8 w-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-xl">
+          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl">
             U
           </div>
           {state !== "collapsed" && (
             <div className="flex flex-col">
-              <span className="font-bold text-sm leading-none text-emerald-700">UBS Central</span>
+              <span className="font-bold text-sm leading-none text-primary">UBS Central</span>
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Portal da Unidade</span>
             </div>
           )}
