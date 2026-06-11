@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,7 +17,21 @@ import {
   MapPin,
   Phone,
   Mail,
-  UserCheck
+  UserCheck,
+  BrainCircuit,
+  Zap,
+  Loader2,
+  Activity,
+  Gauge,
+  Code,
+  AlertCircle,
+  Bug,
+  Play,
+  Trophy,
+  Timer,
+  CheckCircle2,
+  XCircle,
+  BarChart3
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +58,9 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { runModelTest, ModelTesterOutput } from "@/ai/flows/model-tester-flow";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +69,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+// --- IA MODELS LIST ---
+const AI_MODELS = [
+  { id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", name: "Llama Nemotron Rerank VL 1B (Free)" },
+  { id: "nex-agi/nex-n2-pro:free", name: "Nex AGI: Nex-N2-Pro (Free)" },
+  { id: "sourceful/riverflow-v2.5-pro", name: "Riverflow v2.5 Pro" },
+  { id: "nvidia/nemotron-3.5-content-safety:free", name: "Nvidia Nemotron 3.5 Safety (Free)" },
+  { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)" },
+  { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku (OpenRouter)" },
+  { id: "google/gemini-2.0-flash-lite-preview-02-05:free", name: "Gemini 2.0 Flash Lite (Free)" },
+  { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Estável)" },
+  { id: "openrouter/free", name: "OpenRouter Free Router (Dinâmico)" },
+];
 
 const initialUnits = [
   { id: "UBS-01", name: "UBS Central", address: "Av. 29, 123 - Centro", status: "Ativo" },
@@ -77,6 +106,17 @@ const initialUsers = [
 export default function SettingsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  
+  // --- IA LAB STATE ---
+  const [aiModel, setAiModel] = useState("google/gemini-2.0-flash-lite-preview-02-05:free");
+  const [aiTestPrompt, setAiTestPrompt] = useState("Dê um resumo das metas de saúde pública específicas para o município de Rio Claro, Rio de Janeiro (RJ) para 2024.");
+  const [testResult, setTestResult] = useState<ModelTesterOutput | null>(null);
+  const [isTestingAi, setIsTestingAi] = useState(false);
+  const [isBatchTesting, setIsBatchTesting] = useState(false);
+  const [batchResults, setBatchResults] = useState<(ModelTesterOutput & { modelName: string })[]>([]);
+  const [activeDebugTab, setActiveDebugTab] = useState("response");
+
+  // --- ENTITIES STATE ---
   const [units, setUnits] = useState(initialUnits);
   const [drivers, setDrivers] = useState(initialDrivers);
   const [vehicles, setVehicles] = useState(initialVehicles);
@@ -84,13 +124,10 @@ export default function SettingsPage() {
   
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
   const [newUnit, setNewUnit] = useState({ id: "", name: "", address: "" });
-
   const [isDriverDialogOpen, setIsDriverDialogOpen] = useState(false);
   const [newDriver, setNewDriver] = useState({ id: "", name: "", license: "", phone: "" });
-
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ id: "", plate: "", type: "Ambulância", capacity: 1 });
-
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [newUser, setNewUser] = useState({ id: "", name: "", email: "", role: "UBS_MANAGER" });
 
@@ -98,129 +135,98 @@ export default function SettingsPage() {
     setMounted(true);
   }, []);
 
+  // --- IA LAB HANDLERS ---
+  const handleTestAi = async () => {
+    setIsTestingAi(true);
+    setTestResult(null);
+    try {
+      const result = await runModelTest(aiTestPrompt, aiModel);
+      setTestResult(result);
+      if (result.error) {
+        toast({ variant: "destructive", title: "Erro no Modelo", description: "O modelo retornou um erro. Verifique os dados brutos." });
+      } else {
+        toast({ title: "Análise Concluída", description: `Latência de ${result.latency}ms.` });
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Falha no Laboratório", description: error.message || "Erro inesperado." });
+    } finally {
+      setIsTestingAi(false);
+    }
+  };
+
+  const handleRunAllTests = async () => {
+    setIsBatchTesting(true);
+    setBatchResults([]);
+    toast({ title: "Benchmarking", description: "Testando todos os modelos do laboratório..." });
+    
+    const results = [];
+    for (const model of AI_MODELS) {
+      try {
+        const result = await runModelTest(aiTestPrompt, model.id);
+        results.push({ ...result, modelName: model.name });
+        setBatchResults([...results]);
+      } catch (e) {
+        results.push({ content: "Erro", latency: 0, actualModel: model.id, modelName: model.name, error: "Falha" });
+        setBatchResults([...results]);
+      }
+    }
+    setIsBatchTesting(false);
+    toast({ title: "Concluído", description: "Ranking de performance gerado." });
+  };
+
+  const rankedResults = [...batchResults].sort((a, b) => {
+    if (a.error && !b.error) return 1;
+    if (!a.error && b.error) return -1;
+    return a.latency - b.latency;
+  });
+
+  // --- ENTITIES HANDLERS ---
   const handleSave = (module: string) => {
-    toast({
-      title: "Alterações Salvas",
-      description: `As configurações de ${module} foram atualizadas com sucesso.`,
-    });
+    toast({ title: "Alterações Salvas", description: `As configurações de ${module} foram atualizadas.` });
   };
 
   const handleAddUnit = () => {
-    if (!newUnit.name || !newUnit.address) {
-      toast({ title: "Erro", description: "Preencha todos os campos da unidade.", variant: "destructive" });
-      return;
-    }
-
+    if (!newUnit.name || !newUnit.address) return;
     if (newUnit.id) {
       setUnits(prev => prev.map(u => u.id === newUnit.id ? { ...u, name: newUnit.name, address: newUnit.address } : u));
-      toast({ title: "Unidade Atualizada", description: `${newUnit.name} foi atualizada com sucesso.` });
     } else {
-      const unit = {
-        id: `UBS-0${units.length + 1}`,
-        name: newUnit.name,
-        address: newUnit.address,
-        status: "Ativo"
-      };
-      setUnits(prev => [...prev, unit]);
-      toast({ title: "Unidade Cadastrada", description: `${unit.name} foi adicionada ao sistema.` });
+      setUnits(prev => [...prev, { id: `UBS-0${units.length + 1}`, name: newUnit.name, address: newUnit.address, status: "Ativo" }]);
     }
-
     setIsUnitDialogOpen(false);
     setNewUnit({ id: "", name: "", address: "" });
   };
 
-  const handleEditUnit = (unit: any) => {
-    setNewUnit({ id: unit.id, name: unit.name, address: unit.address });
-    setIsUnitDialogOpen(true);
-  };
-
   const handleAddDriver = () => {
-    if (!newDriver.name || !newDriver.license || !newDriver.phone) {
-      toast({ title: "Erro", description: "Preencha todos os campos do motorista.", variant: "destructive" });
-      return;
-    }
-
+    if (!newDriver.name || !newDriver.license) return;
     if (newDriver.id) {
       setDrivers(prev => prev.map(d => d.id === newDriver.id ? { ...d, name: newDriver.name, license: newDriver.license, phone: newDriver.phone } : d));
-      toast({ title: "Motorista Atualizado", description: `${newDriver.name} foi atualizado com sucesso.` });
     } else {
-      const driver = {
-        id: `D${drivers.length + 1}`,
-        name: newDriver.name,
-        license: newDriver.license,
-        phone: newDriver.phone,
-        status: "Disponível"
-      };
-      setDrivers(prev => [...prev, driver]);
-      toast({ title: "Motorista Cadastrada", description: `${driver.name} foi adicionado ao sistema.` });
+      setDrivers(prev => [...prev, { id: `D${drivers.length + 1}`, name: newDriver.name, license: newDriver.license, phone: newDriver.phone, status: "Disponível" }]);
     }
-
     setIsDriverDialogOpen(false);
     setNewDriver({ id: "", name: "", license: "", phone: "" });
   };
 
-  const handleEditDriver = (driver: any) => {
-    setNewDriver({ id: driver.id, name: driver.name, license: driver.license, phone: driver.phone });
-    setIsDriverDialogOpen(true);
-  };
-
   const handleAddVehicle = () => {
-    if (!newVehicle.plate || !newVehicle.capacity) {
-      toast({ title: "Erro", description: "Preencha os campos obrigatórios do veículo.", variant: "destructive" });
-      return;
-    }
-
+    if (!newVehicle.plate) return;
     if (newVehicle.id) {
-      setVehicles(prev => prev.map(v => v.id === newVehicle.id ? { ...v, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type, capacity: Number(newVehicle.capacity) } : v));
-      toast({ title: "Veículo Atualizado", description: `Dados do veículo ${newVehicle.plate.toUpperCase()} atualizados.` });
+      setVehicles(prev => prev.map(v => v.id === newVehicle.id ? { ...v, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type as any, capacity: newVehicle.capacity } : v));
     } else {
-      const vehicle = {
-        id: `V${vehicles.length + 1}`,
-        plate: newVehicle.plate.toUpperCase(),
-        type: newVehicle.type,
-        capacity: Number(newVehicle.capacity),
-        status: "Operacional"
-      };
-      setVehicles(prev => [...prev, vehicle]);
-      toast({ title: "Veículo Cadastrado", description: `Veículo ${vehicle.plate} adicionado à frota.` });
+      setVehicles(prev => [...prev, { id: `V${vehicles.length + 1}`, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type as any, capacity: newVehicle.capacity, status: "Operacional", available: true }]);
     }
-
     setIsVehicleDialogOpen(false);
     setNewVehicle({ id: "", plate: "", type: "Ambulância", capacity: 1 });
   };
 
-  const handleEditVehicle = (vehicle: any) => {
-    setNewVehicle({ id: vehicle.id, plate: vehicle.plate, type: vehicle.type, capacity: vehicle.capacity });
-    setIsVehicleDialogOpen(true);
-  };
-
   const handleAddUser = () => {
-    if (!newUser.name || !newUser.email) {
-      toast({ title: "Erro", description: "Preencha o nome e o e-mail do usuário.", variant: "destructive" });
-      return;
-    }
-
+    if (!newUser.name || !newUser.email) return;
     if (newUser.id) {
-      setUsers(prev => prev.map(u => u.id === newUser.id ? { ...u, name: newUser.name, email: newUser.email, role: newUser.role } : u));
-      toast({ title: "Usuário Atualizado", description: `Os dados de ${newUser.name} foram salvos.` });
+      setUsers(prev => prev.map(u => u.id === newUser.id ? { ...u, name: newUser.name, email: newUser.email, role: newUser.role as any } : u));
     } else {
-      const user = {
-        id: `U${users.length + 1}`,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role
-      };
-      setUsers(prev => [...prev, user]);
-      toast({ title: "Usuário Cadastrado", description: `${user.name} agora tem acesso ao sistema.` });
+      setUsers(prev => [...prev, { id: `U${users.length + 1}`, name: newUser.name, email: newUser.email, role: newUser.role as any }]);
     }
-
     setIsUserDialogOpen(false);
     setNewUser({ id: "", name: "", email: "", role: "UBS_MANAGER" });
-  };
-
-  const handleEditUser = (user: any) => {
-    setNewUser({ id: user.id, name: user.name, email: user.email, role: user.role });
-    setIsUserDialogOpen(true);
   };
 
   const getRoleBadge = (role: string) => {
@@ -233,27 +239,139 @@ export default function SettingsPage() {
     }
   };
 
-  if (!mounted) {
-    return <div className="p-8 text-center text-muted-foreground">Carregando configurações...</div>;
-  }
+  if (!mounted) return null;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Configurações do Sistema</h2>
-          <p className="text-muted-foreground">Gerenciamento administrativo de entidades e acessos.</p>
+          <p className="text-muted-foreground">Gestão administrativa e Laboratório de IA - Rio Claro, RJ.</p>
         </div>
       </div>
 
-      <Tabs defaultValue="units" className="space-y-4">
-        <TabsList className="bg-white dark:bg-slate-900 border p-1 h-12 shadow-sm w-full md:w-auto overflow-x-auto justify-start">
+      <Tabs defaultValue="ia-lab" className="space-y-4">
+        <TabsList className="bg-white dark:bg-slate-900 border p-1 h-12 shadow-sm w-full md:w-auto overflow-x-auto justify-start no-scrollbar">
+          <TabsTrigger value="ia-lab" className="gap-2 px-4 h-10"><BrainCircuit className="h-4 w-4" /> Laboratório IA</TabsTrigger>
           <TabsTrigger value="units" className="gap-2 px-4 h-10"><Hospital className="h-4 w-4" /> Unidades</TabsTrigger>
           <TabsTrigger value="drivers" className="gap-2 px-4 h-10"><User className="h-4 w-4" /> Motoristas</TabsTrigger>
           <TabsTrigger value="fleet" className="gap-2 px-4 h-10"><Ambulance className="h-4 w-4" /> Frota</TabsTrigger>
           <TabsTrigger value="users" className="gap-2 px-4 h-10"><Users className="h-4 w-4" /> Usuários</TabsTrigger>
           <TabsTrigger value="profiles" className="gap-2 px-4 h-10"><ShieldCheck className="h-4 w-4" /> Perfis</TabsTrigger>
         </TabsList>
+
+        {/* --- TABS CONTENT: IA LABORATORY --- */}
+        <TabsContent value="ia-lab" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-primary/10 rounded-lg"><Zap className="h-5 w-5 text-primary" /></div>
+                    <div>
+                      <CardTitle>Configuração OpenRouter</CardTitle>
+                      <CardDescription>Compare modelos Nvidia, Claude e outros.</CardDescription>
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleRunAllTests} disabled={isBatchTesting || isTestingAi} className="gap-2 text-[10px] font-bold uppercase">
+                    {isBatchTesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
+                    Benchmarking
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">Modelo de IA</Label>
+                  <Select value={aiModel} onValueChange={setAiModel}>
+                    <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {AI_MODELS.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">Prompt de Teste</Label>
+                  <Textarea className="min-h-[100px] resize-none" value={aiTestPrompt} onChange={(e) => setAiTestPrompt(e.target.value)} />
+                </div>
+                <Button className="w-full h-11 uppercase text-xs font-bold gap-2" onClick={handleTestAi} disabled={isTestingAi || isBatchTesting}>
+                  {isTestingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
+                  Executar Teste Cloud
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-sm h-full overflow-hidden flex flex-col">
+              <CardHeader className="bg-primary/5 py-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xs font-black uppercase flex items-center gap-2">
+                    <Gauge className="h-4 w-4 text-primary" /> Telemetria & Debug
+                  </CardTitle>
+                  {testResult && <Badge variant={testResult.error ? "destructive" : "outline"} className="text-[10px]">{testResult.latency}ms</Badge>}
+                </div>
+              </CardHeader>
+              <CardContent className="p-0 flex-1">
+                <Tabs value={activeDebugTab} onValueChange={setActiveDebugTab}>
+                  <TabsList className="bg-transparent border-b rounded-none w-full justify-start px-4 h-10">
+                    <TabsTrigger value="response" className="text-[10px] font-bold uppercase">Resposta</TabsTrigger>
+                    <TabsTrigger value="raw" className="text-[10px] font-bold uppercase gap-1"><Code className="h-3 w-3" /> Bruto</TabsTrigger>
+                  </TabsList>
+                  <div className="p-4 overflow-y-auto max-h-[300px]">
+                    <TabsContent value="response">
+                      {testResult ? (
+                        <div className={cn("p-4 rounded-lg text-sm border", testResult.error ? "bg-destructive/10 text-destructive" : "bg-muted/30")}>
+                          {testResult.error && <p className="font-bold uppercase text-[10px] mb-1">ERRO:</p>}
+                          {testResult.error || testResult.content}
+                        </div>
+                      ) : <div className="text-center py-10 opacity-30 uppercase text-[10px] font-bold">Aguardando Execução</div>}
+                    </TabsContent>
+                    <TabsContent value="raw">
+                      {testResult?.rawResponse ? (
+                        <pre className="p-4 bg-slate-950 text-emerald-400 rounded-lg text-[10px] font-mono overflow-x-auto">
+                          {JSON.stringify(testResult.rawResponse, null, 2)}
+                        </pre>
+                      ) : <div className="text-center py-10 opacity-30 uppercase text-[10px] font-bold">Sem dados brutos</div>}
+                    </TabsContent>
+                  </div>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+
+          {(batchResults.length > 0 || isBatchTesting) && (
+            <Card className="border-none shadow-sm">
+              <CardHeader><CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Ranking de Performance</CardTitle></CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">Pos</TableHead>
+                      <TableHead>Modelo</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Latência</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {rankedResults.map((result, idx) => (
+                      <TableRow key={result.actualModel} className={cn(result.error && "opacity-50")}>
+                        <TableCell className="text-center font-bold">
+                          {idx < 3 && !result.error ? <Trophy className={cn("h-4 w-4 mx-auto", idx === 0 ? "text-amber-500" : idx === 1 ? "text-slate-400" : "text-amber-700")} /> : idx + 1}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col"><span className="font-bold text-sm">{result.modelName}</span><span className="text-[9px] text-muted-foreground uppercase">{result.actualModel}</span></div>
+                        </TableCell>
+                        <TableCell>{result.error ? <Badge variant="destructive">ERRO</Badge> : <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">OK</Badge>}</TableCell>
+                        <TableCell className="text-right font-mono text-xs">{result.latency}ms</TableCell>
+                      </TableRow>
+                    ))}
+                    {isBatchTesting && rankedResults.length < AI_MODELS.length && (
+                      <TableRow><TableCell colSpan={4} className="text-center py-6 text-xs text-muted-foreground animate-pulse">Processando {rankedResults.length + 1} de {AI_MODELS.length}...</TableCell></TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
 
         <TabsContent value="units">
           <Card className="border-none shadow-sm">
@@ -271,33 +389,21 @@ export default function SettingsPage() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>{newUnit.id ? "Editar Unidade" : "Nova Unidade de Saúde"}</DialogTitle>
-                    <DialogDescription>
-                      {newUnit.id ? "Atualize os dados do ponto de atendimento." : "Cadastre um novo ponto de atendimento em Rio Claro - RJ."}
-                    </DialogDescription>
+                    <DialogDescription>Atualize os dados do ponto de atendimento em Rio Claro - RJ.</DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
                       <Label htmlFor="unit-name">Nome da UBS</Label>
-                      <Input 
-                        id="unit-name" 
-                        placeholder="Ex: UBS Lídice" 
-                        value={newUnit.name}
-                        onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))}
-                      />
+                      <Input id="unit-name" value={newUnit.name} onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))} />
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="unit-address">Endereço</Label>
-                      <Input 
-                        id="unit-address" 
-                        placeholder="Rua, Número - Bairro" 
-                        value={newUnit.address}
-                        onChange={(e) => setNewUnit(prev => ({ ...prev, address: e.target.value }))}
-                      />
+                      <Input id="unit-address" value={newUnit.address} onChange={(e) => setNewUnit(prev => ({ ...prev, address: e.target.value }))} />
                     </div>
                   </div>
                   <DialogFooter>
                     <Button variant="ghost" onClick={() => setIsUnitDialogOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleAddUnit}>{newUnit.id ? "Salvar Alterações" : "Salvar Unidade"}</Button>
+                    <Button onClick={handleAddUnit}>Salvar Unidade</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -319,22 +425,7 @@ export default function SettingsPage() {
                       <TableCell>{unit.address}</TableCell>
                       <TableCell><Badge variant="secondary">{unit.status}</Badge></TableCell>
                       <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditUnit(unit); }}>
-                              <Edit className="h-4 w-4 mr-2" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onSelect={() => {
-                              setUnits(prev => prev.filter(u => u.id !== unit.id));
-                              toast({ title: "Unidade Removida", description: "A unidade foi excluída do sistema.", variant: "destructive" });
-                            }}>
-                              <Trash2 className="h-4 w-4 mr-2" /> Remover
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <Button variant="ghost" size="icon" onClick={() => { setNewUnit(unit); setIsUnitDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -349,99 +440,28 @@ export default function SettingsPage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Corpo de Motoristas</CardTitle>
-                <CardDescription>Gestão de condutores, habilitações e contatos.</CardDescription>
+                <CardDescription>Gestão de condutores e habilitações.</CardDescription>
               </div>
               <Dialog open={isDriverDialogOpen} onOpenChange={setIsDriverDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2" onClick={() => setNewDriver({ id: "", name: "", license: "", phone: "" })}>
-                    <Plus className="h-4 w-4" /> Novo Motorista
-                  </Button>
+                  <Button className="gap-2" onClick={() => setNewDriver({ id: "", name: "", license: "", phone: "" })}><Plus className="h-4 w-4" /> Novo Motorista</Button>
                 </DialogTrigger>
                 <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{newDriver.id ? "Editar Motorista" : "Novo Motorista"}</DialogTitle>
-                    <DialogDescription>
-                      {newDriver.id ? "Atualize os dados do condutor." : "Cadastre um novo condutor para a frota municipal."}
-                    </DialogDescription>
-                  </DialogHeader>
+                  <DialogHeader><DialogTitle>Cadastro de Motorista</DialogTitle></DialogHeader>
                   <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="driver-name">Nome Completo</Label>
-                      <Input 
-                        id="driver-name" 
-                        placeholder="Ex: Carlos Alberto Silva" 
-                        value={newDriver.name}
-                        onChange={(e) => setNewDriver(prev => ({ ...prev, name: e.target.value }))}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="driver-license">CNH / Categoria / Vencimento</Label>
-                      <Input 
-                        id="driver-license" 
-                        placeholder="Cat. D - 00/00/0000" 
-                        value={newDriver.license}
-                        onChange={(e) => setNewDriver(prev => ({ ...prev, license: e.target.value }))}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="driver-phone">Telefone / WhatsApp</Label>
-                      <Input 
-                        id="driver-phone" 
-                        placeholder="(19) 90000-0000" 
-                        value={newDriver.phone}
-                        onChange={(e) => setNewDriver(prev => ({ ...prev, phone: e.target.value }))}
-                      />
-                    </div>
+                    <div className="grid gap-2"><Label>Nome</Label><Input value={newDriver.name} onChange={(e) => setNewDriver(prev => ({ ...prev, name: e.target.value }))} /></div>
+                    <div className="grid gap-2"><Label>CNH / Vencimento</Label><Input value={newDriver.license} onChange={(e) => setNewDriver(prev => ({ ...prev, license: e.target.value }))} /></div>
                   </div>
-                  <DialogFooter>
-                    <Button variant="ghost" onClick={() => setIsDriverDialogOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleAddDriver}>{newDriver.id ? "Salvar Alterações" : "Salvar Motorista"}</Button>
-                  </DialogFooter>
+                  <DialogFooter><Button onClick={handleAddDriver}>Salvar Motorista</Button></DialogFooter>
                 </DialogContent>
               </Dialog>
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>CNH / Vencimento</TableHead>
-                    <TableHead>Telefone / Zap</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>CNH</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {drivers.map((driver) => (
-                    <TableRow key={driver.id}>
-                      <TableCell className="font-medium">{driver.name}</TableCell>
-                      <TableCell>{driver.license}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Phone className="h-3 w-3 text-emerald-600" />
-                          <span className="text-xs">{driver.phone}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell><Badge className="bg-emerald-100 text-emerald-700">{driver.status}</Badge></TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditDriver(driver); }}>
-                              <Edit className="h-4 w-4 mr-2" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onSelect={() => {
-                              setDrivers(prev => prev.filter(d => d.id !== driver.id));
-                              toast({ title: "Motorista Removido", description: "O cadastro foi excluído.", variant: "destructive" });
-                            }}>
-                              <Trash2 className="h-4 w-4 mr-2" /> Remover
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                  {drivers.map(d => (
+                    <TableRow key={d.id}><TableCell>{d.name}</TableCell><TableCell>{d.license}</TableCell><TableCell><Badge>{d.status}</Badge></TableCell></TableRow>
                   ))}
                 </TableBody>
               </Table>
@@ -453,106 +473,25 @@ export default function SettingsPage() {
           <Card className="border-none shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Configuração da Frota</CardTitle>
-                <CardDescription>Cadastro técnico de veículos municipais.</CardDescription>
+                <CardTitle>Frota Municipal</CardTitle>
+                <CardDescription>Gestão técnica dos veículos.</CardDescription>
               </div>
               <Dialog open={isVehicleDialogOpen} onOpenChange={setIsVehicleDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2" onClick={() => setNewVehicle({ id: "", plate: "", type: "Ambulância", capacity: 1 })}>
-                    <Plus className="h-4 w-4" /> Cadastrar Veículo
-                  </Button>
-                </DialogTrigger>
+                <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> Novo Veículo</Button></DialogTrigger>
                 <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{newVehicle.id ? "Editar Veículo" : "Novo Veículo"}</DialogTitle>
-                    <DialogDescription>
-                      {newVehicle.id ? "Atualize as informações do veículo." : "Adicione um novo veículo para o transporte sanitário."}
-                    </DialogDescription>
-                  </DialogHeader>
                   <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="v-plate">Placa</Label>
-                      <Input 
-                        id="v-plate" 
-                        placeholder="AAA-0000" 
-                        value={newVehicle.plate}
-                        onChange={(e) => setNewVehicle(prev => ({ ...prev, plate: e.target.value }))}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Tipo</Label>
-                        <Select 
-                          value={newVehicle.type} 
-                          onValueChange={(val) => setNewVehicle(prev => ({ ...prev, type: val as any }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Ambulância">Ambulância</SelectItem>
-                            <SelectItem value="Van">Van</SelectItem>
-                            <SelectItem value="Sedan">Sedan</SelectItem>
-                            <SelectItem value="Acessível">Acessível</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="v-cap">Capacidade</Label>
-                        <Input 
-                          id="v-cap" 
-                          type="number" 
-                          value={newVehicle.capacity}
-                          onChange={(e) => setNewVehicle(prev => ({ ...prev, capacity: Number(e.target.value) }))}
-                        />
-                      </div>
-                    </div>
+                    <div className="grid gap-2"><Label>Placa</Label><Input value={newVehicle.plate} onChange={(e) => setNewVehicle(prev => ({ ...prev, plate: e.target.value }))} /></div>
+                    <div className="grid gap-2"><Label>Tipo</Label><Input value={newVehicle.type} onChange={(e) => setNewVehicle(prev => ({ ...prev, type: e.target.value as any }))} /></div>
                   </div>
-                  <DialogFooter>
-                    <Button variant="ghost" onClick={() => setIsVehicleDialogOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleAddVehicle}>{newVehicle.id ? "Salvar Alterações" : "Salvar Veículo"}</Button>
-                  </DialogFooter>
+                  <DialogFooter><Button onClick={handleAddVehicle}>Salvar</Button></DialogFooter>
                 </DialogContent>
               </Dialog>
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Placa</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Capacidade</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader><TableRow><TableHead>Placa</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {vehicles.map((vehicle) => (
-                    <TableRow key={vehicle.id}>
-                      <TableCell className="font-mono">{vehicle.plate}</TableCell>
-                      <TableCell>{vehicle.type}</TableCell>
-                      <TableCell>{vehicle.capacity} {vehicle.capacity === 1 ? 'Paciente' : 'Pacientes'}</TableCell>
-                      <TableCell><Badge className="bg-emerald-100 text-emerald-700">{vehicle.status}</Badge></TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditVehicle(vehicle); }}>
-                              <Edit className="h-4 w-4 mr-2" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onSelect={() => {
-                              setVehicles(prev => prev.filter(v => v.id !== vehicle.id));
-                              toast({ title: "Veículo Removido", description: "O veículo foi excluído da frota.", variant: "destructive" });
-                            }}>
-                              <Trash2 className="h-4 w-4 mr-2" /> Remover
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {vehicles.map(v => (<TableRow key={v.id}><TableCell className="font-mono">{v.plate}</TableCell><TableCell>{v.type}</TableCell><TableCell><Badge>{v.status}</Badge></TableCell></TableRow>))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -562,116 +501,14 @@ export default function SettingsPage() {
         <TabsContent value="users">
           <Card className="border-none shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Usuários do Sistema</CardTitle>
-                <CardDescription>Gerencie quem acessa as plataformas de gestão e operação.</CardDescription>
-              </div>
-              <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2" onClick={() => setNewUser({ id: "", name: "", email: "", role: "UBS_MANAGER" })}>
-                    <Plus className="h-4 w-4" /> Novo Usuário
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{newUser.id ? "Editar Usuário" : "Cadastrar Novo Usuário"}</DialogTitle>
-                    <DialogDescription>Defina as credenciais e permissões de acesso.</DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="u-name">Nome Completo</Label>
-                      <Input 
-                        id="u-name" 
-                        placeholder="Ex: João da Silva" 
-                        value={newUser.name}
-                        onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="u-email">E-mail Institucional</Label>
-                      <Input 
-                        id="u-email" 
-                        type="email"
-                        placeholder="usuario@rioclaro.rj.gov.br" 
-                        value={newUser.email}
-                        onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>Perfil de Acesso</Label>
-                      <Select 
-                        value={newUser.role} 
-                        onValueChange={(val) => setNewUser(prev => ({ ...prev, role: val as any }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o papel" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="SECRETARY">Secretário</SelectItem>
-                          <SelectItem value="UBS_MANAGER">Gerente UBS</SelectItem>
-                          <SelectItem value="DRIVER">Motorista (Acesso Móvel)</SelectItem>
-                          <SelectItem value="ADMIN">Administrador</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="ghost" onClick={() => setIsUserDialogOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleAddUser}>{newUser.id ? "Salvar Alterações" : "Criar Usuário"}</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <div><CardTitle>Usuários do Sistema</CardTitle><CardDescription>Gestão de acessos.</CardDescription></div>
+              <Button className="gap-2" onClick={() => setIsUserDialogOpen(true)}><Plus className="h-4 w-4" /> Novo Usuário</Button>
             </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Perfil</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Papel</TableHead></TableRow></TableHeader>
                 <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          <UserCheck className="h-4 w-4 text-primary" />
-                          {user.name}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Mail className="h-3 w-3" />
-                          {user.email}
-                        </div>
-                      </TableCell>
-                      <TableCell>{getRoleBadge(user.role)}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditUser(user); }}>
-                              <Edit className="h-4 w-4 mr-2" /> Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => toast({ title: "Segurança", description: `Um link de redefinição de senha foi enviado para ${user.email}.` })}>
-                              <Key className="h-4 w-4 mr-2" /> Resetar Senha
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive" onSelect={() => {
-                              setUsers(prev => prev.filter(u => u.id !== user.id));
-                              toast({ title: "Acesso Revogado", description: `O usuário ${user.name} foi removido do sistema.`, variant: "destructive" });
-                            }}>
-                              <Trash2 className="h-4 w-4 mr-2" /> Remover
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {users.map(u => (<TableRow key={u.id}><TableCell>{u.name}</TableCell><TableCell>{getRoleBadge(u.role)}</TableCell></TableRow>))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -679,59 +516,16 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="profiles">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="border-none shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg">Estrutura de Perfis</CardTitle>
-                <CardDescription>Defina as permissões por grupo de usuário.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="text-sm font-bold">Secretário</p>
-                    <p className="text-[10px] text-muted-foreground">Acesso Total + Auditoria</p>
-                  </div>
-                  <Badge className="bg-primary">SECRETARY</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="text-sm font-bold">Gerente UBS</p>
-                    <p className="text-[10px] text-muted-foreground">Solicitação e Cadastro de Pacientes</p>
-                  </div>
-                  <Badge className="bg-emerald-600">UBS_MANAGER</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                  <div>
-                    <p className="text-sm font-bold">Motorista</p>
-                    <p className="text-[10px] text-muted-foreground">Acesso Mobile / Itinerários</p>
-                  </div>
-                  <Badge className="bg-accent text-accent-foreground">DRIVER</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-sm bg-primary/5">
-              <CardHeader>
-                <CardTitle className="text-lg text-primary">Segurança e Auditoria</CardTitle>
-                <CardDescription>Políticas globais de acesso.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-2">
-                  <Label>Tempo de Sessão (minutos)</Label>
-                  <Input type="number" defaultValue="120" className="bg-white dark:bg-slate-900" />
-                </div>
-                <div className="flex items-center gap-2 p-3 bg-white dark:bg-slate-900 rounded-lg border border-primary/10">
-                  <Key className="h-5 w-5 text-primary" />
-                  <div className="flex-1">
-                    <p className="text-xs font-bold">Autenticação de Dois Fatores</p>
-                    <p className="text-[10px] text-muted-foreground">Obrigatória para perfis Administrativos.</p>
-                  </div>
-                  <Badge className="bg-emerald-100 text-emerald-700">Ativado</Badge>
-                </div>
-                <Button className="w-full mt-4" onClick={() => handleSave("Perfis")}>Salvar Políticas</Button>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="border-none shadow-sm bg-primary/5">
+            <CardHeader><CardTitle>Segurança e Auditoria</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg border">
+                <div><p className="text-sm font-bold">Autenticação 2FA</p><p className="text-xs text-muted-foreground">Obrigatória para admins.</p></div>
+                <Badge className="bg-emerald-100 text-emerald-700">ATIVO</Badge>
+              </div>
+              <Button className="w-full" onClick={() => handleSave("Segurança")}>Salvar Políticas</Button>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

@@ -1,0 +1,85 @@
+'use server';
+/**
+ * @fileOverview Fluxo Genkit para testar modelos da OpenRouter.
+ * Permite medir latência, consumo de tokens e validar respostas brutas.
+ */
+
+import { z } from 'genkit';
+import { ai } from '@/ai/genkit';
+
+const ModelTesterInputSchema = z.object({
+  prompt: z.string(),
+  modelId: z.string(),
+});
+
+const ModelTesterOutputSchema = z.object({
+  content: z.string(),
+  latency: z.number(),
+  actualModel: z.string(),
+  tokens: z.number().optional(),
+  error: z.string().optional(),
+  rawResponse: z.any().optional(),
+});
+
+export type ModelTesterOutput = z.infer<typeof ModelTesterOutputSchema>;
+
+export async function runModelTest(prompt: string, modelId: string): Promise<ModelTesterOutput> {
+  const startTime = Date.now();
+  
+  try {
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    
+    if (!apiKey) {
+      return {
+        content: "",
+        latency: 0,
+        actualModel: modelId,
+        error: "OPENROUTER_API_KEY não configurada no ambiente."
+      };
+    }
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "HTTP-Referer": "https://sgov-fluxosaude.gov.br",
+        "X-Title": "SGov FluxoSaúde Lab",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: modelId,
+        messages: [{ role: "user", content: prompt }],
+      })
+    });
+
+    const data = await response.json();
+    const endTime = Date.now();
+    const latency = endTime - startTime;
+
+    if (!response.ok) {
+      return {
+        content: "",
+        latency,
+        actualModel: modelId,
+        error: data.error?.message || `Erro HTTP ${response.status}`,
+        rawResponse: data
+      };
+    }
+
+    return {
+      content: data.choices?.[0]?.message?.content || "Sem resposta.",
+      latency,
+      actualModel: data.model || modelId,
+      tokens: data.usage?.total_tokens,
+      rawResponse: data
+    };
+
+  } catch (error: any) {
+    return {
+      content: "",
+      latency: Date.now() - startTime,
+      actualModel: modelId,
+      error: error.message || "Erro de conexão com OpenRouter."
+    };
+  }
+}
