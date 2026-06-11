@@ -57,9 +57,51 @@ export const MOCK_REQUESTS: TransportRequest[] = [
 ];
 
 export const MOCK_VEHICLES: Vehicle[] = [
-  { id: "V1", type: "Ambulância", licensePlate: "ABC-1234", capacity: 2, available: true, status: 'AVAILABLE' },
-  { id: "V2", type: "Van", licensePlate: "XYZ-5678", capacity: 12, available: false, status: 'IN_USE' },
-  { id: "V3", type: "Acessível", licensePlate: "LMN-3456", capacity: 1, available: true, status: 'AVAILABLE' },
+  { 
+    id: "V1", 
+    type: "Ambulância", 
+    licensePlate: "ABC-1234", 
+    capacity: 2, 
+    available: true, 
+    status: 'AVAILABLE',
+    odometer: 12450,
+    fuelLevel: 85,
+    lastMaintenance: "2024-04-12",
+    nextMaintenance: "2024-06-15",
+    insuranceExpiry: "2024-12-31",
+    lastSanitization: "2024-05-20 07:00",
+    assignedDriverName: "Carlos Alberto Silva"
+  },
+  { 
+    id: "V2", 
+    type: "Van", 
+    licensePlate: "XYZ-5678", 
+    capacity: 12, 
+    available: false, 
+    status: 'IN_USE',
+    odometer: 45600,
+    fuelLevel: 40,
+    lastMaintenance: "2024-03-05",
+    nextMaintenance: "2024-07-10",
+    insuranceExpiry: "2024-10-15",
+    lastSanitization: "2024-05-20 06:30",
+    assignedDriverName: "Marcos Pereira"
+  },
+  { 
+    id: "V3", 
+    type: "Acessível", 
+    licensePlate: "LMN-3456", 
+    capacity: 1, 
+    available: true, 
+    status: 'AVAILABLE',
+    odometer: 8900,
+    fuelLevel: 95,
+    lastMaintenance: "2024-05-01",
+    nextMaintenance: "2024-08-01",
+    insuranceExpiry: "2025-01-20",
+    lastSanitization: "2024-05-20 08:15",
+    assignedDriverName: "Ana Cláudia"
+  },
 ];
 
 export const MOCK_DRIVERS: Driver[] = [

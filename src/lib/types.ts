@@ -46,6 +46,17 @@ export interface Vehicle {
   capacity: number;
   available: boolean;
   status?: 'AVAILABLE' | 'MAINTENANCE' | 'IN_USE';
+  
+  // Informações Técnicas Adicionais
+  odometer?: number;
+  fuelLevel?: number; // 0-100
+  lastMaintenance?: string;
+  nextMaintenance?: string;
+  insuranceExpiry?: string;
+  lastSanitization?: string;
+  assignedDriverId?: string;
+  assignedDriverName?: string;
+
   createdAt?: string;
   updatedAt?: string;
 }
