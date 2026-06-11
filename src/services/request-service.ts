@@ -10,7 +10,8 @@ import {
   query, 
   orderBy,
   where,
-  Timestamp 
+  Timestamp,
+  writeBatch
 } from "firebase/firestore";
 import { TransportRequest } from "@/lib/types";
 import { MOCK_REQUESTS } from "@/lib/mock-data";
@@ -105,5 +106,31 @@ export const requestService = {
       console.error("Error deleting request:", error);
       throw new Error("Falha ao remover solicitação.");
     }
+  },
+
+  /**
+   * Atualiza múltiplas solicitações para atribuir um manifesto em lote.
+   */
+  async createManifestBatch(assignments: any[]): Promise<void> {
+    const batch = writeBatch(db);
+    
+    assignments.forEach((assign) => {
+      const manifestId = `MF-${Date.now().toString().slice(-6)}-${assign.vehicleId}`;
+      assign.route.forEach((requestId: string) => {
+        // Ignora se for ID de mock que começa com REQ-
+        if (requestId.startsWith('REQ-')) return;
+        
+        const docRef = doc(db, COLLECTION_NAME, requestId);
+        batch.update(docRef, {
+          manifestId,
+          driverId: assign.driverName,
+          vehicleId: assign.vehicleType,
+          assignedAt: new Date().toISOString(),
+          status: 'APPROVED'
+        });
+      });
+    });
+
+    await batch.commit();
   }
 };
