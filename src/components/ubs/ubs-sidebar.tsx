@@ -10,7 +10,8 @@ import {
   PhoneCall,
   Clock,
   MapPin,
-  ExternalLink
+  ExternalLink,
+  Route
 } from "lucide-react";
 
 import {
@@ -40,6 +41,7 @@ import { useAuth } from "@/hooks/use-auth";
 const menuItems = [
   { title: "Início UBS", icon: LayoutDashboard, url: "/ubs-portal" },
   { title: "Novas Solicitações", icon: ClipboardList, url: "/ubs-portal/requests" },
+  { title: "Manifestos de Viagem", icon: Route, url: "/ubs-portal/manifests" },
   { title: "Meus Pacientes", icon: Users, url: "/ubs-portal/patients" },
 ];
 
