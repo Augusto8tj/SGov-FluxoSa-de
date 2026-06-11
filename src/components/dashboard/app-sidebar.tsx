@@ -26,6 +26,7 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/hooks/use-auth";
 
 const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
@@ -39,6 +40,7 @@ const menuItems = [
 
 export function AppSidebar() {
   const { state } = useSidebar();
+  const { logout } = useAuth();
   
   return (
     <Sidebar collapsible="icon">
@@ -81,7 +83,11 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Sair" className="text-destructive hover:text-destructive">
+            <SidebarMenuButton 
+              tooltip="Sair" 
+              className="text-destructive hover:text-destructive"
+              onClick={logout}
+            >
               <LogOut className="size-5" />
               <span>Sair</span>
             </SidebarMenuButton>

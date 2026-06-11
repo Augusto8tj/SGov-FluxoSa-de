@@ -3,6 +3,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { ShieldCheck, Loader2, Ambulance, BrainCircuit, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,40 +20,41 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulação de delay de rede
-    setTimeout(() => {
-      setLoading(false);
-      
-      // Superusuário Hardcoded
-      if (email === "admin@rioclaro.rj.gov.br" && password === "admin123") {
-        toast({
-          title: "Acesso de Superusuário",
-          description: "Bem-vindo ao centro de comando administrativo.",
-        });
-        router.push("/dashboard");
-        return;
-      }
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      // Lógica de acesso por perfil para testes rápidos
+      toast({
+        title: "Acesso Autorizado",
+        description: `Bem-vindo, ${user.email}`,
+      });
+
+      // Redirecionamento simples baseado no email para esta etapa
       const lowerEmail = email.toLowerCase();
-      if (lowerEmail.includes("secretario")) {
-        router.push("/dashboard");
-      } else if (lowerEmail.includes("ubs")) {
-        router.push("/ubs-portal");
-      } else if (lowerEmail.includes("motorista")) {
+      if (lowerEmail.includes("motorista")) {
         router.push("/driver");
       } else {
-        toast({
-          title: "Acesso Negado",
-          description: "Credenciais inválidas ou usuário não reconhecido.",
-          variant: "destructive"
-        });
+        router.push("/dashboard");
       }
-    }, 1200);
+    } catch (error: any) {
+      console.error("Erro de login:", error);
+      let message = "Credenciais inválidas ou erro de conexão.";
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        message = "E-mail ou senha incorretos.";
+      }
+      
+      toast({
+        title: "Falha na Autenticação",
+        description: message,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -75,7 +78,7 @@ export default function LoginPage() {
               <Alert className="bg-primary/5 border-primary/20">
                 <AlertCircle className="h-4 w-4 text-primary" />
                 <AlertDescription className="text-[10px] text-primary font-medium">
-                  Use <strong>admin@rioclaro.rj.gov.br</strong> / <strong>admin123</strong> para acesso total.
+                  Utilize suas credenciais institucionais cadastradas no sistema.
                 </AlertDescription>
               </Alert>
 
@@ -84,7 +87,7 @@ export default function LoginPage() {
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="ex: admin@rioclaro.rj.gov.br" 
+                  placeholder="ex: secretario@rioclaro.rj.gov.br" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required 

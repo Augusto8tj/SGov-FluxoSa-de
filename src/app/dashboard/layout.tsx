@@ -1,14 +1,42 @@
 
+"use client";
+
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ThemeSelector } from "@/components/theme-selector";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+          <p className="text-sm font-medium text-muted-foreground">Verificando credenciais...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -22,11 +50,11 @@ export default function DashboardLayout({
           <div className="flex items-center gap-2 sm:gap-4">
             <ThemeSelector />
             <div className="text-right hidden xs:block">
-              <p className="text-[10px] sm:text-xs font-medium truncate max-w-[80px] sm:max-w-none">Dr. Ricardo Silva</p>
-              <p className="text-[8px] sm:text-[10px] text-muted-foreground uppercase">Secretário</p>
+              <p className="text-[10px] sm:text-xs font-medium truncate max-w-[80px] sm:max-w-none">{user.email?.split('@')[0]}</p>
+              <p className="text-[8px] sm:text-[10px] text-muted-foreground uppercase">Autenticado</p>
             </div>
-            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-accent flex items-center justify-center text-primary font-bold text-[10px] sm:text-xs shrink-0">
-              RS
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-accent flex items-center justify-center text-primary font-bold text-[10px] sm:text-xs shrink-0 uppercase">
+              {user.email?.[0] || 'U'}
             </div>
           </div>
         </header>

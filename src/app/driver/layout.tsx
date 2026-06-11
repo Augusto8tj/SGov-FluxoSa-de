@@ -1,16 +1,43 @@
-import { Metadata } from "next";
-import { ThemeSelector } from "@/components/theme-selector";
 
-export const metadata: Metadata = {
-  title: 'SGov Motorista - Rio Claro, RJ',
-  description: 'Módulo móvel para motoristas de transporte sanitário',
-};
+"use client";
+
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Loader2, LayoutDashboard, ShieldAlert } from "lucide-react";
+import { ThemeSelector } from "@/components/theme-selector";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function DriverLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
+          <p className="text-sm font-medium text-muted-foreground">Sincronizando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-body antialiased pb-20 max-w-md mx-auto border-x shadow-xl">
       <header className="bg-primary p-4 text-white sticky top-0 z-50 shadow-md">
@@ -21,8 +48,8 @@ export default function DriverLayout({
           </div>
           <div className="flex items-center gap-2">
             <ThemeSelector />
-            <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
-              CS
+            <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold uppercase">
+              {user.email?.[0] || 'M'}
             </div>
           </div>
         </div>
@@ -31,14 +58,26 @@ export default function DriverLayout({
         {children}
       </main>
       <nav className="fixed bottom-0 w-full max-w-md bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-around p-2 z-50">
-        <a href="/driver" className="flex flex-col items-center p-2 text-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-layout-dashboard"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+        <Link 
+          href="/driver" 
+          className={cn(
+            "flex flex-col items-center p-2",
+            pathname === "/driver" ? "text-primary" : "text-slate-400"
+          )}
+        >
+          <LayoutDashboard className="size-6" />
           <span className="text-[10px] font-bold mt-1">Início</span>
-        </a>
-        <a href="/driver/guidelines" className="flex flex-col items-center p-2 text-slate-400 hover:text-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield-alert"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        </Link>
+        <Link 
+          href="/driver/guidelines" 
+          className={cn(
+            "flex flex-col items-center p-2",
+            pathname === "/driver/guidelines" ? "text-primary" : "text-slate-400"
+          )}
+        >
+          <ShieldAlert className="size-6" />
           <span className="text-[10px] font-bold mt-1">Protocolos</span>
-        </a>
+        </Link>
       </nav>
     </div>
   );
