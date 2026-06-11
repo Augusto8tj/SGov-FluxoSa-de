@@ -29,6 +29,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { generateSystemInsights, SystemInsightsOutput } from "@/ai/flows/generate-system-insights-flow";
+import { useToast } from "@/hooks/use-toast";
 
 const chartData = [
   { name: "Central", count: 24 },
@@ -42,6 +43,7 @@ export default function DashboardPage() {
   const [isWithinWindow, setIsWithinWindow] = useState(false);
   const [aiBriefing, setAiBriefing] = useState<SystemInsightsOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkTime = () => {
@@ -66,8 +68,17 @@ export default function DashboardPage() {
         currentHour: new Date().getHours()
       });
       setAiBriefing(result);
+      toast({
+        title: "Briefing Atualizado",
+        description: "Insights gerados com sucesso pela assistência de IA.",
+      });
     } catch (error) {
       console.error("Erro ao gerar briefing", error);
+      toast({
+        variant: "destructive",
+        title: "IA Temporariamente Indisponível",
+        description: "O modelo de IA está com alta demanda. Por favor, tente novamente em alguns instantes.",
+      });
     } finally {
       setLoadingAi(false);
     }

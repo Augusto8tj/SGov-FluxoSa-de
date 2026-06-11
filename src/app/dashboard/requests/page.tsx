@@ -91,16 +91,24 @@ export default function RequestsPage() {
 
   const handleAiUrgency = async () => {
     if (!patientNotes || !destination) {
-      toast({ title: "Dados incompletos", description: "Preencha destino e notas.", variant: "destructive" });
+      toast({ title: "Dados incompletos", description: "Preencha destino e notas para a análise.", variant: "destructive" });
       return;
     }
     setIsClassifying(true);
     try {
       const result = await classifyUrgency({ patientNotes, destination });
       setSuggestedUrgency(result.suggestedUrgency);
-      toast({ title: "Análise concluída", description: result.reasoning });
+      toast({ 
+        title: "Triagem Concluída", 
+        description: `Sugestão: ${result.suggestedUrgency.toUpperCase()}. ${result.reasoning}` 
+      });
     } catch (error) {
-      toast({ title: "Erro na IA", description: "Tente novamente mais tarde.", variant: "destructive" });
+      console.error("Erro na classificação IA", error);
+      toast({ 
+        variant: "destructive",
+        title: "IA Indisponível", 
+        description: "O serviço de triagem inteligente está temporariamente fora do ar. Por favor, classifique manualmente." 
+      });
     } finally {
       setIsClassifying(false);
     }
