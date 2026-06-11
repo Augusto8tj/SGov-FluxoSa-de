@@ -25,10 +25,26 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
+    const lowerEmail = email.toLowerCase();
+
+    // 1. Priorizar acesso de demonstração para evitar erros de API Key em ambiente de prototipagem
+    if (lowerEmail.endsWith("@rioclaro.rj.gov.br") && password === "admin123") {
+      toast({
+        title: "Acesso de Demonstração",
+        description: `Bem-vindo, entrando no modo de teste.`,
+      });
+
+      if (lowerEmail.includes("motorista")) {
+        router.push("/driver");
+      } else {
+        router.push("/dashboard");
+      }
+      setLoading(false);
+      return;
+    }
+
+    // 2. Tentar autenticação real apenas se não for uma credencial de demonstração padrão
     try {
-      // Nota: Em um ambiente real, você deve criar estes usuários no Firebase Console.
-      // Para fins de prototipagem, o sistema aceitará qualquer login se as chaves forem de teste,
-      // ou tentará o Firebase Auth real se as chaves estiverem configuradas.
       await signInWithEmailAndPassword(auth, email, password);
       
       toast({
@@ -36,7 +52,6 @@ export default function LoginPage() {
         description: `Bem-vindo ao SGov FluxoSaúde.`,
       });
 
-      const lowerEmail = email.toLowerCase();
       if (lowerEmail.includes("motorista")) {
         router.push("/driver");
       } else {
@@ -45,26 +60,17 @@ export default function LoginPage() {
     } catch (error: any) {
       console.error("Erro de login:", error);
       
-      // Fallback para desenvolvimento: Se o Firebase não estiver configurado ou usuário não existir,
-      // permitimos o acesso se o e-mail seguir o padrão de demonstração.
-      if (email.endsWith("@rioclaro.rj.gov.br") && password === "admin123") {
-        toast({
-          title: "Modo de Demonstração",
-          description: "Entrando com credenciais de teste locais.",
-        });
-        
-        if (email.includes("motorista")) {
-          router.push("/driver");
-        } else {
-          router.push("/dashboard");
-        }
-      } else {
-        toast({
-          title: "Falha na Autenticação",
-          description: "Credenciais inválidas. Use os atalhos de demonstração abaixo.",
-          variant: "destructive"
-        });
+      let message = "Credenciais inválidas. Use os atalhos de demonstração abaixo.";
+      
+      if (error.code === 'auth/invalid-api-key' || error.code === 'auth/network-request-failed') {
+        message = "O Firebase não está configurado. Utilize os botões de demonstração.";
       }
+
+      toast({
+        title: "Falha na Autenticação",
+        description: message,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
