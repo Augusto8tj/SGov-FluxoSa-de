@@ -98,7 +98,7 @@ export default function SettingsPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">UBS Rio Claro Sul</TableCell>
-                    <TableCell>Rua 14, 456 - Jd. Novo</TableCell>
+                    <TableCell>Distrito de Passa Três</TableCell>
                     <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
                     <TableCell className="text-right"><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></TableCell>
                   </TableRow>
@@ -206,7 +206,7 @@ export default function SettingsPage() {
                 <TableBody>
                   <TableRow>
                     <TableCell className="font-medium">Dr. Ricardo Silva</TableCell>
-                    <TableCell>secretario@rioclaro.sp.gov.br</TableCell>
+                    <TableCell>secretario@rioclaro.rj.gov.br</TableCell>
                     <TableCell><Badge variant="outline" className="border-primary text-primary">Secretário</Badge></TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
@@ -217,7 +217,7 @@ export default function SettingsPage() {
                   </TableRow>
                   <TableRow>
                     <TableCell className="font-medium">Márcia Oliveira</TableCell>
-                    <TableCell>ubs.central@rioclaro.sp.gov.br</TableCell>
+                    <TableCell>ubs.central@rioclaro.rj.gov.br</TableCell>
                     <TableCell><Badge variant="outline" className="border-emerald-600 text-emerald-600">UBS</Badge></TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
