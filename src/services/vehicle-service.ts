@@ -10,27 +10,34 @@ import {
   orderBy 
 } from "firebase/firestore";
 import { Vehicle } from "@/lib/types";
+import { MOCK_VEHICLES } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "vehicles";
 
 /**
  * @fileOverview Serviço de gerenciamento da frota de veículos no Firestore.
+ * Com suporte a fallback de demonstração.
  */
 export const vehicleService = {
   /**
-   * Recupera todos os veículos ordenados pela placa.
+   * Recupera todos os veículos. Retorna mocks se o banco estiver vazio ou falhar.
    */
   async getVehicles(): Promise<Vehicle[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("licensePlate", "asc"));
       const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        return MOCK_VEHICLES;
+      }
+
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Vehicle));
     } catch (error) {
-      console.error("Error in vehicleService.getVehicles:", error);
-      throw new Error("Falha na sincronização da frota.");
+      console.warn("Firestore error in vehicleService, falling back to mocks:", error);
+      return MOCK_VEHICLES;
     }
   },
 

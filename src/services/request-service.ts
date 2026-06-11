@@ -1,4 +1,3 @@
-
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -24,7 +23,7 @@ const COLLECTION_NAME = "requests";
  */
 export const requestService = {
   /**
-   * Busca todas as solicitações. Retorna mocks se o banco estiver vazio.
+   * Busca todas as solicitações. Retorna mocks se o banco estiver vazio ou houver erro de conexão.
    */
   async getRequests(): Promise<TransportRequest[]> {
     try {
@@ -40,7 +39,7 @@ export const requestService = {
         ...doc.data()
       } as TransportRequest));
     } catch (error) {
-      console.warn("Firestore error, falling back to mocks:", error);
+      console.warn("Firestore error in requestService, falling back to mocks:", error);
       return MOCK_REQUESTS;
     }
   },
@@ -54,22 +53,20 @@ export const requestService = {
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        // Busca nos mocks para demonstração
         return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
       }
 
       const docData = querySnapshot.docs[0];
       return { id: docData.id, ...docData.data() } as TransportRequest;
     } catch (error) {
-      console.error("Error searching by access code:", error);
+      console.warn("Firestore error in getByAccessCode, checking mocks:", error);
       return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
     }
   },
 
   async addRequest(request: Omit<TransportRequest, "id">): Promise<string> {
     try {
-      const now = Timestamp.now().toDate().toISOString();
-      // Geração de código simples de 6 dígitos para o paciente
+      const now = new Date().toISOString();
       const patientAccessCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
