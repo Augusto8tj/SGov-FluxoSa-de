@@ -8,12 +8,12 @@ import {
   AlertCircle,
   CheckCircle2,
   ClipboardCheck,
-  Loader2,
   Navigation,
   MessageSquare,
   LogOut,
   Heart,
-  Star
+  Star,
+  ShieldCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,17 +69,20 @@ export default function DriverDashboard() {
   const getBriefing = async () => {
     setLoadingAi(true);
     try {
+      // IMPLEMENTAÇÃO DE SIGILO: Envia apenas o primeiro nome para o fluxo de IA
+      const maskedPassengers = [
+        { maskedName: "Benedito", needs: ["Maca", "Oxigênio"], urgency: "crítica" },
+        { maskedName: "Maria", needs: ["Acompanhante"], urgency: "alta" }
+      ];
+
       const result = await generateDriverBriefing({
         driverName: "Carlos Alberto",
         vehicleType: "Ambulância Municipal",
-        passengers: [
-          { name: "Benedito Silva", needs: ["Maca", "Oxigênio"], urgency: "crítica" },
-          { name: "Maria de Fátima", needs: ["Acompanhante"], urgency: "alta" }
-        ],
+        passengers: maskedPassengers,
         routeDetails: "Itinerário entre Lídice e Centro com 4 paradas planejadas."
       });
       setBriefing(result);
-      toast({ title: "Briefing Gerado", description: "Instruções da IA atualizadas." });
+      toast({ title: "Briefing Seguro Gerado", description: "Instruções protegidas e atualizadas." });
     } catch {
       toast({ title: "Erro na IA", variant: "destructive" });
     } finally {
@@ -100,9 +103,9 @@ export default function DriverDashboard() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground font-medium">Sincronizando jornada do motorista...</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
+        <Zap className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Sincronizando Dados Municipais...</p>
       </div>
     );
   }
@@ -128,11 +131,7 @@ export default function DriverDashboard() {
           <Card className="w-full border-none bg-accent/20 shadow-sm">
             <CardContent className="pt-6 space-y-4">
               <div className="flex justify-center gap-2">
-                <Star className="h-5 w-5 fill-primary text-primary" />
-                <Star className="h-5 w-5 fill-primary text-primary" />
-                <Star className="h-5 w-5 fill-primary text-primary" />
-                <Star className="h-5 w-5 fill-primary text-primary" />
-                <Star className="h-5 w-5 fill-primary text-primary" />
+                {[1,2,3,4,5].map(i => <Star key={i} className="h-5 w-5 fill-primary text-primary" />)}
               </div>
               <p className="text-sm font-semibold text-primary italic">
                 &quot;Excelente conduta. Informações sincronizadas com sucesso.&quot;
@@ -172,17 +171,17 @@ export default function DriverDashboard() {
           <p className="text-xs text-slate-500">Rio Claro, RJ &bull; {format(new Date(), "dd 'de' MMMM", { locale: ptBR })}</p>
         </div>
         <Badge variant={checklistDone ? "default" : "outline"} className={cn(checklistDone ? "bg-emerald-600 text-white" : "bg-accent/20 text-primary border-primary/20")}>
-          {checklistDone ? "Em Rota" : "Preparação"}
+          {checklistDone ? "EM ROTA" : "PREPARAÇÃO"}
         </Badge>
       </div>
 
       {!checklistDone ? (
-        <Card className="border-2 border-primary/20 bg-primary/5 shadow-none">
+        <Card className="border-2 border-primary/20 bg-primary/5 shadow-none rounded-2xl">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2 text-primary uppercase">
-              <ClipboardCheck className="h-4 w-4" /> Segurança Municipal
+            <CardTitle className="text-sm font-black flex items-center gap-2 text-primary uppercase tracking-tighter">
+              <ClipboardCheck className="h-5 w-5" /> Segurança Municipal
             </CardTitle>
-            <CardDescription className="text-primary/70">Verificação obrigatória da viatura.</CardDescription>
+            <CardDescription className="text-primary/70 text-xs">Verificação obrigatória antes da partida.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {[
@@ -191,50 +190,54 @@ export default function DriverDashboard() {
               "Equipamentos Clínicos (O2/Maca)",
               "Cintos de Segurança"
             ].map((item, i) => (
-              <div key={i} className="flex items-center space-x-2">
-                <Checkbox id={`check-${i}`} />
-                <label htmlFor={`check-${i}`} className="text-sm font-medium leading-none text-slate-700">{item}</label>
+              <div key={i} className="flex items-center space-x-3 p-2 bg-white/50 rounded-lg">
+                <Checkbox id={`check-${i}`} className="h-5 w-5" />
+                <label htmlFor={`check-${i}`} className="text-sm font-bold text-slate-700">{item}</label>
               </div>
             ))}
-            <Button className="w-full mt-2 h-10 shadow-lg" onClick={() => setChecklistDone(true)}>
-              Iniciar Manifesto de Viagem
+            <Button className="w-full mt-4 h-12 shadow-lg font-black uppercase text-xs tracking-widest" onClick={() => setChecklistDone(true)}>
+              Iniciar Manifesto
             </Button>
           </CardContent>
         </Card>
       ) : (
         <>
-          <Card className="bg-primary text-white border-none shadow-lg">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Ambulance className="h-8 w-8" />
+          <Card className="bg-primary text-primary-foreground border-none shadow-xl rounded-2xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-4 opacity-10"><Ambulance className="h-20 w-20" /></div>
+            <CardContent className="pt-6 relative">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 p-3 rounded-xl"><Ambulance className="h-8 w-8" /></div>
                 <div>
-                  <p className="font-bold">Viatura Operacional</p>
-                  <p className="text-xs opacity-80">4 paradas sincronizadas com a central</p>
+                  <p className="font-black text-lg leading-none uppercase tracking-tighter">Viatura Operacional</p>
+                  <p className="text-[10px] opacity-80 mt-1 uppercase font-bold tracking-widest">Rio Claro &bull; 4 Paradas Ativas</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" /> Briefing da IA
+            <div className="flex items-center justify-between px-1">
+              <h3 className="font-black text-xs text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary fill-primary" /> Briefing da IA (Sigilo Ativo)
               </h3>
               {!briefing && (
-                <Button variant="ghost" size="sm" onClick={getBriefing} disabled={loadingAi} className="text-xs h-7 text-primary">
-                  {loadingAi ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3 mr-1" />} Analisar Itinerário
+                <Button variant="ghost" size="sm" onClick={getBriefing} disabled={loadingAi} className="text-[10px] font-black h-7 text-primary hover:bg-primary/5">
+                  {loadingAi ? <Zap className="h-3 w-3 animate-spin mr-1" /> : <BrainCircuit className="h-4 w-4 mr-1" />} ANALISAR
                 </Button>
               )}
             </div>
 
             {briefing && (
-              <Card className="border-l-4 border-l-primary bg-white shadow-sm border-none animate-in fade-in">
-                <CardContent className="pt-4 space-y-3">
-                  <p className="text-sm leading-relaxed text-slate-700">{briefing.summary}</p>
+              <Card className="border-l-4 border-l-primary bg-white shadow-md border-none animate-in slide-in-from-top-2 rounded-xl">
+                <CardContent className="pt-4 space-y-4">
+                  <div className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-tighter bg-emerald-50 w-fit px-2 py-0.5 rounded">
+                    <ShieldCheck className="h-3 w-3" /> Dados Protegidos
+                  </div>
+                  <p className="text-sm font-medium leading-relaxed text-slate-700">{briefing.summary}</p>
                   <div className="space-y-2">
                     {briefing.criticalAlerts.map((alert, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-destructive bg-destructive/10 p-2 rounded-lg">
-                        <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
+                      <div key={i} className="flex items-start gap-2 text-xs font-bold text-rose-600 bg-rose-50 p-3 rounded-xl border border-rose-100">
+                        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                         {alert}
                       </div>
                     ))}
@@ -245,7 +248,7 @@ export default function DriverDashboard() {
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-bold text-slate-700">Manifesto de Paradas</h3>
+            <h3 className="font-black text-xs text-slate-500 uppercase tracking-widest px-1">Manifesto de Paradas</h3>
             <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
               {MOCK_MISSION.map((stop) => (
                 <div key={stop.id} className="relative pl-8">
@@ -253,25 +256,25 @@ export default function DriverDashboard() {
                     "absolute left-1.5 top-1 size-3 rounded-full border-2 border-white shadow-sm",
                     stop.type === 'PICKUP' ? "bg-primary" : "bg-primary/40"
                   )} />
-                  <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
-                    <CardContent className="p-3">
+                  <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-xl">
+                    <CardContent className="p-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-[9px] h-4 py-0 uppercase">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-[9px] h-4 py-0 uppercase font-black tracking-widest">
                               {stop.type === 'PICKUP' ? 'Coleta' : 'Entrega'}
                             </Badge>
-                            <span className="text-xs font-bold text-slate-400">{stop.time}</span>
+                            <span className="text-[10px] font-black text-slate-400">{stop.time}</span>
                           </div>
-                          <p className="font-bold text-slate-800 text-sm">{stop.name}</p>
-                          <p className="text-xs text-slate-600 mt-1">Paciente: {stop.patient}</p>
+                          <p className="font-black text-slate-800 text-sm uppercase tracking-tighter">{stop.name}</p>
+                          <p className="text-xs font-medium text-slate-500 mt-1">Cidadão: {stop.patient}</p>
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="mt-3 w-full h-8 gap-2 text-xs border-primary/20 text-primary hover:bg-primary/5"
+                            className="mt-4 w-full h-10 gap-2 text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5 rounded-lg"
                             onClick={() => handleOpenMaps(stop.address)}
                           >
-                            <Navigation className="h-3 w-3" /> Abrir no Mapa
+                            <Navigation className="h-3 w-3" /> Abrir Trajeto
                           </Button>
                         </div>
                       </div>
@@ -285,31 +288,31 @@ export default function DriverDashboard() {
           <Dialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
             <DialogTrigger asChild>
               <Button 
-                className="w-full h-14 gap-2 text-base shadow-xl bg-primary hover:bg-primary/90 mt-4"
+                className="w-full h-14 gap-2 text-xs font-black uppercase tracking-widest shadow-xl bg-primary hover:bg-primary/90 mt-4 rounded-2xl"
               >
-                <CheckCircle2 className="h-5 w-5" /> Finalizar Manifesto
+                <CheckCircle2 className="h-5 w-5" /> Finalizar Missão
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md w-[95vw] rounded-2xl">
+            <DialogContent className="sm:max-w-md w-[95vw] rounded-3xl">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-primary" /> Relatório de Viagem
+                <DialogTitle className="flex items-center gap-2 text-xl font-black tracking-tighter">
+                  <MessageSquare className="h-6 w-6 text-primary" /> Relatório de Viagem
                 </DialogTitle>
-                <DialogDescription>
-                  Alguma observação relevante para a chefia sobre os pacientes ou o trajeto?
+                <DialogDescription className="text-xs font-medium">
+                  Observações para a logística sobre o trajeto ou pacientes (mantenha o sigilo médico).
                 </DialogDescription>
               </DialogHeader>
               <div className="py-4">
                 <Textarea 
-                  placeholder="Ex: Paciente Benedito teve leve tontura, trajeto com obras na via principal..."
-                  className="min-h-[120px] focus:ring-primary"
+                  placeholder="Ex: Obras na via principal do Centro..."
+                  className="min-h-[120px] focus:ring-primary rounded-2xl"
                   value={feedbackNote}
                   onChange={(e) => setFeedbackNote(e.target.value)}
                 />
               </div>
               <DialogFooter>
                 <Button 
-                  className="w-full h-12 text-base font-bold shadow-lg" 
+                  className="w-full h-12 text-xs font-black uppercase tracking-widest shadow-lg rounded-xl" 
                   onClick={handleFinalizeMission}
                 >
                   Enviar e Encerrar Turno

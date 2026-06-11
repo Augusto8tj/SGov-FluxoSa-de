@@ -9,7 +9,9 @@ import {
   Filter,
   Check,
   X,
-  AlertTriangle
+  AlertTriangle,
+  History,
+  XCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ import {
 } from "@/components/ui/table";
 import { provideDecisionSupportForApprovals, ProvideDecisionSupportOutput } from "@/ai/flows/provide-decision-support-for-approvals";
 import { useToast } from "@/hooks/use-toast";
+import { StatsCard } from "@/components/dashboard/stats-card";
 
 const initialRequests = [
   { id: "REQ-001", patient: "Maria Souza", ubs: "UBS Rio Claro", priority: "high", details: "Diabetes, Hipertensão. Requer maca.", status: "PENDING", time: "14:30" },
@@ -50,9 +53,13 @@ export default function AdminPage() {
     
     setLoading(req.id);
     try {
+      // IMPLEMENTAÇÃO DE SIGILO: Envia apenas o primeiro nome e ID parcial para a IA
+      const maskedName = req.patient.split(' ')[0];
+      const partialId = req.id.split('-').pop() || "000";
+
       const result = await provideDecisionSupportForApprovals({
-        requestId: req.id,
-        patientName: req.patient,
+        requestId: `#${partialId}`,
+        patientMaskedName: maskedName,
         patientDetails: req.details,
         needsCompanion: true,
         pickupLocation: req.ubs,
@@ -64,7 +71,7 @@ export default function AdminPage() {
         conflictingRequestsSummary: "Nenhum conflito crítico detectado"
       });
       setAnalysis(prev => ({ ...prev, [req.id]: result }));
-      toast({ title: "Análise concluída", description: `Recomendação gerada para ${req.patient}.` });
+      toast({ title: "Análise Segura Concluída", description: `Dados de ${maskedName} processados com sigilo.` });
     } catch {
       toast({ title: "Erro na análise", description: "Não foi possível obter suporte da IA agora.", variant: "destructive" });
     } finally {
@@ -97,14 +104,14 @@ export default function AdminPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Painel de Comando</h2>
-          <p className="text-muted-foreground">Avaliação e aprovação centralizada de transportes.</p>
+          <p className="text-muted-foreground text-sm">Gestão estratégica e aprovações com proteção de dados.</p>
         </div>
-        <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 p-3 rounded-lg shadow-sm border">
+        <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border">
           <div className="flex items-center space-x-2">
-            <BrainCircuit className={aiEnabled ? "text-primary animate-pulse" : "text-muted-foreground"} />
+            <BrainCircuit className={aiEnabled ? "text-primary animate-pulse h-5 w-5" : "text-muted-foreground h-5 w-5"} />
             <div className="grid gap-0.5 text-left">
-              <Label htmlFor="ai-toggle" className="text-sm font-semibold">Assistente de IA</Label>
-              <p className="text-[10px] text-muted-foreground uppercase">Decisões baseadas em dados</p>
+              <Label htmlFor="ai-toggle" className="text-sm font-semibold">IA com Sigilo</Label>
+              <p className="text-[10px] text-muted-foreground uppercase">Dados Pseudonimizados</p>
             </div>
           </div>
           <Switch 
@@ -115,134 +122,120 @@ export default function AdminPage() {
         </div>
       </div>
 
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+        <StatsCard title="Pendentes" value={requests.length} icon={Zap} description="Aguardando Análise" />
+        <StatsCard title="Processados" value="124" icon={CheckCircle} description="Hoje" />
+        <StatsCard title="Em Rota" value="8" icon={Zap} description="Veículos" />
+        <StatsCard title="Alertas" value="2" icon={AlertTriangle} description="Prioridade Crítica" />
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="lg:col-span-2 border-none shadow-sm overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10">
             <div>
-              <CardTitle>Solicitações Aguardando</CardTitle>
-              <CardDescription>Existem {requests.length} pedidos pendentes para hoje.</CardDescription>
+              <CardTitle className="text-lg">Solicitações Aguardando</CardTitle>
+              <CardDescription className="text-xs">Triagem técnica para a malha municipal.</CardDescription>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => toast({ title: "Filtros", description: "Opções de filtragem por UBS e Prioridade ativadas." })}
-            >
-              <Filter className="h-4 w-4" />
-            </Button>
+            <Button variant="ghost" size="icon"><Filter className="h-4 w-4" /></Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {requests.length === 0 ? (
               <div className="py-20 text-center text-muted-foreground space-y-2">
                 <CheckCircle className="h-10 w-10 mx-auto opacity-20" />
-                <p>Todas as solicitações foram processadas.</p>
+                <p>Nenhuma solicitação pendente.</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Paciente</TableHead>
-                    <TableHead>UBS / Origem</TableHead>
-                    <TableHead>Prioridade</TableHead>
-                    <TableHead>Ações de IA</TableHead>
-                    <TableHead className="text-right">Aprovar</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {requests.map((req) => (
-                    <TableRow key={req.id}>
-                      <TableCell className="font-medium">
-                        <div>
-                          {req.patient}
-                          <p className="text-[10px] text-muted-foreground">{req.id}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{req.ubs}</TableCell>
-                      <TableCell>
-                        <Badge variant={req.priority === 'high' ? 'destructive' : req.priority === 'medium' ? 'default' : 'secondary'}>
-                          {req.priority === 'high' ? 'ALTA' : req.priority === 'medium' ? 'MÉDIA' : 'BAIXA'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {aiEnabled ? (
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="h-8 gap-2 border-primary/20 hover:bg-primary/5"
-                            onClick={() => handleAiAnalysis(req)}
-                            disabled={loading === req.id}
-                          >
-                            <Zap className={loading === req.id ? "h-3 w-3 animate-spin" : "h-3 w-3 text-primary"} />
-                            Analisar
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground italic">IA desativada</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-8 w-8 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
-                            onClick={() => handleAction(req.id, 'DENY')}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-8 w-8 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
-                            onClick={() => handleAction(req.id, 'APPROVE')}
-                          >
-                            <Check className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Paciente</TableHead>
+                      <TableHead>Prioridade</TableHead>
+                      <TableHead>IA</TableHead>
+                      <TableHead className="text-right">Ação</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {requests.map((req) => (
+                      <TableRow key={req.id}>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-sm">{req.patient}</span>
+                            <span className="text-[10px] text-muted-foreground uppercase">{req.id} • {req.ubs}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={req.priority === 'high' ? 'destructive' : req.priority === 'medium' ? 'default' : 'secondary'} className="text-[10px]">
+                            {req.priority.toUpperCase()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {aiEnabled ? (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-8 gap-2 border-primary/20 text-[10px] font-bold"
+                              onClick={() => handleAiAnalysis(req)}
+                              disabled={loading === req.id}
+                            >
+                              {loading === req.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3 text-primary" />}
+                              ANALISAR
+                            </Button>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground italic">OFF</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-rose-500" onClick={() => handleAction(req.id, 'DENY')}><X className="h-4 w-4" /></Button>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-500" onClick={() => handleAction(req.id, 'APPROVE')}><Check className="h-4 w-4" /></Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-none shadow-sm overflow-hidden">
+          <Card className="border-none shadow-sm overflow-hidden flex flex-col h-full">
             <CardHeader className="bg-primary text-primary-foreground pb-4">
               <div className="flex items-center gap-2">
-                <BrainCircuit className="h-5 w-5" />
+                <ShieldCheck className="h-5 w-5" />
                 <CardTitle className="text-lg">Decisões Apoiadas</CardTitle>
               </div>
-              <CardDescription className="text-primary-foreground/80">Insights da IA sobre os pedidos selecionados.</CardDescription>
+              <CardDescription className="text-primary-foreground/80 text-xs italic">Relatórios gerados com proteção de dados sensíveis.</CardDescription>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 flex-1 overflow-y-auto">
               {Object.keys(analysis).length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="flex flex-col items-center justify-center py-12 text-center opacity-40">
                   <div className="bg-muted p-4 rounded-full mb-4">
-                    <ShieldCheck className="h-8 w-8 text-muted-foreground" />
+                    <History className="h-8 w-8" />
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">Nenhuma análise disponível.</p>
-                  <p className="text-xs text-muted-foreground mt-1">Execute a IA em uma solicitação ao lado.</p>
+                  <p className="text-xs font-bold uppercase">Nenhuma análise no cache</p>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {Object.entries(analysis).map(([id, result]) => (
-                    <div key={id} className="border-b pb-6 last:border-0 last:pb-0">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-primary uppercase tracking-wider">{id}</span>
+                    <div key={id} className="border-b pb-6 last:border-0 last:pb-0 animate-in fade-in">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-black text-primary bg-primary/5 px-2 py-1 rounded">#{id.split('-').pop()}</span>
                         <Badge className={
                           result.suggestedAction === 'approve' ? 'bg-emerald-100 text-emerald-700' :
                           result.suggestedAction === 'deny' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
                         }>
-                          {result.suggestedAction === 'approve' ? 'APROVAR' : result.suggestedAction === 'deny' ? 'RECUSAR' : 'ESCALAR'}
+                          {result.suggestedAction.toUpperCase()}
                         </Badge>
                       </div>
-                      <p className="text-sm text-foreground mb-3 font-medium">{result.recommendation}</p>
-                      <div className="space-y-1.5">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Fatores Críticos</p>
+                      <p className="text-sm font-medium leading-relaxed mb-4">{result.recommendation}</p>
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Fatores Analisados</p>
                         {result.criticalFactors.map((factor, idx) => (
-                          <div key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
-                            <AlertTriangle className="h-3 w-3 text-amber-500 mt-0.5 shrink-0" />
+                          <div key={idx} className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded-lg">
+                            <CheckCircle className="h-3 w-3 text-primary mt-0.5 shrink-0" />
                             {factor}
                           </div>
                         ))}
@@ -257,4 +250,8 @@ export default function AdminPage() {
       </div>
     </div>
   );
+}
+
+function Loader2({ className }: { className?: string }) {
+  return <Zap className={cn("animate-spin", className)} />;
 }

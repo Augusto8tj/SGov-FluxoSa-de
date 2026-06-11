@@ -1,36 +1,31 @@
 'use server';
 /**
- * @fileOverview This file implements a Genkit flow to provide AI-generated decision support
- * for patient transport requests, assisting the Secretary of Health in making informed approvals.
- *
- * - provideDecisionSupportForApprovals - A function that processes a patient transport request
- *   and returns AI-generated recommendations and critical factors.
- * - ProvideDecisionSupportInput - The input type for the provideDecisionSupportForApprovals function.
- * - ProvideDecisionSupportOutput - The return type for the provideDecisionSupportForApprovals function.
+ * @fileOverview Fluxo Genkit para suporte à decisão de aprovações.
+ * Implementa de-identificação: recebe apenas dados clínicos e nomes parciais.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const ProvideDecisionSupportInputSchema = z.object({
-  requestId: z.string().describe('Unique identifier for the transport request.'),
-  patientName: z.string().describe('Name of the patient.'),
-  patientDetails: z.string().describe('Detailed medical history and comorbidities of the patient.'),
-  needsCompanion: z.boolean().describe('Whether the patient requires a companion during transport.'),
-  pickupLocation: z.string().describe('Full address for patient pickup.'),
-  destinationLocation: z.string().describe('Full address for patient destination.'),
-  requestedTime: z.string().describe('Requested date and time for the transport (e.g., "YYYY-MM-DD HH:MM").'),
-  urgencyLevel: z.enum(['low', 'medium', 'high', 'critical']).describe('Perceived urgency of the transport request.'),
-  availableVehiclesSummary: z.string().describe('A summary of currently available vehicles (e.g., "2 ambulances, 3 sedans, 1 wheelchair-accessible van").'),
-  availableDriversSummary: z.string().describe('A summary of currently available drivers (e.g., "5 drivers available for 8 hours").'),
-  conflictingRequestsSummary: z.string().describe('A summary of potential conflicting transport requests or routes (e.g., "One high-priority request for same time, same area").'),
+  requestId: z.string().describe('ID parcial do sistema (ex: #001).'),
+  patientMaskedName: z.string().describe('Apenas o primeiro nome do paciente.'),
+  patientDetails: z.string().describe('Contexto clínico sem dados de identificação pessoal (PII).'),
+  needsCompanion: z.boolean(),
+  pickupLocation: z.string(),
+  destinationLocation: z.string(),
+  requestedTime: z.string(),
+  urgencyLevel: z.enum(['low', 'medium', 'high', 'critical']),
+  availableVehiclesSummary: z.string(),
+  availableDriversSummary: z.string(),
+  conflictingRequestsSummary: z.string(),
 });
 export type ProvideDecisionSupportInput = z.infer<typeof ProvideDecisionSupportInputSchema>;
 
 const ProvideDecisionSupportOutputSchema = z.object({
-  recommendation: z.string().describe('A concise recommendation for approval or refusal, including reasoning.'),
-  criticalFactors: z.array(z.string()).describe('List of critical factors considered for the recommendation (e.g., "High urgency due to comorbidity", "Potential conflict with another critical request").'),
-  suggestedAction: z.enum(['approve', 'deny', 'escalate', 'needs_more_info']).describe('The recommended action for the Secretary of Health.'),
+  recommendation: z.string().describe('Recomendação técnica baseada em logística e clínica.'),
+  criticalFactors: z.array(z.string()),
+  suggestedAction: z.enum(['approve', 'deny', 'escalate', 'needs_more_info']),
 });
 export type ProvideDecisionSupportOutput = z.infer<typeof ProvideDecisionSupportOutputSchema>;
 
@@ -42,25 +37,24 @@ const decisionSupportPrompt = ai.definePrompt({
   name: 'decisionSupportPrompt',
   input: { schema: ProvideDecisionSupportInputSchema },
   output: { schema: ProvideDecisionSupportOutputSchema },
-  prompt: `You are an intelligent assistant to the Secretary of Health for the SGov FluxoSaúde system. Your task is to analyze patient transport requests and provide a clear, concise recommendation for approval or refusal, highlighting critical factors.
+  prompt: `Você é um assistente técnico da Secretaria de Saúde de Rio Claro. 
+IMPORTANTE: Você está trabalhando com dados de-identificados (Pseudonimizados). 
+O nome fornecido é apenas o primeiro nome e o ID é interno. 
 
-Analyze the following patient transport request:
+Analise a solicitação de transporte baseando-se estritamente na necessidade clínica e logística:
 
-Request ID: {{{requestId}}}
-Patient Name: {{{patientName}}}
-Patient Details: {{{patientDetails}}}
-Needs Companion: {{#if needsCompanion}}Yes{{else}}No{{/if}}
-Pickup Location: {{{pickupLocation}}}
-Destination Location: {{{destinationLocation}}}
-Requested Time: {{{requestedTime}}}
-Urgency Level: {{{urgencyLevel}}}
+Paciente: {{{patientMaskedName}}} (Ref: {{{requestId}}})
+Condição Clínica: {{{patientDetails}}}
+Necessita Acompanhante: {{#if needsCompanion}}Sim{{else}}Não{{/if}}
+Trajeto: {{{pickupLocation}}} -> {{{destinationLocation}}}
+Urgência Declarada: {{{urgencyLevel}}}
 
-Consider the following resource availability and potential conflicts:
-Available Vehicles: {{{availableVehiclesSummary}}}
-Available Drivers: {{{availableDriversSummary}}}
-Conflicting Requests: {{{conflictingRequestsSummary}}}
+Recursos Disponíveis:
+Veículos: {{{availableVehiclesSummary}}}
+Condutores: {{{availableDriversSummary}}}
+Conflitos: {{{conflictingRequestsSummary}}}
 
-Based on all the information provided, generate a recommendation, list the critical factors influencing your decision, and suggest a clear action for the Secretary of Health. Focus on urgency, patient needs, resource availability, and potential conflicts.`,
+Sua recomendação deve ser técnica, focada em salvar vidas e otimizar a frota municipal.`,
 });
 
 const provideDecisionSupportFlow = ai.defineFlow(
@@ -71,9 +65,7 @@ const provideDecisionSupportFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await decisionSupportPrompt(input);
-    if (!output) {
-      throw new Error('Failed to get a recommendation from the AI.');
-    }
+    if (!output) throw new Error('Falha ao obter recomendação da IA.');
     return output;
   }
 );
