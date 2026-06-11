@@ -14,7 +14,8 @@ import {
   MoreVertical,
   Edit,
   Trash2,
-  Key
+  Key,
+  MapPin
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,14 +43,47 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
+const initialUnits = [
+  { id: "UBS-01", name: "UBS Central", address: "Av. 29, 123 - Centro", status: "Ativo" },
+  { id: "UBS-02", name: "UBS Rio Claro Sul", address: "Distrito de Passa Três", status: "Ativo" },
+];
+
+const initialDrivers = [
+  { id: "D1", name: "Carlos Alberto Silva", license: "Cat. D - 20/05/2026", status: "Disponível" },
+  { id: "D2", name: "Marcos Pereira", license: "Cat. D - 15/02/2025", status: "Disponível" },
+];
+
 export default function SettingsPage() {
   const { toast } = useToast();
+  const [units, setUnits] = useState(initialUnits);
+  const [drivers, setDrivers] = useState(initialDrivers);
+  const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
+  const [newUnit, setNewUnit] = useState({ name: "", address: "" });
 
   const handleSave = (module: string) => {
     toast({
       title: "Alterações Salvas",
       description: `As configurações de ${module} foram atualizadas com sucesso.`,
     });
+  };
+
+  const handleAddUnit = () => {
+    if (!newUnit.name || !newUnit.address) {
+      toast({ title: "Erro", description: "Preencha todos os campos da unidade.", variant: "destructive" });
+      return;
+    }
+
+    const unit = {
+      id: `UBS-0${units.length + 1}`,
+      name: newUnit.name,
+      address: newUnit.address,
+      status: "Ativo"
+    };
+
+    setUnits(prev => [...prev, unit]);
+    setIsUnitDialogOpen(false);
+    setNewUnit({ name: "", address: "" });
+    toast({ title: "Unidade Cadastrada", description: `${unit.name} foi adicionada ao sistema.` });
   };
 
   return (
@@ -77,7 +111,41 @@ export default function SettingsPage() {
                 <CardTitle>Unidades de Saúde (UBS)</CardTitle>
                 <CardDescription>Cadastre e gerencie as UBS do município.</CardDescription>
               </div>
-              <Button onClick={() => handleSave("Unidades")}>Adicionar UBS</Button>
+              <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Plus className="h-4 w-4" /> Adicionar UBS</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Nova Unidade de Saúde</DialogTitle>
+                    <DialogDescription>Cadastre um novo ponto de atendimento em Rio Claro - RJ.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="unit-name">Nome da UBS</Label>
+                      <Input 
+                        id="unit-name" 
+                        placeholder="Ex: UBS Lídice" 
+                        value={newUnit.name}
+                        onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="unit-address">Endereço</Label>
+                      <Input 
+                        id="unit-address" 
+                        placeholder="Rua, Número - Bairro" 
+                        value={newUnit.address}
+                        onChange={(e) => setNewUnit(prev => ({ ...prev, address: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="ghost" onClick={() => setIsUnitDialogOpen(false)}>Cancelar</Button>
+                    <Button onClick={handleAddUnit}>Salvar Unidade</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
               <Table>
@@ -85,23 +153,21 @@ export default function SettingsPage() {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>Endereço</TableHead>
-                    <TableHead>Acesso</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">UBS Central</TableCell>
-                    <TableCell>Av. 29, 123 - Centro</TableCell>
-                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
-                    <TableCell className="text-right"><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">UBS Rio Claro Sul</TableCell>
-                    <TableCell>Distrito de Passa Três</TableCell>
-                    <TableCell><Badge variant="secondary">Ativo</Badge></TableCell>
-                    <TableCell className="text-right"><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></TableCell>
-                  </TableRow>
+                  {units.map((unit) => (
+                    <TableRow key={unit.id}>
+                      <TableCell className="font-medium">{unit.name}</TableCell>
+                      <TableCell>{unit.address}</TableCell>
+                      <TableCell><Badge variant="secondary">{unit.status}</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -125,21 +191,17 @@ export default function SettingsPage() {
                     <TableHead>CNH / Vencimento</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
+                  </TableHeader>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">Carlos Alberto Silva</TableCell>
-                    <TableCell>Cat. D - 20/05/2026</TableCell>
-                    <TableCell><Badge className="bg-emerald-100 text-emerald-700">Disponível</Badge></TableCell>
-                    <TableCell className="text-right"><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Marcos Pereira</TableCell>
-                    <TableCell>Cat. D - 15/02/2025</TableCell>
-                    <TableCell><Badge className="bg-emerald-100 text-emerald-700">Disponível</Badge></TableCell>
-                    <TableCell className="text-right"><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></TableCell>
-                  </TableRow>
+                  {drivers.map((driver) => (
+                    <TableRow key={driver.id}>
+                      <TableCell className="font-medium">{driver.name}</TableCell>
+                      <TableCell>{driver.license}</TableCell>
+                      <TableCell><Badge className="bg-emerald-100 text-emerald-700">{driver.status}</Badge></TableCell>
+                      <TableCell className="text-right"><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
