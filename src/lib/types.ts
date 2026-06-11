@@ -37,6 +37,14 @@ export interface UBS {
   name: string;
   address: string;
   location: { lat: number; lng: number };
+  
+  // Novos campos expandidos
+  managerName?: string;
+  phone?: string;
+  email?: string;
+  operatingHours?: string;
+  type?: 'UBS' | 'HOSPITAL' | 'PRONTO_ATENDIMENTO' | 'ESPECIALIZADA';
+  status?: 'active' | 'inactive';
 }
 
 export interface Vehicle {

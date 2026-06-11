@@ -110,7 +110,40 @@ export const MOCK_DRIVERS: Driver[] = [
 ];
 
 export const MOCK_UBS: UBS[] = [
-  { id: "UBS-01", name: "UBS Central", address: "Av. 29, 123 - Centro", location: { lat: -22.7214, lng: -44.1322 } },
-  { id: "UBS-02", name: "UBS Rio Claro Sul", address: "Distrito de Passa Três", location: { lat: -22.7931, lng: -44.0244 } },
-  { id: "UBS-03", name: "UBS Lídice", address: "Distrito de Lídice", location: { lat: -22.8455, lng: -44.2312 } },
+  { 
+    id: "UBS-01", 
+    name: "UBS Central", 
+    address: "Av. 29, 123 - Centro", 
+    location: { lat: -22.7214, lng: -44.1322 },
+    managerName: "Dra. Helena Souza",
+    phone: "(24) 3332-1001",
+    email: "ubs.central@rioclaro.rj.gov.br",
+    operatingHours: "07:00 - 17:00",
+    type: "UBS",
+    status: "active"
+  },
+  { 
+    id: "UBS-02", 
+    name: "UBS Rio Claro Sul", 
+    address: "Distrito de Passa Três", 
+    location: { lat: -22.7931, lng: -44.0244 },
+    managerName: "Enf. Marcos Lima",
+    phone: "(24) 3332-2002",
+    email: "ubs.passatres@rioclaro.rj.gov.br",
+    operatingHours: "08:00 - 16:00",
+    type: "UBS",
+    status: "active"
+  },
+  { 
+    id: "UBS-03", 
+    name: "UBS Lídice", 
+    address: "Distrito de Lídice", 
+    location: { lat: -22.8455, lng: -44.2312 },
+    managerName: "Dra. Ana Paula Costa",
+    phone: "(24) 3332-3003",
+    email: "ubs.lidice@rioclaro.rj.gov.br",
+    operatingHours: "07:30 - 17:30",
+    type: "UBS",
+    status: "active"
+  },
 ];
