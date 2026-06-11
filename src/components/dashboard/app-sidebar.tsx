@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -11,7 +12,8 @@ import {
   ShieldCheck,
   LogOut,
   Settings,
-  MessageSquare
+  MessageSquare,
+  BookOpen
 } from "lucide-react";
 
 import {
@@ -71,6 +73,14 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Ajuda/Manual" asChild>
+              <a href="/dashboard/help" className="flex items-center gap-3 text-primary font-semibold">
+                <BookOpen className="size-5" />
+                <span>Ajuda/Manual</span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>

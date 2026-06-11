@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -11,7 +12,8 @@ import {
   Clock,
   MapPin,
   ExternalLink,
-  Route
+  Route,
+  BookOpen
 } from "lucide-react";
 
 import {
@@ -77,10 +79,21 @@ export function UbsSidebar() {
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Ajuda/Manual" asChild>
+              <Link href="/ubs-portal/help" className="flex items-center gap-3 text-primary font-semibold">
+                <BookOpen className="size-5" />
+                <span>Ajuda/Manual</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem className="px-3 pb-2 text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">
+            {state !== "collapsed" && "v1.0.0 STABLE"}
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <Dialog>
               <DialogTrigger asChild>
