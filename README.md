@@ -19,8 +19,8 @@ git add .
 # 4. Crie o primeiro commit
 git commit -m "Initial commit: SGov FluxoSaúde Rio Claro RJ"
 
-# 5. Envie os arquivos para o GitHub
-# Nota: Verifique se sua branch principal se chama 'main' ou 'master'
+# 5. Defina a branch principal e envie
+git branch -M main
 git push -u origin main
 ```
 
