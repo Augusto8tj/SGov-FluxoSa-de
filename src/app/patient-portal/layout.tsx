@@ -17,8 +17,14 @@ export default function PatientLayout({
   const isViewing = pathname.includes("/view");
 
   const handleLogout = () => {
-    sessionStorage.removeItem("patient_access_code");
-    router.push("/patient-portal");
+    // Se estiver visualizando, limpa a sessão do paciente e volta para a busca
+    if (isViewing) {
+      sessionStorage.removeItem("patient_access_code");
+      router.push("/patient-portal");
+    } else {
+      // Se estiver na busca, volta para o login principal do sistema
+      router.push("/login");
+    }
   };
 
   return (
@@ -30,19 +36,17 @@ export default function PatientLayout({
           </div>
           <span className="font-black text-primary tracking-tight uppercase text-sm">Meu Transporte</span>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <ThemeSelector />
-          {isViewing && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="text-muted-foreground hover:text-destructive h-9 w-9 rounded-full transition-colors"
-              onClick={handleLogout}
-              title="Encerrar Consulta"
-            >
-              <LogOut className="size-5" />
-            </Button>
-          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-muted-foreground hover:text-destructive h-9 w-9 rounded-full transition-colors"
+            onClick={handleLogout}
+            title={isViewing ? "Encerrar Consulta" : "Voltar ao Sistema"}
+          >
+            <LogOut className={`size-5 ${!isViewing ? 'rotate-180' : ''}`} />
+          </Button>
         </div>
       </header>
       
