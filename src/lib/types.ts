@@ -1,4 +1,3 @@
-
 export type UserRole = 'OPERATOR' | 'DRIVER' | 'ADMIN' | 'SECRETARY';
 
 export interface Patient {
@@ -8,6 +7,7 @@ export interface Patient {
   comorbidities: string[];
   needsCompanion: boolean;
   notes?: string;
+  createdAt?: string;
 }
 
 export interface UBS {
@@ -23,6 +23,7 @@ export interface Vehicle {
   licensePlate: string;
   capacity: number;
   available: boolean;
+  status?: 'AVAILABLE' | 'MAINTENANCE' | 'IN_USE';
 }
 
 export interface Driver {
@@ -31,6 +32,7 @@ export interface Driver {
   licenseNumber: string;
   phone?: string;
   available: boolean;
+  status?: 'AVAILABLE' | 'ON_ROUTE' | 'OFF_DUTY';
 }
 
 export type TransportStatus = 'PENDING' | 'APPROVED' | 'DENIED' | 'COMPLETED' | 'CANCELLED';
@@ -47,6 +49,16 @@ export interface TransportRequest {
   status: TransportStatus;
   operatorId: string;
   createdAt: string;
+  
+  // Campos operacionais adicionados para escala e roteirização
+  driverId?: string;
+  vehicleId?: string;
+  assignedAt?: string;
+  manifestId?: string;
+  pickupLocationCoords?: { lat: number; lng: number };
+  destinationLocationCoords?: { lat: number; lng: number };
+  
+  // Suporte à IA
   aiRecommendation?: string;
   aiSuggestedAction?: 'approve' | 'deny' | 'escalate' | 'needs_more_info';
 }
