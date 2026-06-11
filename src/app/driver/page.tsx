@@ -15,7 +15,11 @@ import {
   Loader2,
   Navigation,
   Info,
-  Inbox
+  Inbox,
+  MessageSquare,
+  LogOut,
+  Heart,
+  Star
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useAuth } from "@/hooks/use-auth";
 
 const MOCK_MISSION = [
   { id: "S1", name: "UBS Lídice", type: 'PICKUP', patient: "Benedito Silva", time: "08:00", address: "Distrito de Lídice, Rio Claro - RJ" },
@@ -50,7 +55,12 @@ export default function DriverDashboard() {
   const [briefing, setBriefing] = useState<DriverBriefingOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [checklistDone, setChecklistDone] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackNote, setFeedbackNote] = useState("");
+  const [missionComplete, setMissionComplete] = useState(false);
+  
   const { toast } = useToast();
+  const { logout } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -83,6 +93,15 @@ export default function DriverDashboard() {
     }
   };
 
+  const handleFinalizeMission = () => {
+    setIsFeedbackOpen(false);
+    setMissionComplete(true);
+    toast({ 
+      title: "Jornada Encerrada", 
+      description: "Seu feedback foi enviado para a Central de Logística." 
+    });
+  };
+
   if (!mounted) return null;
 
   if (loading) {
@@ -94,6 +113,63 @@ export default function DriverDashboard() {
     );
   }
 
+  if (missionComplete) {
+    return (
+      <div className="space-y-8 py-10 animate-in fade-in zoom-in-95 duration-500">
+        <div className="flex flex-col items-center text-center space-y-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+            <div className="relative bg-primary text-white p-6 rounded-full shadow-2xl">
+              <CheckCircle2 className="h-16 w-16" />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black text-slate-800 tracking-tight">Missão Cumprida!</h2>
+            <p className="text-muted-foreground max-w-xs mx-auto">
+              Seu trabalho hoje garantiu o acesso à saúde para cidadãos de Rio Claro.
+            </p>
+          </div>
+
+          <Card className="w-full border-none bg-accent/20 shadow-sm">
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex justify-center gap-2">
+                <Star className="h-5 w-5 fill-primary text-primary" />
+                <Star className="h-5 w-5 fill-primary text-primary" />
+                <Star className="h-5 w-5 fill-primary text-primary" />
+                <Star className="h-5 w-5 fill-primary text-primary" />
+                <Star className="h-5 w-5 fill-primary text-primary" />
+              </div>
+              <p className="text-sm font-semibold text-primary italic">
+                "Excelente conduta. Informações sincronizadas com sucesso."
+              </p>
+            </CardContent>
+          </Card>
+
+          <div className="w-full pt-4 space-y-4">
+            <Button 
+              className="w-full h-14 text-lg font-bold gap-2 shadow-xl shadow-primary/20"
+              onClick={() => window.location.reload()}
+            >
+              <Ambulance className="h-5 w-5" /> Nova Jornada
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full h-12 text-muted-foreground font-semibold gap-2 border-none"
+              onClick={logout}
+            >
+              <LogOut className="h-4 w-4" /> Sair do Sistema
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-black pt-6">
+            <Heart className="h-3 w-3 text-rose-500 fill-rose-500" /> PMRC • Saúde & Ordem Pública
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -101,18 +177,18 @@ export default function DriverDashboard() {
           <h2 className="text-xl font-bold text-slate-800">Minha Jornada</h2>
           <p className="text-xs text-slate-500">Rio Claro, RJ • {format(new Date(), "dd 'de' MMMM", { locale: ptBR })}</p>
         </div>
-        <Badge variant={checklistDone ? "default" : "outline"} className={cn(checklistDone ? "bg-emerald-600 text-white" : "bg-amber-50 text-amber-700 border-amber-200")}>
+        <Badge variant={checklistDone ? "default" : "outline"} className={cn(checklistDone ? "bg-emerald-600 text-white" : "bg-accent/20 text-primary border-primary/20")}>
           {checklistDone ? "Em Rota" : "Preparação"}
         </Badge>
       </div>
 
       {!checklistDone ? (
-        <Card className="border-2 border-amber-200 bg-amber-50 shadow-none">
+        <Card className="border-2 border-primary/20 bg-primary/5 shadow-none">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold flex items-center gap-2 text-amber-700 uppercase">
+            <CardTitle className="text-sm font-bold flex items-center gap-2 text-primary uppercase">
               <ClipboardCheck className="h-4 w-4" /> Segurança Municipal
             </CardTitle>
-            <CardDescription className="text-amber-600">Verificação obrigatória da viatura.</CardDescription>
+            <CardDescription className="text-primary/70">Verificação obrigatória da viatura.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {[
@@ -126,7 +202,7 @@ export default function DriverDashboard() {
                 <label htmlFor={`check-${i}`} className="text-sm font-medium leading-none text-slate-700">{item}</label>
               </div>
             ))}
-            <Button className="w-full mt-2 bg-amber-600 hover:bg-amber-700 h-10" onClick={() => setChecklistDone(true)}>
+            <Button className="w-full mt-2 h-10 shadow-lg" onClick={() => setChecklistDone(true)}>
               Iniciar Manifesto de Viagem
             </Button>
           </CardContent>
@@ -158,12 +234,12 @@ export default function DriverDashboard() {
             </div>
 
             {briefing && (
-              <Card className="border-l-4 border-l-accent bg-white shadow-sm border-none animate-in fade-in">
+              <Card className="border-l-4 border-l-primary bg-white shadow-sm border-none animate-in fade-in">
                 <CardContent className="pt-4 space-y-3">
                   <p className="text-sm leading-relaxed text-slate-700">{briefing.summary}</p>
                   <div className="space-y-2">
                     {briefing.criticalAlerts.map((alert, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-rose-600 bg-rose-50 p-2 rounded-lg">
+                      <div key={i} className="flex items-start gap-2 text-xs text-destructive bg-destructive/10 p-2 rounded-lg">
                         <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
                         {alert}
                       </div>
@@ -181,7 +257,7 @@ export default function DriverDashboard() {
                 <div key={stop.id} className="relative pl-8">
                   <div className={cn(
                     "absolute left-1.5 top-1 size-3 rounded-full border-2 border-white shadow-sm",
-                    stop.type === 'PICKUP' ? "bg-primary" : "bg-accent"
+                    stop.type === 'PICKUP' ? "bg-primary" : "bg-primary/40"
                   )} />
                   <Card className="border-none shadow-sm hover:shadow-md transition-shadow">
                     <CardContent className="p-3">
@@ -212,12 +288,41 @@ export default function DriverDashboard() {
             </div>
           </div>
 
-          <Button 
-            className="w-full h-12 gap-2 text-base shadow-lg bg-emerald-600 hover:bg-emerald-700"
-            onClick={() => toast({ title: "Jornada Concluída", description: "Dados enviados para a Secretaria Municipal." })}
-          >
-            <CheckCircle2 className="h-5 w-5" /> Finalizar Manifesto
-          </Button>
+          <Dialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                className="w-full h-14 gap-2 text-base shadow-xl bg-primary hover:bg-primary/90 mt-4"
+              >
+                <CheckCircle2 className="h-5 w-5" /> Finalizar Manifesto
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md w-[95vw] rounded-2xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-primary" /> Relatório de Viagem
+                </DialogTitle>
+                <DialogDescription>
+                  Alguma observação relevante para a chefia sobre os pacientes ou o trajeto?
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <Textarea 
+                  placeholder="Ex: Paciente Benedito teve leve tontura, trajeto com obras na via principal..."
+                  className="min-h-[120px] focus:ring-primary"
+                  value={feedbackNote}
+                  onChange={(e) => setFeedbackNote(e.target.value)}
+                />
+              </div>
+              <DialogFooter>
+                <Button 
+                  className="w-full h-12 text-base font-bold shadow-lg" 
+                  onClick={handleFinalizeMission}
+                >
+                  Enviar e Encerrar Turno
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </div>
