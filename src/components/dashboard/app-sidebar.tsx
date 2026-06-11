@@ -13,7 +13,8 @@ import {
   LogOut,
   Settings,
   MessageSquare,
-  BookOpen
+  BookOpen,
+  Fingerprint
 } from "lucide-react";
 
 import {
@@ -38,6 +39,7 @@ const menuItems = [
   { title: "Postos (UBS)", icon: Hospital, url: "/dashboard/ubs" },
   { title: "Otimizador de Rotas", icon: MapPin, url: "/dashboard/routes" },
   { title: "Relatórios de Campo", icon: MessageSquare, url: "/dashboard/reports" },
+  { title: "Auditoria", icon: Fingerprint, url: "/dashboard/audit" },
   { title: "Painel de Comando", icon: ShieldCheck, url: "/dashboard/admin" },
 ];
 
