@@ -1,7 +1,8 @@
+
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: 'SGov Motorista - Rio Claro',
+  title: 'SGov Motorista - Rio Claro, RJ',
   description: 'Módulo móvel para motoristas de transporte sanitário',
 };
 
@@ -16,7 +17,7 @@ export default function DriverLayout({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="bg-white text-primary font-bold p-1 rounded">RC</div>
-            <h1 className="font-bold tracking-tight">SGov Motorista</h1>
+            <h1 className="font-bold tracking-tight">SGov Motorista - RJ</h1>
           </div>
           <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">
             CS

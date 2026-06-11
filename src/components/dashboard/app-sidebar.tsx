@@ -50,7 +50,7 @@ export function AppSidebar() {
           {state !== "collapsed" && (
             <div className="flex flex-col">
               <span className="font-bold text-sm leading-none">FluxoSaúde</span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Rio Claro - SP</span>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Rio Claro - RJ</span>
             </div>
           )}
         </div>

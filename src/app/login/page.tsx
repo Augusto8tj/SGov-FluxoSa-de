@@ -20,7 +20,6 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Lógica de simulação de redirecionamento baseada no email para o protótipo
     setTimeout(() => {
       setLoading(false);
       if (email.includes("secretario")) {
@@ -47,7 +46,7 @@ export default function LoginPage() {
             <Ambulance className="h-8 w-8" />
           </div>
           <h1 className="text-3xl font-black tracking-tight text-primary">SGov FluxoSaúde</h1>
-          <p className="text-muted-foreground font-medium">Prefeitura de Rio Claro - SP</p>
+          <p className="text-muted-foreground font-medium">Prefeitura de Rio Claro - RJ</p>
         </div>
 
         <Card className="border-none shadow-xl">
@@ -62,7 +61,7 @@ export default function LoginPage() {
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="ex: jose.silva@rioclaro.sp.gov.br" 
+                  placeholder="ex: jose.silva@rioclaro.rj.gov.br" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required 
@@ -86,7 +85,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          &copy; 2024 Secretaria Municipal de Saúde. Rio Claro - SP.
+          &copy; 2024 Secretaria Municipal de Saúde. Rio Claro - RJ.
         </p>
       </div>
     </div>

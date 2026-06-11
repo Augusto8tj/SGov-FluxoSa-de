@@ -6,33 +6,33 @@ import {
   MapPin, 
   Ambulance, 
   User, 
-  CheckCircle2, 
   ArrowRight, 
   Zap, 
   Loader2, 
   Route as RouteIcon,
   Navigation
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { generateOptimizedRoutes, GenerateOptimizedRoutesOutput } from "@/ai/flows/generate-optimized-routes";
 
+// Coordenadas reais de Rio Claro - RJ (Centro, Lídice, Passa Três)
 const mockAppointments = [
-  { id: "A1", patientId: "P1", pickupLocation: { lat: -22.41, lng: -47.56 }, destinationUbsId: "UBS1", scheduledTime: "08:00", companionCount: 1, specialNeeds: ["wheelchair"] },
-  { id: "A2", patientId: "P2", pickupLocation: { lat: -22.42, lng: -47.55 }, destinationUbsId: "UBS1", scheduledTime: "08:30" },
-  { id: "A3", patientId: "P3", pickupLocation: { lat: -22.40, lng: -47.57 }, destinationUbsId: "UBS2", scheduledTime: "09:00", specialNeeds: ["oxygen"] },
+  { id: "A1", patientId: "P1", pickupLocation: { lat: -22.7214, lng: -44.1322 }, destinationUbsId: "UBS1", scheduledTime: "08:00", companionCount: 1, specialNeeds: ["wheelchair"] },
+  { id: "A2", patientId: "P2", pickupLocation: { lat: -22.7931, lng: -44.0244 }, destinationUbsId: "UBS1", scheduledTime: "08:30" }, // Passa Três
+  { id: "A3", patientId: "P3", pickupLocation: { lat: -22.8455, lng: -44.2312 }, destinationUbsId: "UBS2", scheduledTime: "09:00", specialNeeds: ["oxygen"] }, // Lídice
 ];
 
 const mockVehicles = [
-  { id: "V1", type: "Ambulância", capacity: 2, currentLocation: { lat: -22.411, lng: -47.561 }, available: true },
-  { id: "V2", type: "Van", capacity: 8, currentLocation: { lat: -22.415, lng: -47.565 }, available: true },
+  { id: "V1", type: "Ambulância", capacity: 2, currentLocation: { lat: -22.72, lng: -44.13 }, available: true },
+  { id: "V2", type: "Van", capacity: 8, currentLocation: { lat: -22.725, lng: -44.135 }, available: true },
 ];
 
 const mockDrivers = [
-  { id: "D1", name: "Carlos Silva", currentLocation: { lat: -22.41, lng: -47.56 }, available: true },
-  { id: "D2", name: "Marcos Pereira", currentLocation: { lat: -22.42, lng: -47.55 }, available: true },
+  { id: "D1", name: "Carlos Silva", currentLocation: { lat: -22.72, lng: -44.13 }, available: true },
+  { id: "D2", name: "Marcos Pereira", currentLocation: { lat: -22.72, lng: -44.13 }, available: true },
 ];
 
 export default function RoutesPage() {
@@ -48,13 +48,13 @@ export default function RoutesPage() {
         vehicles: mockVehicles as any,
         drivers: mockDrivers as any,
         ubs: [
-          { id: "UBS1", name: "UBS Central", location: { lat: -22.41, lng: -47.56 } },
-          { id: "UBS2", name: "UBS Norte", location: { lat: -22.40, lng: -47.57 } }
+          { id: "UBS1", name: "UBS Central", location: { lat: -22.721, lng: -44.132 } },
+          { id: "UBS2", name: "UBS Lídice", location: { lat: -22.845, lng: -44.231 } }
         ],
         enableAiAssistance: true
       });
       setResult(data);
-      toast({ title: "Otimização Concluída", description: data.optimizationSummary || "Rotas geradas com sucesso." });
+      toast({ title: "Otimização Concluída", description: data.optimizationSummary || "Rotas geradas para Rio Claro - RJ." });
     } catch (error) {
       toast({ title: "Erro na Otimização", description: "Ocorreu um problema ao processar as rotas.", variant: "destructive" });
     } finally {
@@ -67,7 +67,7 @@ export default function RoutesPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Otimizador de Rotas</h2>
-          <p className="text-muted-foreground">Logística inteligente para transporte sanitário.</p>
+          <p className="text-muted-foreground">Logística inteligente para Rio Claro - RJ.</p>
         </div>
         <Button 
           onClick={runOptimization} 
@@ -86,7 +86,7 @@ export default function RoutesPage() {
       <div className="grid gap-6 lg:grid-cols-4">
         <Card className="lg:col-span-1 border-none shadow-sm">
           <CardHeader>
-            <CardTitle className="text-base">Entradas Pendentes</CardTitle>
+            <CardTitle className="text-base">Entradas Pendentes (Rio Claro)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between text-sm">
@@ -118,7 +118,7 @@ export default function RoutesPage() {
               </div>
               <h3 className="text-lg font-semibold">Pronto para Otimizar</h3>
               <p className="text-muted-foreground text-sm max-w-sm text-center">
-                Clique no botão acima para deixar nossa IA calcular as melhores rotas e atribuições para os pedidos aprovados de hoje.
+                A IA calculará os melhores trajetos considerando a topografia de Rio Claro e os distritos de Lídice e Passa Três.
               </p>
             </Card>
           )}
@@ -128,7 +128,7 @@ export default function RoutesPage() {
               <Loader2 className="h-12 w-12 text-primary animate-spin" />
               <div>
                 <p className="text-lg font-semibold animate-pulse">Calculando Rotas...</p>
-                <p className="text-sm text-muted-foreground">Acessando API OpenRouter para otimização geoespacial.</p>
+                <p className="text-sm text-muted-foreground">Integrando dados geográficos da região Serrana de Rio Claro.</p>
               </div>
             </div>
           )}
@@ -160,7 +160,7 @@ export default function RoutesPage() {
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="text-sm font-semibold">Parada {i + 1}: {appId}</p>
-                                  <p className="text-xs text-muted-foreground">Paciente ID: {app?.patientId} • {app?.scheduledTime}</p>
+                                  <p className="text-xs text-muted-foreground">ID Paciente: {app?.patientId} • {app?.scheduledTime}</p>
                                 </div>
                                 {app?.specialNeeds && app.specialNeeds.length > 0 && (
                                   <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none text-[10px]">
@@ -179,25 +179,6 @@ export default function RoutesPage() {
                   </Card>
                 ))}
               </div>
-
-              {result.unassignedAppointmentIds && result.unassignedAppointmentIds.length > 0 && (
-                <Card className="border-rose-100 bg-rose-50/50">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-bold text-rose-700 flex items-center gap-2">
-                      <ArrowRight className="h-4 w-4" /> Pacientes Não Alocados
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {result.unassignedAppointmentIds.map(id => (
-                        <Badge key={id} variant="outline" className="bg-white border-rose-200 text-rose-600">
-                          {id}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           )}
         </div>

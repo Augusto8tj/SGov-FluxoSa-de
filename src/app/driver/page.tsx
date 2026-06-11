@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { 
-  Clock, 
   MapPin, 
   Ambulance, 
   ChevronRight, 
@@ -13,7 +12,9 @@ import {
   CheckCircle2,
   ClipboardCheck,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Navigation,
+  ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,13 +35,38 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 const mockRoute = {
-  id: "ROUTE-42",
-  vehicle: "Ambulância - Placa ABC-1234",
+  id: "ROTA-RJ-042",
+  vehicle: "Ambulância - Rio Claro RJ",
   startTime: "08:00",
   stops: [
-    { id: "S1", name: "UBS Central", type: "PICKUP", patient: "Maria Souza", specialNeeds: ["Maca", "Oxigênio"], urgency: "high", time: "08:15" },
-    { id: "S2", name: "Hospital Municipal", type: "DROPOFF", patient: "Maria Souza", time: "08:45" },
-    { id: "S3", name: "UBS Rio Claro Sul", type: "PICKUP", patient: "João Pedro", specialNeeds: ["Cadeirante"], urgency: "medium", time: "09:15" },
+    { 
+      id: "S1", 
+      name: "UBS Central (Rio Claro)", 
+      type: "PICKUP", 
+      patient: "Maria Souza", 
+      specialNeeds: ["Maca"], 
+      urgency: "high", 
+      time: "08:15",
+      location: { lat: -22.7214, lng: -44.1322 }
+    },
+    { 
+      id: "S2", 
+      name: "Hospital de Rio Claro", 
+      type: "DROPOFF", 
+      patient: "Maria Souza", 
+      time: "08:45",
+      location: { lat: -22.7230, lng: -44.1350 }
+    },
+    { 
+      id: "S3", 
+      name: "UBS Lídice", 
+      type: "PICKUP", 
+      patient: "João Pedro", 
+      specialNeeds: ["Cadeirante"], 
+      urgency: "medium", 
+      time: "09:30",
+      location: { lat: -22.8455, lng: -44.2312 }
+    },
   ]
 };
 
@@ -50,6 +76,11 @@ export default function DriverDashboard() {
   const [checklistDone, setChecklistDone] = useState(false);
   const [incidentReporting, setIncidentReporting] = useState(false);
   const { toast } = useToast();
+
+  const handleOpenMaps = (lat: number, lng: number) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    window.open(url, '_blank');
+  };
 
   const getBriefing = async () => {
     setLoadingAi(true);
@@ -62,7 +93,7 @@ export default function DriverDashboard() {
           needs: s.specialNeeds || [],
           urgency: s.urgency || "low"
         })),
-        routeDetails: "Início na Garagem Municipal, paradas em UBS Central e Rio Claro Sul."
+        routeDetails: "Início no Centro, paradas em Lídice e Passa Três."
       });
       setBriefing(result);
     } catch (error) {
@@ -78,8 +109,8 @@ export default function DriverDashboard() {
     setTimeout(() => {
       setIncidentReporting(false);
       toast({
-        title: "Incidente Reportado",
-        description: "A central de logística foi notificada imediatamente.",
+        title: "Alerta Enviado",
+        description: "A central de Rio Claro - RJ foi notificada.",
         variant: "destructive"
       });
     }, 1000);
@@ -90,10 +121,10 @@ export default function DriverDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Olá, Carlos!</h2>
-          <p className="text-xs text-slate-500">Sua jornada de hoje.</p>
+          <p className="text-xs text-slate-500">Rio Claro, RJ • Sua jornada</p>
         </div>
         <Badge variant={checklistDone ? "default" : "outline"} className={cn(checklistDone ? "bg-emerald-600" : "bg-amber-50 text-amber-700 border-amber-200")}>
-          {checklistDone ? "Em Serviço" : "Aguardando Checklist"}
+          {checklistDone ? "Em Rota" : "Preparação"}
         </Badge>
       </div>
 
@@ -103,14 +134,14 @@ export default function DriverDashboard() {
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-amber-700 uppercase">
               <ClipboardCheck className="h-4 w-4" /> Checklist de Segurança
             </CardTitle>
-            <CardDescription className="text-amber-600">Obrigatório antes de iniciar a jornada.</CardDescription>
+            <CardDescription className="text-amber-600">Verifique os freios antes de descer a serra.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {[
               "Nível de Combustível / Bateria",
-              "Freios e Suspensão",
-              "Equipamentos de Oxigênio / Maca",
-              "Limpeza e Higienização"
+              "Freios (Crucial para região serrana)",
+              "Cintos de Segurança e Travas de Maca",
+              "Kit de Primeiros Socorros"
             ].map((item, i) => (
               <div key={i} className="flex items-center space-x-2">
                 <Checkbox id={`check-${i}`} />
@@ -126,7 +157,7 @@ export default function DriverDashboard() {
         <Card className="bg-primary text-white border-none shadow-lg">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-sm font-medium opacity-80 uppercase tracking-wider">Veículo Escalado</CardTitle>
+              <CardTitle className="text-sm font-medium opacity-80 uppercase tracking-wider">Viatura Escala</CardTitle>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-7 text-[10px] bg-white/10 hover:bg-white/20 text-white gap-1">
@@ -136,12 +167,12 @@ export default function DriverDashboard() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Reportar Incidente</DialogTitle>
-                    <DialogDescription>Qualquer problema mecânico ou atraso deve ser informado.</DialogDescription>
+                    <DialogDescription>Central de Logística de Rio Claro - RJ.</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleIncidentReport} className="space-y-4 pt-4">
                     <div className="grid gap-2">
-                      <label className="text-sm font-bold">Tipo de Ocorrência</label>
-                      <Textarea placeholder="Descreva o problema (ex: Pneu furado, congestionamento crítico)..." required />
+                      <label className="text-sm font-bold">Ocorrência</label>
+                      <Textarea placeholder="Descreva o problema..." required />
                     </div>
                     <DialogFooter>
                       <Button type="submit" variant="destructive" disabled={incidentReporting}>
@@ -159,7 +190,7 @@ export default function DriverDashboard() {
               <Ambulance className="h-8 w-8" />
               <div>
                 <p className="font-bold">{mockRoute.vehicle}</p>
-                <p className="text-xs opacity-80">Checklist realizado às 07:45</p>
+                <p className="text-xs opacity-80">Rota ativa em Rio Claro - RJ</p>
               </div>
             </div>
           </CardContent>
@@ -175,24 +206,16 @@ export default function DriverDashboard() {
               </h3>
               {!briefing && !loadingAi && (
                 <Button variant="ghost" size="sm" onClick={getBriefing} className="text-xs h-7 text-primary">
-                  <BrainCircuit className="h-3 w-3 mr-1" /> Gerar Briefing
+                  <BrainCircuit className="h-3 w-3 mr-1" /> Analisar Itinerário
                 </Button>
               )}
             </div>
-
-            {loadingAi && (
-              <div className="bg-white p-6 rounded-xl border border-slate-100 flex flex-col items-center justify-center space-y-2">
-                <BrainCircuit className="h-6 w-6 text-primary animate-pulse" />
-                <p className="text-xs text-slate-500 font-medium">Analisando rota e pacientes...</p>
-              </div>
-            )}
 
             {briefing && (
               <Card className="border-l-4 border-l-accent bg-white shadow-sm border-none">
                 <CardContent className="pt-4 space-y-3">
                   <p className="text-sm leading-relaxed text-slate-700">{briefing.summary}</p>
                   <div className="space-y-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Alertas Críticos</p>
                     {briefing.criticalAlerts.map((alert, i) => (
                       <div key={i} className="flex items-start gap-2 text-xs text-rose-600 bg-rose-50 p-2 rounded-lg">
                         <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
@@ -200,16 +223,13 @@ export default function DriverDashboard() {
                       </div>
                     ))}
                   </div>
-                  <div className="pt-2 border-t text-[10px] italic text-slate-500">
-                    Lembrete: {briefing.protocolReminder}
-                  </div>
                 </CardContent>
               </Card>
             )}
           </div>
 
           <div className="space-y-4">
-            <h3 className="font-bold text-slate-700">Itinerário da Rota {mockRoute.id}</h3>
+            <h3 className="font-bold text-slate-700">Itinerário (Mapa Integrado)</h3>
             <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
               {mockRoute.stops.map((stop, i) => (
                 <div key={stop.id} className="relative pl-8">
@@ -220,7 +240,7 @@ export default function DriverDashboard() {
                   <Card className="border-none shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                     <CardContent className="p-3">
                       <div className="flex justify-between items-start">
-                        <div>
+                        <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Badge variant="outline" className="text-[9px] h-4 py-0 uppercase">
                               {stop.type === 'PICKUP' ? 'Coleta' : 'Entrega'}
@@ -229,23 +249,18 @@ export default function DriverDashboard() {
                           </div>
                           <p className="font-bold text-slate-800 text-sm">{stop.name}</p>
                           {stop.patient && (
-                            <div className="mt-2 space-y-1">
-                              <p className="text-xs font-medium text-slate-600 flex items-center gap-1">
-                                Paciente: {stop.patient}
-                              </p>
-                              <div className="flex gap-1">
-                                {stop.specialNeeds?.map(n => (
-                                  <Badge key={n} className="bg-amber-100 text-amber-700 border-none text-[9px] h-4">
-                                    {n}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
+                            <p className="text-xs text-slate-600 mt-1">Paciente: {stop.patient}</p>
                           )}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="mt-3 w-full h-8 gap-2 text-xs border-primary/20 text-primary hover:bg-primary/5"
+                            onClick={() => handleOpenMaps(stop.location.lat, stop.location.lng)}
+                          >
+                            <Navigation className="h-3 w-3" /> Abrir no Google Maps
+                          </Button>
                         </div>
-                        <Button size="icon" variant="ghost" className="h-8 w-8">
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
+                        <ChevronRight className="h-4 w-4 text-slate-300 mt-1 ml-2" />
                       </div>
                     </CardContent>
                   </Card>
@@ -255,7 +270,7 @@ export default function DriverDashboard() {
           </div>
 
           <Button className="w-full h-12 gap-2 text-base shadow-lg bg-emerald-600 hover:bg-emerald-700">
-            <CheckCircle2 className="h-5 w-5" /> Finalizar Jornada
+            <CheckCircle2 className="h-5 w-5" /> Finalizar Rota e Jornada
           </Button>
         </>
       )}
