@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -30,11 +31,11 @@ import { cn } from "@/lib/utils";
 import { generateSystemInsights, SystemInsightsOutput } from "@/ai/flows/generate-system-insights-flow";
 
 const chartData = [
-  { name: "UBS Central", count: 24 },
-  { name: "UBS Rio Claro", count: 18 },
-  { name: "UBS Sul", count: 12 },
-  { name: "UBS Norte", count: 32 },
-  { name: "UBS Oeste", count: 15 },
+  { name: "Central", count: 24 },
+  { name: "Sul", count: 18 },
+  { name: "Lídice", count: 12 },
+  { name: "Norte", count: 32 },
+  { name: "Oeste", count: 15 },
 ];
 
 export default function DashboardPage() {
@@ -68,110 +69,114 @@ export default function DashboardPage() {
     } catch (error) {
       console.error("Erro ao gerar briefing", error);
     } finally {
-      setLoadingAi(null as any);
       setLoadingAi(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">Bem-vindo, Secretário</h2>
-          <p className="text-muted-foreground">Visão geral do sistema de transporte sanitário hoje.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">Bem-vindo, Secretário</h2>
+          <p className="text-sm text-muted-foreground">Visão geral do transporte sanitário hoje.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
           <Button 
             variant="outline" 
             size="sm" 
-            className="gap-2 border-primary/20 bg-white"
+            className="gap-2 border-primary/20 bg-white shrink-0"
             onClick={handleGenerateBriefing}
             disabled={loadingAi}
           >
             <BrainCircuit className={cn("h-4 w-4 text-primary", loadingAi && "animate-pulse")} />
-            {loadingAi ? "Analisando..." : "Briefing de IA"}
+            <span className="hidden xs:inline">{loadingAi ? "Analisando..." : "Briefing de IA"}</span>
+            <span className="xs:hidden">IA</span>
           </Button>
-          {isWithinWindow ? (
-            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200 px-3 py-1">
-              <Clock className="w-3 h-3 mr-1" /> Janela Aberta (08h-13h)
-            </Badge>
-          ) : (
-            <Badge variant="destructive" className="px-3 py-1">
-              <Clock className="w-3 h-3 mr-1" /> Janela Fechada
-            </Badge>
-          )}
+          <div className="shrink-0">
+            {isWithinWindow ? (
+              <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200 px-2 sm:px-3 py-1 text-[10px] sm:text-xs">
+                <Clock className="w-3 h-3 mr-1" /> Janela Aberta (08h-13h)
+              </Badge>
+            ) : (
+              <Badge variant="destructive" className="px-2 sm:px-3 py-1 text-[10px] sm:text-xs">
+                <Clock className="w-3 h-3 mr-1" /> Janela Fechada
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
       {aiBriefing && (
-        <Card className="border-l-4 border-l-primary bg-primary/5 border-none shadow-sm">
+        <Card className="border-l-4 border-l-primary bg-primary/5 border-none shadow-sm animate-in fade-in slide-in-from-top-2">
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
-                <Zap className="h-4 w-4 fill-primary" /> INSIGHTS ESTRATÉGICOS DA IA
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-xs sm:text-sm font-bold text-primary flex items-center gap-2">
+                <Zap className="h-4 w-4 fill-primary shrink-0" /> INSIGHTS ESTRATÉGICOS
               </CardTitle>
               <Badge className={cn(
+                "text-[9px] sm:text-[10px]",
                 aiBriefing.alertLevel === 'critical' ? 'bg-rose-100 text-rose-700' : 
                 aiBriefing.alertLevel === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
               )}>
-                Alerta: {aiBriefing.alertLevel.toUpperCase()}
+                {aiBriefing.alertLevel.toUpperCase()}
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm leading-relaxed text-foreground/90">{aiBriefing.briefing}</p>
-            <div className="flex items-center gap-2 text-xs font-bold text-primary bg-white w-fit px-3 py-1 rounded-full shadow-sm">
-              <ArrowRight className="h-3 w-3" /> Ação Prioritária: {aiBriefing.priorityAction}
+            <p className="text-xs sm:text-sm leading-relaxed text-foreground/90">{aiBriefing.briefing}</p>
+            <div className="flex items-start sm:items-center gap-2 text-[10px] sm:text-xs font-bold text-primary bg-white w-full sm:w-fit px-3 py-2 rounded-lg sm:rounded-full shadow-sm">
+              <ArrowRight className="h-3 w-3 mt-0.5 sm:mt-0 shrink-0" /> 
+              <span>Ação Prioritária: {aiBriefing.priorityAction}</span>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <StatsCard 
-          title="Pedidos Pendentes" 
+          title="Pendentes" 
           value="42" 
           icon={Clock} 
-          description="Aguardando aprovação"
+          description="Em análise"
           trend={{ value: 12, isPositive: true }}
         />
         <StatsCard 
-          title="Total de Pacientes" 
-          value="1,284" 
+          title="Pacientes" 
+          value="1.2k" 
           icon={Users} 
-          description="Cadastrados no sistema"
+          description="Cadastrados"
         />
         <StatsCard 
           title="Frota Ativa" 
           value="14/18" 
           icon={Ambulance} 
-          description="Veículos em operação"
+          description="Veículos"
         />
         <StatsCard 
           title="UBS Ativas" 
           value="14" 
           icon={MapPin} 
-          description="Pontos de coleta operacionais"
+          description="Unidades"
         />
       </div>
 
       {!isWithinWindow && (
         <Alert className="bg-amber-50 border-amber-200">
           <AlertCircle className="h-4 w-4 text-amber-600" />
-          <AlertTitle className="text-amber-800 font-semibold">Janela de Agendamento Encerrada</AlertTitle>
-          <AlertDescription className="text-amber-700">
-            Novos pedidos só podem ser realizados entre 08:00 e 13:00. O sistema está em modo de análise e roteirização.
+          <AlertTitle className="text-amber-800 font-semibold text-xs sm:text-sm">Janela Encerrada</AlertTitle>
+          <AlertDescription className="text-amber-700 text-[10px] sm:text-xs">
+            Novos pedidos só entre 08:00 e 13:00. O sistema está em modo de roteirização.
           </AlertDescription>
         </Alert>
       )}
 
-      <div className="grid gap-6 md:grid-cols-7">
-        <Card className="md:col-span-4 border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">Demanda por UBS</CardTitle>
-            <CardDescription>Número de pedidos autorizados nas últimas 24h.</CardDescription>
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-7">
+        <Card className="md:col-span-4 border-none shadow-sm overflow-hidden">
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-base sm:text-lg">Demanda por UBS</CardTitle>
+            <CardDescription className="text-xs">Últimas 24h em Rio Claro.</CardDescription>
           </CardHeader>
-          <CardContent className="h-[300px]">
+          <CardContent className="h-[200px] sm:h-[300px] p-2 sm:p-6">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
@@ -179,12 +184,12 @@ export default function DashboardPage() {
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 12, fill: "#888" }}
+                  tick={{ fontSize: 10, fill: "#888" }}
                 />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#888" }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#888" }} />
                 <Tooltip 
                   cursor={{ fill: '#f5f5f5' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px' }}
                 />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {chartData.map((entry, index) => (
@@ -197,34 +202,34 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="md:col-span-3 border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">Atividades Recentes</CardTitle>
-            <CardDescription>Últimas ações no sistema.</CardDescription>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-base sm:text-lg">Atividades Recentes</CardTitle>
+            <CardDescription className="text-xs">Histórico operacional.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6">
             <div className="space-y-4">
               {[
-                { type: 'approval', user: 'Sec. Ricardo', text: 'Aprovou rota otimizada #042', time: '10 min ago' },
-                { type: 'request', user: 'UBS Central', text: 'Novo pedido: Maria Oliveira', time: '25 min ago' },
-                { type: 'system', user: 'AI Engine', text: 'Gerou 5 sugestões de rotas', time: '1h ago' },
-                { type: 'completion', user: 'Motorista João', text: 'Viagem concluída: UBS Sul', time: '2h ago' },
+                { type: 'approval', user: 'Ricardo', text: 'Aprovou rota #042', time: '10 min' },
+                { type: 'request', user: 'UBS Central', text: 'Novo: Maria Oliveira', time: '25 min' },
+                { type: 'system', user: 'IA Engine', text: 'Gerou 5 rotas', time: '1h' },
+                { type: 'completion', user: 'João', text: 'Viagem concluída: UBS Sul', time: '2h' },
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className={cn(
-                    "mt-1 size-2 rounded-full",
+                    "mt-1.5 size-1.5 rounded-full shrink-0",
                     item.type === 'approval' ? "bg-emerald-500" : 
                     item.type === 'request' ? "bg-primary" : 
                     item.type === 'system' ? "bg-accent" : "bg-muted-foreground"
                   )} />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">{item.text}</p>
-                    <p className="text-xs text-muted-foreground">{item.user} • {item.time}</p>
+                  <div className="flex-1 space-y-0.5">
+                    <p className="text-xs font-semibold leading-tight">{item.text}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.user} • {item.time}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <Button variant="outline" className="w-full mt-6 text-xs font-semibold uppercase tracking-wider h-9">
-              Ver Auditoria Completa
+            <Button variant="outline" className="w-full mt-6 text-[10px] font-bold uppercase tracking-wider h-8">
+              Ver Auditoria
             </Button>
           </CardContent>
         </Card>

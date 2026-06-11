@@ -12,23 +12,23 @@ export default function DashboardLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white/50 backdrop-blur-sm sticky top-0 z-20">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
-          <div className="flex-1">
-            <h1 className="text-sm font-semibold text-primary">SGov FluxoSaúde - Rio Claro, RJ</h1>
+          <div className="flex-1 overflow-hidden">
+            <h1 className="text-xs sm:text-sm font-semibold text-primary truncate">SGov FluxoSaúde - Rio Claro, RJ</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-medium">Dr. Ricardo Silva</p>
-              <p className="text-[10px] text-muted-foreground">Secretário de Saúde</p>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <div className="text-right hidden xs:block">
+              <p className="text-[10px] sm:text-xs font-medium truncate max-w-[80px] sm:max-w-none">Dr. Ricardo Silva</p>
+              <p className="text-[8px] sm:text-[10px] text-muted-foreground uppercase">Secretário</p>
             </div>
-            <div className="h-8 w-8 rounded-full bg-accent flex items-center justify-center text-primary font-bold text-xs">
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-accent flex items-center justify-center text-primary font-bold text-[10px] sm:text-xs shrink-0">
               RS
             </div>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-3 sm:p-6 md:p-8 max-w-7xl mx-auto w-full overflow-x-hidden">
           {children}
         </main>
       </SidebarInset>

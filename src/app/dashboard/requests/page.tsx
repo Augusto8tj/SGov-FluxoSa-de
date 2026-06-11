@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -11,7 +12,8 @@ import {
   AlertCircle,
   ArrowRight,
   BrainCircuit,
-  Loader2
+  Loader2,
+  Calendar
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,25 +70,12 @@ const mockRequests: TransportRequest[] = [
     patientName: "João Pedro Santos",
     ubsId: "UBS-02",
     pickupLocation: "UBS Rio Claro",
-    destinationLocation: "Centro de Hemodiálise",
+    destinationLocation: "Hemodiálise",
     requestedTime: "2024-05-20 07:30",
     urgencyLevel: "critical",
     status: "APPROVED",
     operatorId: "OP-01",
     createdAt: "2024-05-19 15:30"
-  },
-  {
-    id: "REQ-003",
-    patientId: "P-789",
-    patientName: "Ana Julia Oliveira",
-    ubsId: "UBS-03",
-    pickupLocation: "UBS Norte",
-    destinationLocation: "Clínica de Olhos",
-    requestedTime: "2024-05-20 14:15",
-    urgencyLevel: "low",
-    status: "COMPLETED",
-    operatorId: "OP-02",
-    createdAt: "2024-05-19 10:00"
   }
 ];
 
@@ -101,28 +90,19 @@ export default function RequestsPage() {
 
   const handleAiUrgency = async () => {
     if (!patientNotes || !destination) {
-      toast({ title: "Dados incompletos", description: "Preencha o destino e observações para a IA analisar.", variant: "destructive" });
+      toast({ title: "Dados incompletos", description: "Preencha destino e notas.", variant: "destructive" });
       return;
     }
     setIsClassifying(true);
     try {
       const result = await classifyUrgency({ patientNotes, destination });
       setSuggestedUrgency(result.suggestedUrgency);
-      toast({ title: "Análise da IA", description: result.reasoning });
+      toast({ title: "Análise concluída", description: result.reasoning });
     } catch (error) {
-      toast({ title: "Erro na IA", description: "Não foi possível classificar agora.", variant: "destructive" });
+      toast({ title: "Erro na IA", description: "Tente novamente mais tarde.", variant: "destructive" });
     } finally {
       setIsClassifying(false);
     }
-  };
-
-  const handleCreateRequest = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Solicitação Criada",
-      description: "A solicitação foi enviada para análise da secretaria.",
-    });
-    setIsDialogOpen(false);
   };
 
   const filteredRequests = mockRequests.filter(req => 
@@ -130,98 +110,85 @@ export default function RequestsPage() {
     req.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const getStatusBadge = (status: TransportStatus) => {
-    switch (status) {
-      case 'PENDING': return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">Pendente</Badge>;
-      case 'APPROVED': return <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Aprovado</Badge>;
-      case 'COMPLETED': return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Concluído</Badge>;
-      case 'DENIED': return <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200">Recusado</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
   const getUrgencyBadge = (level: string) => {
     switch (level) {
-      case 'critical': return <Badge className="bg-rose-600">Crítico</Badge>;
-      case 'high': return <Badge variant="destructive">Alta</Badge>;
-      case 'medium': return <Badge variant="default">Média</Badge>;
-      case 'low': return <Badge variant="secondary">Baixa</Badge>;
-      default: return <Badge>{level}</Badge>;
+      case 'critical': return <Badge className="bg-rose-600 text-[10px] px-1.5 py-0">Crítico</Badge>;
+      case 'high': return <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Alta</Badge>;
+      case 'medium': return <Badge variant="default" className="text-[10px] px-1.5 py-0">Média</Badge>;
+      case 'low': return <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Baixa</Badge>;
+      default: return <Badge className="text-[10px] px-1.5 py-0">{level}</Badge>;
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">Agendamentos</h2>
-          <p className="text-muted-foreground">Gerencie e acompanhe as solicitações de transporte sanitário.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">Agendamentos</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">Logística de transporte sanitário.</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 shadow-md">
-              <Plus className="h-4 w-4" /> Nova Solicitação
+            <Button className="w-full sm:w-auto gap-2 shadow-md h-10">
+              <Plus className="h-4 w-4" /> Novo Pedido
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[500px] w-[95%] p-4 sm:p-6 rounded-xl">
             <DialogHeader>
-              <DialogTitle>Solicitar Transporte</DialogTitle>
-              <DialogDescription>
-                Preencha os dados do paciente e use a IA para classificar a urgência.
-              </DialogDescription>
+              <DialogTitle className="text-lg">Solicitar Transporte</DialogTitle>
+              <DialogDescription className="text-xs">Preencha os dados e use a IA para triagem.</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleCreateRequest} className="space-y-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="patient">Paciente</Label>
-                <Select required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o paciente" />
+            <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-1">
+              <div className="grid gap-1.5">
+                <Label htmlFor="patient" className="text-xs">Paciente</Label>
+                <Select>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="p1">Maria Aparecida Silva</SelectItem>
                     <SelectItem value="p2">João Pedro Santos</SelectItem>
-                    <SelectItem value="p3">Ana Julia Oliveira</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="destination">Destino</Label>
+              <div className="grid gap-1.5">
+                <Label htmlFor="destination" className="text-xs">Destino</Label>
                 <Input 
                   id="destination" 
-                  placeholder="Ex: Hospital Municipal, Clínica Renal" 
+                  className="h-9 text-sm"
+                  placeholder="Hospital, Clínica, etc." 
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
-                  required 
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid gap-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="notes">Observações Clínicas</Label>
+                  <Label htmlFor="notes" className="text-xs">Notas Clínicas</Label>
                   <Button 
-                    type="button" 
                     variant="ghost" 
                     size="sm" 
-                    className="h-7 text-[10px] gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                    className="h-6 text-[9px] gap-1 text-primary"
                     onClick={handleAiUrgency}
                     disabled={isClassifying}
                   >
                     {isClassifying ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3" />}
-                    Assistência de IA
+                    Assistência IA
                   </Button>
                 </div>
                 <Textarea 
                   id="notes" 
-                  placeholder="Ex: Paciente com dificuldade de locomoção, requer maca." 
+                  className="text-sm min-h-[60px]"
+                  placeholder="Relate a condição do paciente..." 
                   value={patientNotes}
                   onChange={(e) => setPatientNotes(e.target.value)}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="urgency">Urgência</Label>
-                  <Select required defaultValue={suggestedUrgency || undefined}>
-                    <SelectTrigger className={suggestedUrgency ? "border-primary bg-primary/5" : ""}>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="urgency" className="text-xs">Urgência</Label>
+                  <Select defaultValue={suggestedUrgency || undefined}>
+                    <SelectTrigger className={cn("h-9 text-sm", suggestedUrgency && "border-primary bg-primary/5")}>
                       <SelectValue placeholder="Nível" />
                     </SelectTrigger>
                     <SelectContent>
@@ -231,151 +198,118 @@ export default function RequestsPage() {
                       <SelectItem value="critical">Crítico</SelectItem>
                     </SelectContent>
                   </Select>
-                  {suggestedUrgency && <p className="text-[10px] text-primary font-bold">IA sugeriu: {suggestedUrgency.toUpperCase()}</p>}
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="time">Data e Hora</Label>
-                  <Input id="time" type="datetime-local" required />
+                <div className="grid gap-1.5">
+                  <Label htmlFor="time" className="text-xs">Horário</Label>
+                  <Input id="time" type="datetime-local" className="h-9 text-sm px-1 sm:px-3" />
                 </div>
               </div>
-              <DialogFooter className="pt-4">
-                <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                <Button type="submit">Enviar Solicitação</Button>
-              </DialogFooter>
-            </form>
+            </div>
+            <DialogFooter className="flex-row gap-2 sm:gap-0">
+              <Button variant="ghost" className="flex-1 sm:flex-none h-9 text-sm" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+              <Button className="flex-1 sm:flex-none h-9 text-sm" onClick={() => setIsDialogOpen(false)}>Enviar</Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-96">
+      <div className="flex flex-col gap-3">
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Buscar por paciente ou ID..." 
-            className="pl-10 h-10"
+            placeholder="Buscar paciente..." 
+            className="pl-10 h-10 text-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <Button variant="outline" size="sm" className="gap-2 h-10">
-            <Filter className="h-4 w-4" /> Filtros
-          </Button>
-          <Tabs defaultValue="all" className="w-full md:w-auto">
-            <TabsList className="grid grid-cols-3 w-full md:w-[300px] h-10">
-              <TabsTrigger value="all">Todos</TabsTrigger>
-              <TabsTrigger value="pending">Pendentes</TabsTrigger>
-              <TabsTrigger value="approved">Ativos</TabsTrigger>
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="grid grid-cols-3 w-full sm:w-[300px] h-9">
+              <TabsTrigger value="all" className="text-[10px] sm:text-xs">Todos</TabsTrigger>
+              <TabsTrigger value="pending" className="text-[10px] sm:text-xs">Pendentes</TabsTrigger>
+              <TabsTrigger value="approved" className="text-[10px] sm:text-xs">Ativos</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden">
-        <CardContent className="p-0">
+        <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/50">
               <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead>Paciente</TableHead>
-                <TableHead>Trajeto</TableHead>
-                <TableHead>Horário</TableHead>
-                <TableHead>Urgência</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="text-[10px] sm:text-xs uppercase font-bold py-3 px-4">Paciente</TableHead>
+                <TableHead className="text-[10px] sm:text-xs uppercase font-bold py-3 px-4 hidden sm:table-cell">Trajeto</TableHead>
+                <TableHead className="text-[10px] sm:text-xs uppercase font-bold py-3 px-4">Info</TableHead>
+                <TableHead className="text-right text-[10px] sm:text-xs uppercase font-bold py-3 px-4">Ação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredRequests.length > 0 ? (
-                filteredRequests.map((req) => (
-                  <TableRow key={req.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-mono text-[10px] text-muted-foreground">
-                      {req.id}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center text-primary font-medium text-xs">
-                          {req.patientName.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">{req.patientName}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase">{req.patientId}</p>
-                        </div>
+              {filteredRequests.map((req) => (
+                <TableRow key={req.id} className="hover:bg-muted/30">
+                  <TableCell className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-accent/20 flex items-center justify-center text-primary font-bold text-[10px] shrink-0">
+                        {req.patientName.split(' ').map(n => n[0]).join('').slice(0, 2)}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-muted-foreground">{req.pickupLocation}</span>
-                        <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                        <span className="font-medium">{req.destinationLocation}</span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">{req.patientName}</p>
+                        <p className="text-[9px] text-muted-foreground sm:hidden truncate">{req.pickupLocation} → {req.destinationLocation}</p>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">{req.requestedTime.split(' ')[1]}</span>
-                        <span className="text-[10px] text-muted-foreground">{req.requestedTime.split(' ')[0]}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell py-3 px-4">
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-muted-foreground truncate max-w-[80px]">{req.pickupLocation}</span>
+                      <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
+                      <span className="font-medium truncate max-w-[80px]">{req.destinationLocation}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-3 px-4">
+                    <div className="flex flex-col gap-1">
                       {getUrgencyBadge(req.urgencyLevel)}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(req.status)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
-                    Nenhuma solicitação encontrada.
+                      <span className="text-[10px] text-muted-foreground font-mono">{req.requestedTime.split(' ')[1]}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right py-3 px-4">
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
-              )}
+              ))}
             </TableBody>
           </Table>
-        </CardContent>
+        </div>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border-none shadow-sm bg-primary text-primary-foreground">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wider flex items-center gap-2">
-              <AlertCircle className="h-4 w-4" /> Janela de Agendamento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">13:00h</p>
-            <p className="text-xs opacity-80 mt-1">Horário limite para pedidos de amanhã.</p>
-          </CardContent>
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-3">
+        <Card className="border-none shadow-sm bg-primary text-primary-foreground p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <AlertCircle className="h-4 w-4 shrink-0" />
+            <span className="text-[10px] uppercase font-bold tracking-wider">Janela Limite</span>
+          </div>
+          <p className="text-xl font-bold">13:00h</p>
+          <p className="text-[9px] opacity-80">Para agendamentos de amanhã.</p>
         </Card>
         
-        <Card className="border-none shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-              <ClipboardList className="h-4 w-4" /> Total Pendente
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">12</p>
-            <p className="text-xs text-muted-foreground mt-1">Aguardando análise técnica.</p>
-          </CardContent>
+        <Card className="border-none shadow-sm p-4">
+          <div className="flex items-center gap-2 mb-1 text-muted-foreground">
+            <ClipboardList className="h-4 w-4 shrink-0" />
+            <span className="text-[10px] uppercase font-bold tracking-wider">Pendentes</span>
+          </div>
+          <p className="text-xl font-bold">12</p>
+          <p className="text-[9px] text-muted-foreground">Aguardando secretaria.</p>
         </Card>
 
-        <Card className="border-none shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Taxa de Atendimento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">94%</p>
-            <p className="text-xs text-emerald-500 font-medium mt-1">+2% em relação ao mês anterior.</p>
-          </CardContent>
+        <Card className="border-none shadow-sm p-4">
+          <div className="flex items-center gap-2 mb-1 text-emerald-600">
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span className="text-[10px] uppercase font-bold tracking-wider">Eficiência</span>
+          </div>
+          <p className="text-xl font-bold">94%</p>
+          <p className="text-[9px] text-emerald-500 font-bold">+2% este mês.</p>
         </Card>
       </div>
     </div>
