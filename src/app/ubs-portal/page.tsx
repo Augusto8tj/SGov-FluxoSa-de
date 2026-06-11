@@ -11,7 +11,8 @@ import {
   Zap,
   ArrowRight,
   AlertTriangle,
-  History
+  History,
+  MapPin
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -67,8 +68,8 @@ export default function UbsDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">Olá, Gerente Márcia</h2>
-          <p className="text-muted-foreground">Monitoramento de transporte para a UBS Central hoje.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-primary">Portal da Unidade</h2>
+          <p className="text-muted-foreground">Gestão de transporte para a UBS Central - Rio Claro, RJ.</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex flex-col items-end mr-2">
@@ -80,17 +81,7 @@ export default function UbsDashboard() {
               </span>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-2 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hidden sm:flex"
-            onClick={handleGenerateReport}
-            disabled={loadingAi}
-          >
-            <BrainCircuit className={cn("h-4 w-4", loadingAi && "animate-pulse")} />
-            {loadingAi ? "Analisando..." : "Resumo de IA"}
-          </Button>
-          <Button asChild disabled={!isWithinWindow} className={cn("bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20", !isWithinWindow && "opacity-50 grayscale")}>
+          <Button asChild disabled={!isWithinWindow} className={cn("bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 h-11", !isWithinWindow && "opacity-50 grayscale")}>
             <Link href={isWithinWindow ? "/ubs-portal/requests" : "#"} className="gap-2">
               <PlusCircle className="h-4 w-4" /> Novo Pedido
             </Link>
@@ -99,134 +90,138 @@ export default function UbsDashboard() {
       </div>
 
       {!isWithinWindow && (
-        <Card className="bg-rose-50 border-rose-200 border-2">
+        <Card className="bg-rose-50 border-rose-200 border-2 shadow-none">
           <CardContent className="pt-6 flex items-center gap-4">
             <div className="bg-rose-100 p-3 rounded-full text-rose-600">
               <AlertTriangle className="h-6 w-6" />
             </div>
             <div>
               <p className="font-bold text-rose-800">Fora do Horário de Operação</p>
-              <p className="text-sm text-rose-700">Novos agendamentos são permitidos apenas entre **08:00 e 13:00**. Contate a Secretaria para emergências fora deste horário.</p>
+              <p className="text-sm text-rose-700">Novos agendamentos são permitidos apenas até as **13:00**. Contate a Secretaria para emergências críticas.</p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {aiReport && (
-        <Card className="border-l-4 border-l-primary bg-primary/5 border-none shadow-sm animate-in slide-in-from-top-2">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
-                <Zap className="h-4 w-4 fill-primary" /> INSIGHTS OPERACIONAIS DA UNIDADE
-              </CardTitle>
-              <Badge className={cn(
-                aiReport.priorityLevel === 'high' ? 'bg-rose-100 text-rose-700' : 
-                aiReport.priorityLevel === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-primary/10 text-primary'
-              )}>
-                Nível de Atenção: {aiReport.priorityLevel.toUpperCase()}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-foreground/90 leading-relaxed">{aiReport.summary}</p>
-            <div className="flex items-center gap-2 text-xs font-bold text-primary bg-white dark:bg-slate-900 w-fit px-4 py-2 rounded-lg shadow-sm border border-primary/10">
-              <ArrowRight className="h-4 w-4 shrink-0" /> Recomendação: {aiReport.recommendation}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-4">
         <StatsCard 
-          title="Nossos Pedidos Hoje" 
+          title="Nossos Pedidos" 
           value="12" 
           icon={ClipboardList} 
-          description="Enviados para Central"
+          description="Total na fila"
         />
         <StatsCard 
-          title="Aguardando Análise" 
+          title="Em Análise" 
           value="8" 
           icon={Clock} 
           description="Na Secretaria"
           className="border-b-4 border-b-amber-500"
         />
         <StatsCard 
-          title="Já Autorizados" 
+          title="Confirmados" 
           value="4" 
           icon={CheckCircle2} 
           description="Aguardando Veículo"
           className="border-b-4 border-b-emerald-500"
         />
         <StatsCard 
-          title="Pacientes na Base" 
+          title="Nossa Base" 
           value="342" 
           icon={Users} 
-          description="Fidelizados na UBS"
+          description="Cidadãos Cadastrados"
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg">Gestão da Unidade</CardTitle>
-            <CardDescription>Ferramentas exclusivas para o gerente de UBS.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            <Button variant="outline" className="justify-start gap-4 h-16 rounded-xl border-dashed" asChild disabled={!isWithinWindow}>
-              <Link href={isWithinWindow ? "/ubs-portal/requests" : "#"}>
-                <div className={cn("p-2 rounded-lg", isWithinWindow ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground")}>
-                  <PlusCircle className="h-6 w-6" />
+      <div className="grid gap-6 md:grid-cols-7">
+        <div className="md:col-span-4 space-y-6">
+          <Card className="border-none shadow-sm bg-primary/5">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="flex items-center gap-2">
+                <BrainCircuit className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Resumo Inteligente da Demanda</CardTitle>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs font-bold text-primary"
+                onClick={handleGenerateReport}
+                disabled={loadingAi}
+              >
+                {loadingAi ? "Analisando..." : "Gerar Análise"}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {aiReport ? (
+                <div className="space-y-4 animate-in fade-in">
+                  <p className="text-sm leading-relaxed text-slate-700">{aiReport.summary}</p>
+                  <div className="flex items-start gap-2 bg-white p-3 rounded-lg border border-primary/10">
+                    <Zap className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                    <p className="text-xs font-semibold text-primary">Dica: {aiReport.recommendation}</p>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold">Solicitar Novo Transporte</p>
-                  <p className="text-[10px] text-muted-foreground uppercase">Liberado apenas até as 13h</p>
+              ) : (
+                <div className="py-8 text-center">
+                  <p className="text-xs text-muted-foreground italic">Clique em "Gerar Análise" para entender a situação do transporte da unidade hoje.</p>
                 </div>
-              </Link>
-            </Button>
-            <Button variant="outline" className="justify-start gap-4 h-16 rounded-xl border-dashed" asChild>
-              <Link href="/ubs-portal/patients">
-                <div className="bg-emerald-50 p-2 rounded-lg text-emerald-600">
-                  <Users className="h-6 w-6" />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold">Base de Cidadãos</p>
-                  <p className="text-[10px] text-muted-foreground uppercase">Gerenciar CNS e Comorbidades</p>
-                </div>
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card className="border-none shadow-sm flex flex-col">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle className="text-lg">Próximos em Rota</CardTitle>
-              <CardDescription>Pacientes da nossa unidade saindo agora.</CardDescription>
-            </div>
-            <History className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="pt-4 flex-1">
-            <div className="space-y-4">
+          <Card className="border-none shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-lg">Pacientes da Unidade</CardTitle>
+              <CardDescription>Gerencie o cadastro de cidadãos para agilizar pedidos.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button variant="outline" className="w-full justify-start gap-4 h-16 rounded-xl border-dashed" asChild>
+                <Link href="/ubs-portal/patients">
+                  <div className="bg-emerald-50 p-2 rounded-lg text-emerald-600">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-bold">Base de Cidadãos</p>
+                    <p className="text-[10px] text-muted-foreground uppercase">Sincronizar CNS e Prontuário</p>
+                  </div>
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="md:col-span-3">
+          <Card className="border-none shadow-sm h-full flex flex-col">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-2">
+                <History className="h-5 w-5 text-primary" />
+                <CardTitle className="text-lg">Próximos Embarques</CardTitle>
+              </div>
+              <CardDescription className="text-xs">Pacientes da unidade com transporte agendado.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 flex-1">
               {[
                 { name: "Maria Aparecida Silva", destination: "Hospital Municipal", time: "09:00", status: "Confirmado" },
-                { name: "João Pedro Santos", destination: "Hemodiálise", time: "10:30", status: "Em Rota" },
+                { name: "João Pedro Santos", destination: "Hemodiálise", time: "10:30", status: "A caminho" },
+                { name: "Tereza Souza", destination: "UBS Central", time: "11:15", status: "Aguardando" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors border">
                   <div className="space-y-1">
                     <p className="text-sm font-bold">{item.name}</p>
-                    <p className="text-xs text-muted-foreground">{item.destination} &bull; {item.time}</p>
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-medium">
+                      <MapPin className="h-3 w-3" /> {item.destination} &bull; {item.time}
+                    </div>
                   </div>
                   <Badge variant="outline" className={cn(
-                    "text-[10px] h-6",
-                    item.status === 'Em Rota' ? "bg-primary/10 text-primary border-primary/20" : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    "text-[9px] h-5 font-bold",
+                    item.status === 'Confirmado' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : 
+                    item.status === 'A caminho' ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-amber-50 text-amber-700 border-amber-200"
                   )}>
                     {item.status.toUpperCase()}
                   </Badge>
                 </div>
               ))}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
