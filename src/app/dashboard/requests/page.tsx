@@ -8,12 +8,12 @@ import {
   Filter, 
   ClipboardList, 
   CheckCircle2, 
-  MoreVertical,
-  AlertCircle,
-  ArrowRight,
-  BrainCircuit,
-  Loader2,
-  Calendar
+  MoreVertical, 
+  AlertCircle, 
+  ArrowRight, 
+  BrainCircuit, 
+  Loader2, 
+  Calendar 
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TransportRequest, TransportStatus } from "@/lib/types";
 import { classifyUrgency } from "@/ai/flows/classify-urgency-flow";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 const mockRequests: TransportRequest[] = [
   {
@@ -112,7 +113,7 @@ export default function RequestsPage() {
 
   const getUrgencyBadge = (level: string) => {
     switch (level) {
-      case 'critical': return <Badge className="bg-rose-600 text-[10px] px-1.5 py-0">Crítico</Badge>;
+      case 'critical': return <Badge className="bg-rose-600 text-[10px] px-1.5 py-0 text-white border-none">Crítico</Badge>;
       case 'high': return <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Alta</Badge>;
       case 'medium': return <Badge variant="default" className="text-[10px] px-1.5 py-0">Média</Badge>;
       case 'low': return <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Baixa</Badge>;
