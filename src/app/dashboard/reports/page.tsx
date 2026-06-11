@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   MessageSquare, 
   User, 
@@ -12,9 +11,10 @@ import {
   Search,
   Filter,
   Eye,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -48,12 +48,7 @@ export default function ReportsPage() {
   const [selectedReport, setSelectedReport] = useState<DriverReport | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    setMounted(true);
-    loadReports();
-  }, []);
-
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     setLoading(true);
     try {
       const data = await reportService.getReports();
@@ -63,7 +58,12 @@ export default function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    setMounted(true);
+    loadReports();
+  }, [loadReports]);
 
   const handleMarkAsRead = async (report: DriverReport) => {
     if (report.read) return;
@@ -155,7 +155,7 @@ export default function ReportsPage() {
                       </TableCell>
                       <TableCell>
                         <p className="text-xs truncate max-w-[300px] text-muted-foreground italic">
-                          "{report.content}"
+                          &quot;{report.content}&quot;
                         </p>
                       </TableCell>
                       <TableCell className="text-right">
@@ -224,7 +224,7 @@ export default function ReportsPage() {
                     <AlertCircle className="h-4 w-4 text-primary" /> Conteúdo do Relatório
                   </h4>
                   <div className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 italic text-sm text-slate-700 leading-relaxed shadow-inner min-h-[120px]">
-                    "{selectedReport.content}"
+                    &quot;{selectedReport.content}&quot;
                   </div>
                 </div>
 

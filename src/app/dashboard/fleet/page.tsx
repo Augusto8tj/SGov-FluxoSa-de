@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -10,12 +9,10 @@ import {
   CheckCircle2, 
   Wrench,
   Filter,
-  ChevronDown,
   ChevronUp,
   User,
   Calendar,
   Gauge,
-  History,
   Fuel,
   Activity,
   ShieldCheck,
@@ -23,8 +20,7 @@ import {
   MapPin,
   Clock,
   Droplets,
-  Loader2,
-  AlertTriangle
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -499,7 +495,7 @@ export default function FleetPage() {
                                     <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl">
                                       <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">IA: Prognóstico Técnico</p>
                                       <p className="text-[11px] font-medium text-slate-600 italic leading-relaxed">
-                                        "O veículo apresenta desgaste normal. Sugerimos revisão do sistema de freios na próxima parada técnica devido à quilometragem atual."
+                                        &quot;O veículo apresenta desgaste normal. Sugerimos revisão do sistema de freios na próxima parada técnica devido à quilometragem atual.&quot;
                                       </p>
                                     </div>
                                   </div>
@@ -516,8 +512,8 @@ export default function FleetPage() {
                                     <Badge className="bg-blue-600 text-white border-none text-[9px] font-black uppercase">Rota em Progresso</Badge>
                                   </div>
                                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {MOCK_MANIFEST.map((stop) => (
-                                      <Card key={stop.id} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
+                                    {MOCK_MANIFEST.map((stop, i) => (
+                                      <Card key={i} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
                                         <CardContent className="p-4 space-y-2">
                                           <div className="flex items-center justify-between">
                                             <Badge variant="outline" className={cn(

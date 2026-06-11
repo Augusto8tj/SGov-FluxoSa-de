@@ -17,11 +17,6 @@ import {
   Code,
   AlertCircle,
   Play,
-  Trophy,
-  BarChart3,
-  Fuel,
-  Calendar,
-  Droplets,
   Mail,
   Phone,
   Clock,
@@ -90,7 +85,6 @@ export default function SettingsPage() {
   const [testResult, setTestResult] = useState<ModelTesterOutput | null>(null);
   const [isTestingAi, setIsTestingAi] = useState(false);
   const [isBatchTesting, setIsBatchTesting] = useState(false);
-  const [batchResults, setBatchResults] = useState<(ModelTesterOutput & { modelName: string })[]>([]);
   const [activeDebugTab, setActiveDebugTab] = useState("response");
 
   const [units, setUnits] = useState<UBS[]>(MOCK_UBS);
@@ -148,17 +142,12 @@ export default function SettingsPage() {
 
   const handleRunAllTests = async () => {
     setIsBatchTesting(true);
-    setBatchResults([]);
     toast({ title: "Benchmarking", description: "Testando modelos..." });
-    const results: any[] = [];
     for (const model of AI_MODELS) {
       try {
-        const result = await runModelTest(aiTestPrompt, model.id);
-        results.push({ ...result, modelName: model.name });
-        setBatchResults([...results]);
+        await runModelTest(aiTestPrompt, model.id);
       } catch {
-        results.push({ content: "Erro", latency: 0, actualModel: model.id, modelName: model.name, error: "Falha" });
-        setBatchResults([...results]);
+        // Silencioso
       }
     }
     setIsBatchTesting(false);
@@ -583,7 +572,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <p className="text-xs text-muted-foreground leading-relaxed italic">
-                  "Responsável pela malha viária municipal e inteligência de dados."
+                  &quot;Responsável pela malha viária municipal e inteligência de dados.&quot;
                 </p>
                 <div className="space-y-2">
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Capacidades:</p>
@@ -616,7 +605,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <p className="text-xs text-muted-foreground leading-relaxed italic">
-                  "Interface entre a demanda da comunidade e a logística municipal."
+                  &quot;Interface entre a demanda da comunidade e a logística municipal.&quot;
                 </p>
                 <div className="space-y-2">
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Capacidades:</p>
@@ -649,7 +638,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <p className="text-xs text-muted-foreground leading-relaxed italic">
-                  "Garante a segurança e o suporte aos pacientes durante o trajeto."
+                  &quot;Garante a segurança e o suporte aos pacientes durante o trajeto.&quot;
                 </p>
                 <div className="space-y-2">
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Capacidades:</p>
@@ -682,7 +671,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <p className="text-xs text-muted-foreground leading-relaxed italic">
-                  "Portal público para transparência e acompanhamento do cidadão."
+                  &quot;Portal público para transparência e acompanhamento do cidadão.&quot;
                 </p>
                 <div className="space-y-2">
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Capacidades:</p>

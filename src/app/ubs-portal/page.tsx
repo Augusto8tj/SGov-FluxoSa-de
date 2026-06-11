@@ -9,7 +9,6 @@ import {
   PlusCircle, 
   BrainCircuit, 
   Zap,
-  ArrowRight,
   AlertTriangle,
   History,
   MapPin
@@ -97,7 +96,7 @@ export default function UbsDashboard() {
             </div>
             <div>
               <p className="font-bold text-rose-800">Fora do Horário de Operação</p>
-              <p className="text-sm text-rose-700">Novos agendamentos são permitidos apenas até as **13:00**. Contate a Secretaria para emergências críticas.</p>
+              <p className="text-sm text-rose-700">Novos agendamentos são permitidos apenas até as &quot;13:00&quot;. Contate a Secretaria para emergências críticas.</p>
             </div>
           </CardContent>
         </Card>
@@ -161,7 +160,7 @@ export default function UbsDashboard() {
                 </div>
               ) : (
                 <div className="py-8 text-center">
-                  <p className="text-xs text-muted-foreground italic">Clique em "Gerar Análise" para entender a situação do transporte da unidade hoje.</p>
+                  <p className="text-xs text-muted-foreground italic">Clique em &quot;Gerar Análise&quot; para entender a situação do transporte da unidade hoje.</p>
                 </div>
               )}
             </CardContent>

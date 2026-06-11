@@ -2,20 +2,12 @@
 
 import { 
   BookOpen, 
-  Hospital, 
   Clock, 
-  Users, 
-  ClipboardList, 
-  MapPin, 
-  Route,
-  ShieldAlert,
-  PhoneCall,
   Rocket,
   History,
   KeyRound,
   Smartphone
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
   Accordion, 
   AccordionContent, 
@@ -31,7 +23,7 @@ export default function UbsHelpPage() {
         <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
           <BookOpen className="h-8 w-8" /> Manual da Unidade (UBS)
         </h2>
-        <p className="text-muted-foreground italic">Guia de operação local - Portal da UBS v1.0.0 Stable</p>
+        <p className="text-muted-foreground italic">Guia de operação local - Portal da UBS v1.1.0 Stable</p>
       </div>
 
       <div className="p-6 bg-rose-50 border-2 border-rose-100 rounded-3xl flex flex-col md:flex-row items-center gap-6 shadow-sm">
@@ -56,7 +48,7 @@ export default function UbsHelpPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="font-black text-lg text-primary">Novidades da Versão 1.0.0</p>
+                  <p className="font-black text-lg text-primary">Novidades da Versão 1.1.0</p>
                   <Badge variant="outline" className="text-[10px] font-black border-primary text-primary bg-white">ESTÁVEL</Badge>
                 </div>
                 <p className="text-sm text-primary/70 font-medium">Lançamento oficial do SGov FluxoSaúde</p>
@@ -107,7 +99,7 @@ export default function UbsHelpPage() {
             <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 space-y-2">
               <p className="text-xs font-bold text-indigo-800 uppercase">Instruções para a Recepção:</p>
               <ul className="text-xs list-disc pl-5 space-y-1 text-indigo-700">
-                <li>Acesse a tela <b>"Manifestos de Viagem"</b> no seu menu lateral.</li>
+                <li>Acesse a tela &quot;Manifestos de Viagem&quot; no seu menu lateral.</li>
                 <li>Localize o paciente e copie o código numérico ao lado do nome.</li>
                 <li>Informe ao paciente o link <b>/patient-portal</b> e forneça o código para consulta.</li>
               </ul>
@@ -132,7 +124,7 @@ export default function UbsHelpPage() {
             <ol className="text-xs list-decimal pl-5 space-y-2">
               <li>Acesse o link do portal pelo navegador (Chrome/Safari).</li>
               <li>Aguarde o convite de instalação ou clique no menu de opções do navegador.</li>
-              <li>Selecione <b>"Instalar Aplicativo"</b> ou <b>"Adicionar à Tela de Início"</b>.</li>
+              <li>Selecione &quot;Instalar Aplicativo&quot; ou &quot;Adicionar à Tela de Início&quot;.</li>
               <li>Ative as notificações para receber alertas de aprovação da Secretaria.</li>
             </ol>
           </AccordionContent>

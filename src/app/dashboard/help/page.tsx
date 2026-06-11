@@ -3,18 +3,11 @@
 import { 
   BookOpen, 
   ShieldCheck, 
-  Ambulance, 
-  BrainCircuit, 
-  Zap, 
-  Users, 
-  MapPin,
-  Clock,
-  HelpCircle,
-  History,
   Rocket,
-  Smartphone,
+  History,
   Heart,
-  Fingerprint
+  Fingerprint,
+  HelpCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -65,7 +58,7 @@ export default function AdminHelpPage() {
           <CardContent>
             <p className="text-xs text-slate-600 leading-relaxed">Canal público de consulta para pacientes com privacidade garantida.</p>
           </CardContent>
-        </div>
+        </Card>
       </div>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
