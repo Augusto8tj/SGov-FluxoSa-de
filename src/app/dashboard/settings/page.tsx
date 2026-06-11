@@ -286,7 +286,7 @@ export default function SettingsPage() {
                   />
                 </div>
                 <Button 
-                  className="w-full h-12 rounded-xl uppercase text-xs font-bold gap-2 mt-auto shadow-lg shadow-primary/10" 
+                  className="w-full h-10 sm:h-12 rounded-xl uppercase text-[10px] sm:text-xs font-bold gap-2 mt-auto shadow-lg shadow-primary/10" 
                   onClick={handleTestAi} 
                   disabled={isTestingAi || isBatchTesting}
                 >
