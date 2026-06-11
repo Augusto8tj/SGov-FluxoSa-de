@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -73,8 +72,13 @@ export default function PatientsPage() {
       toast({ title: "Campos Requeridos", description: "Nome e CNS são necessários.", variant: "destructive" });
       return;
     }
-    toast({ title: "Sucesso", description: "Dados sincronizados com o banco de dados." });
+    
+    // Fechar o diálogo ANTES de disparar o toast pesado para evitar travamentos de ponteiro
     setIsDialogOpen(false);
+    
+    setTimeout(() => {
+      toast({ title: "Sucesso", description: "Dados sincronizados com o banco de dados." });
+    }, 100);
   };
 
   const filteredPatients = patients.filter(p => 
