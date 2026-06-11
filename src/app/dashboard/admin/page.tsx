@@ -11,7 +11,7 @@ import {
   X,
   AlertTriangle,
   History,
-  XCircle
+  Loader2 as LoaderIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,10 +29,11 @@ import {
 import { provideDecisionSupportForApprovals, ProvideDecisionSupportOutput } from "@/ai/flows/provide-decision-support-for-approvals";
 import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/dashboard/stats-card";
+import { cn } from "@/lib/utils";
 
 const initialRequests = [
   { id: "REQ-001", patient: "Maria Souza", ubs: "UBS Rio Claro", priority: "high", details: "Diabetes, Hipertensão. Requer maca.", status: "PENDING", time: "14:30" },
-  { id: "REQ-002", patient: "José Santos", ubs: "UBS Central", priority: "medium", details: "Acompanhamento renal.", status: "PENDING", time: "15:00" },
+  { id: "REQ-002", patient: "José Santos", ubs: "UBS Central", priority: "medium", priorityLabel: "Médio", details: "Acompanhamento renal.", status: "PENDING", time: "15:00" },
   { id: "REQ-003", patient: "Ana Oliveira", ubs: "UBS Norte", priority: "low", details: "Exames de rotina.", status: "PENDING", time: "16:15" },
 ];
 
@@ -53,7 +54,6 @@ export default function AdminPage() {
     
     setLoading(req.id);
     try {
-      // IMPLEMENTAÇÃO DE SIGILO: Envia apenas o primeiro nome e ID parcial para a IA
       const maskedName = req.patient.split(' ')[0];
       const partialId = req.id.split('-').pop() || "000";
 
@@ -178,7 +178,7 @@ export default function AdminPage() {
                               onClick={() => handleAiAnalysis(req)}
                               disabled={loading === req.id}
                             >
-                              {loading === req.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3 text-primary" />}
+                              {loading === req.id ? <LoaderIcon className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3 text-primary" />}
                               ANALISAR
                             </Button>
                           ) : (
@@ -250,8 +250,4 @@ export default function AdminPage() {
       </div>
     </div>
   );
-}
-
-function Loader2({ className }: { className?: string }) {
-  return <Zap className={cn("animate-spin", className)} />;
 }

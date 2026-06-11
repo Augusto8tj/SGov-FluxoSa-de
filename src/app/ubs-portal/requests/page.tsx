@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function UbsRequestsPage() {
   const [mounted, setMounted] = useState(false);
@@ -53,7 +54,11 @@ export default function UbsRequestsPage() {
               <AlertTriangle className="h-4 w-4" /> JANELA FECHADA
             </Badge>
           )}
-          <Button disabled={!isWithinWindow} className={cn("gap-2 shadow-md h-11 px-6", !isWithinWindow && "grayscale opacity-50")}>
+          <Button 
+            disabled={!isWithinWindow} 
+            className={cn("gap-2 shadow-md h-11 px-6", !isWithinWindow && "grayscale opacity-50")}
+            onClick={() => !isWithinWindow && toast({ title: "Sistema Fechado", description: "Agendamentos permitidos apenas entre 08h e 13h.", variant: "destructive" })}
+          >
             <Plus className="h-4 w-4" /> Nova Solicitação
           </Button>
         </div>
