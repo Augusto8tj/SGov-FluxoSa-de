@@ -91,6 +91,14 @@ export default function PatientsPage() {
   const [patients, setPatients] = useState(mockPatients);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+  
+  // Estados controlados do formulário
+  const [formName, setFormName] = useState("");
+  const [formCns, setFormCns] = useState("");
+  const [formComorbidities, setFormComorbidities] = useState("");
+  const [formNotes, setFormNotes] = useState("");
+  const [formNeedsCompanion, setFormNeedsCompanion] = useState(false);
+
   const { toast } = useToast();
 
   const filteredPatients = patients.filter(p => 
@@ -98,47 +106,54 @@ export default function PatientsPage() {
     p.medicalRecordNumber.includes(searchTerm)
   );
 
-  const handleCreatePatient = (e: React.FormEvent) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const name = formData.get('name') as string;
-    const cns = formData.get('cns') as string;
-    const comorbiditiesStr = formData.get('comorbidities') as string;
-    const notes = formData.get('notes') as string;
-    const needsCompanion = (e.target as any).elements.companion.checked;
+  const handleOpenDialog = (patient?: Patient) => {
+    if (patient) {
+      setEditingPatient(patient);
+      setFormName(patient.name);
+      setFormCns(patient.medicalRecordNumber);
+      setFormComorbidities(patient.comorbidities.join(', '));
+      setFormNotes(patient.notes || "");
+      setFormNeedsCompanion(patient.needsCompanion);
+    } else {
+      setEditingPatient(null);
+      setFormName("");
+      setFormCns("");
+      setFormComorbidities("");
+      setFormNotes("");
+      setFormNeedsCompanion(false);
+    }
+    setIsDialogOpen(true);
+  };
 
-    const comorbidities = comorbiditiesStr ? comorbiditiesStr.split(',').map(s => s.trim()) : [];
+  const handleSavePatient = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const comorbidities = formComorbidities ? formComorbidities.split(',').map(s => s.trim()) : [];
 
     if (editingPatient) {
       setPatients(prev => prev.map(p => p.id === editingPatient.id ? {
         ...p,
-        name,
-        medicalRecordNumber: cns,
+        name: formName,
+        medicalRecordNumber: formCns,
         comorbidities,
-        needsCompanion,
-        notes
+        needsCompanion: formNeedsCompanion,
+        notes: formNotes
       } : p));
-      toast({ title: "Cadastro Atualizado", description: "Os dados do cidadão foram atualizados." });
+      toast({ title: "Cadastro Atualizado", description: `Os dados de ${formName} foram atualizados.` });
     } else {
       const newP: Patient = {
         id: `P-${Math.floor(Math.random() * 1000)}`,
-        name,
-        medicalRecordNumber: cns,
+        name: formName,
+        medicalRecordNumber: formCns,
         comorbidities,
-        needsCompanion,
-        notes
+        needsCompanion: formNeedsCompanion,
+        notes: formNotes
       };
       setPatients(prev => [...prev, newP]);
       toast({ title: "Cidadão Cadastrado", description: "O registro foi salvo com sucesso." });
     }
     
     setIsDialogOpen(false);
-    setEditingPatient(null);
-  };
-
-  const handleEditPatient = (patient: Patient) => {
-    setEditingPatient(patient);
-    setIsDialogOpen(true);
   };
 
   const handleDeletePatient = (id: string) => {
@@ -158,12 +173,9 @@ export default function PatientsPage() {
           <p className="text-muted-foreground">Gestão centralizada de cidadãos usuários do transporte sanitário.</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) setEditingPatient(null);
-        }}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 shadow-md">
+            <Button className="gap-2 shadow-md" onClick={() => handleOpenDialog()}>
               <UserPlus className="h-4 w-4" /> Novo Paciente
             </Button>
           </DialogTrigger>
@@ -174,30 +186,56 @@ export default function PatientsPage() {
                 Insira as informações básicas e clínicas para autorização de transporte.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleCreatePatient} className="space-y-4 py-4">
+            <form onSubmit={handleSavePatient} className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2 col-span-2">
                   <Label htmlFor="name">Nome Completo</Label>
-                  <Input id="name" name="name" placeholder="Ex: Maria Souza" defaultValue={editingPatient?.name} required />
+                  <Input 
+                    id="name" 
+                    placeholder="Ex: Maria Souza" 
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    required 
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="cns">CNS / Prontuário</Label>
-                  <Input id="cns" name="cns" placeholder="000.0000.0000" defaultValue={editingPatient?.medicalRecordNumber} required />
+                  <Input 
+                    id="cns" 
+                    placeholder="000.0000.0000" 
+                    value={formCns}
+                    onChange={(e) => setFormCns(e.target.value)}
+                    required 
+                  />
                 </div>
                 <div className="flex items-center space-x-2 pt-8">
-                  <Checkbox id="companion" name="companion" defaultChecked={editingPatient?.needsCompanion} />
+                  <Checkbox 
+                    id="companion" 
+                    checked={formNeedsCompanion} 
+                    onCheckedChange={(checked) => setFormNeedsCompanion(!!checked)}
+                  />
                   <Label htmlFor="companion" className="text-sm font-normal">Requer Acompanhante</Label>
                 </div>
               </div>
               
               <div className="grid gap-2">
                 <Label htmlFor="comorbidities">Comorbidades / Necessidades Especiais</Label>
-                <Input id="comorbidities" name="comorbidities" placeholder="Ex: Diabetes, Cadeirante, Oxigênio" defaultValue={editingPatient?.comorbidities.join(', ')} />
+                <Input 
+                  id="comorbidities" 
+                  placeholder="Ex: Diabetes, Cadeirante, Oxigênio" 
+                  value={formComorbidities}
+                  onChange={(e) => setFormComorbidities(e.target.value)}
+                />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="notes">Observações Gerais</Label>
-                <Textarea id="notes" name="notes" placeholder="Informações relevantes para o motorista..." defaultValue={editingPatient?.notes} />
+                <Textarea 
+                  id="notes" 
+                  placeholder="Informações relevantes para o motorista..." 
+                  value={formNotes}
+                  onChange={(e) => setFormNotes(e.target.value)}
+                />
               </div>
 
               <DialogFooter className="pt-4">
@@ -294,13 +332,16 @@ export default function PatientsPage() {
                             <DropdownMenuItem onClick={() => toast({ title: "Histórico", description: `Abrindo histórico de viagens de ${patient.name}` })}>
                               <History className="h-4 w-4 mr-2" /> Ver Histórico
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditPatient(patient)}>
+                            <DropdownMenuItem onSelect={(e) => {
+                              e.preventDefault();
+                              handleOpenDialog(patient);
+                            }}>
                               <Edit className="h-4 w-4 mr-2" /> Editar Cadastro
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-rose-600"
-                              onClick={() => handleDeletePatient(patient.id)}
+                              onSelect={() => handleDeletePatient(patient.id)}
                             >
                               <Trash2 className="h-4 w-4 mr-2" /> Excluir Registro
                             </DropdownMenuItem>

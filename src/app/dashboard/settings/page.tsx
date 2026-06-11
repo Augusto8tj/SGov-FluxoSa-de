@@ -92,11 +92,9 @@ export default function SettingsPage() {
     }
 
     if (newUnit.id) {
-      // Editar
       setUnits(prev => prev.map(u => u.id === newUnit.id ? { ...u, name: newUnit.name, address: newUnit.address } : u));
       toast({ title: "Unidade Atualizada", description: `${newUnit.name} foi atualizada com sucesso.` });
     } else {
-      // Adicionar
       const unit = {
         id: `UBS-0${units.length + 1}`,
         name: newUnit.name,
@@ -123,11 +121,9 @@ export default function SettingsPage() {
     }
 
     if (newDriver.id) {
-      // Editar
       setDrivers(prev => prev.map(d => d.id === newDriver.id ? { ...d, name: newDriver.name, license: newDriver.license, phone: newDriver.phone } : d));
       toast({ title: "Motorista Atualizado", description: `${newDriver.name} foi atualizado com sucesso.` });
     } else {
-      // Adicionar
       const driver = {
         id: `D${drivers.length + 1}`,
         name: newDriver.name,
@@ -177,12 +173,11 @@ export default function SettingsPage() {
                 <CardTitle>Unidades de Saúde (UBS)</CardTitle>
                 <CardDescription>Cadastre e gerencie as UBS do município.</CardDescription>
               </div>
-              <Dialog open={isUnitDialogOpen} onOpenChange={(open) => {
-                setIsUnitDialogOpen(open);
-                if (!open) setNewUnit({ id: "", name: "", address: "" });
-              }}>
+              <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2"><Plus className="h-4 w-4" /> Adicionar UBS</Button>
+                  <Button className="gap-2" onClick={() => setNewUnit({ id: "", name: "", address: "" })}>
+                    <Plus className="h-4 w-4" /> Adicionar UBS
+                  </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -240,10 +235,10 @@ export default function SettingsPage() {
                             <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditUnit(unit)}>
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditUnit(unit); }}>
                               <Edit className="h-4 w-4 mr-2" /> Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={() => {
+                            <DropdownMenuItem className="text-destructive" onSelect={() => {
                               setUnits(prev => prev.filter(u => u.id !== unit.id));
                               toast({ title: "Unidade Removida", description: "A unidade foi excluída do sistema.", variant: "destructive" });
                             }}>
@@ -267,12 +262,11 @@ export default function SettingsPage() {
                 <CardTitle>Corpo de Motoristas</CardTitle>
                 <CardDescription>Gestão de condutores, habilitações e contatos.</CardDescription>
               </div>
-              <Dialog open={isDriverDialogOpen} onOpenChange={(open) => {
-                setIsDriverDialogOpen(open);
-                if (!open) setNewDriver({ id: "", name: "", license: "", phone: "" });
-              }}>
+              <Dialog open={isDriverDialogOpen} onOpenChange={setIsDriverDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2"><Plus className="h-4 w-4" /> Novo Motorista</Button>
+                  <Button className="gap-2" onClick={() => setNewDriver({ id: "", name: "", license: "", phone: "" })}>
+                    <Plus className="h-4 w-4" /> Novo Motorista
+                  </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -346,10 +340,10 @@ export default function SettingsPage() {
                             <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditDriver(driver)}>
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditDriver(driver); }}>
                               <Edit className="h-4 w-4 mr-2" /> Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={() => {
+                            <DropdownMenuItem className="text-destructive" onSelect={() => {
                               setDrivers(prev => prev.filter(d => d.id !== driver.id));
                               toast({ title: "Motorista Removido", description: "O cadastro foi excluído.", variant: "destructive" });
                             }}>
