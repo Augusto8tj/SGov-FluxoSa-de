@@ -6,4 +6,3 @@ import '@/ai/flows/generate-optimized-routes.ts';
 import '@/ai/flows/classify-urgency-flow.ts';
 import '@/ai/flows/generate-system-insights-flow.ts';
 import '@/ai/flows/generate-driver-briefing-flow.ts';
-import '@/ai/flows/summarize-ubs-demand-flow.ts';

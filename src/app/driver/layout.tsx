@@ -1,4 +1,3 @@
-
 import { Metadata } from "next";
 import { ThemeSelector } from "@/components/theme-selector";
 
