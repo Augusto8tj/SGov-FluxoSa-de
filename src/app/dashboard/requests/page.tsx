@@ -25,7 +25,9 @@ import {
   Navigation,
   Activity,
   ShieldCheck,
-  ClipboardList
+  ClipboardList,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,9 +80,9 @@ export default function RequestsPage() {
   const [requests, setRequests] = useState<TransportRequest[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   
-  // Dialog States
+  // States
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
   
   // Form State
   const [patientId, setPatientId] = useState("");
@@ -90,7 +92,6 @@ export default function RequestsPage() {
   const [scheduledTime, setScheduledTime] = useState("");
   
   const [editingRequest, setEditingRequest] = useState<TransportRequest | null>(null);
-  const [viewingRequestId, setViewingRequestId] = useState<string | null>(null);
   const [isClassifying, setIsClassifying] = useState(false);
   
   const { toast } = useToast();
@@ -115,9 +116,6 @@ export default function RequestsPage() {
     setMounted(true);
     loadData();
   }, [loadData]);
-
-  // Recupera o pedido atual para visualização do painel técnico
-  const viewingRequest = requests.find(r => r.id === viewingRequestId);
 
   const handleAiUrgency = async () => {
     if (!patientNotes || !destination) {
@@ -200,9 +198,8 @@ export default function RequestsPage() {
     }
   };
 
-  const openTechnicalPanel = (req: TransportRequest) => {
-    setViewingRequestId(req.id);
-    setIsViewDialogOpen(true);
+  const toggleExpand = (id: string) => {
+    setExpandedRequestId(expandedRequestId === id ? null : id);
   };
 
   const filteredRequests = requests.filter(req => 
@@ -221,11 +218,11 @@ export default function RequestsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'APPROVED': return <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50 gap-1"><CheckCircle2 className="h-3 w-3" /> Aprovado</Badge>;
-      case 'PENDING': return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 gap-1"><Clock className="h-3 w-3" /> Pendente</Badge>;
-      case 'COMPLETED': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 gap-1">Concluído</Badge>;
-      case 'DENIED': return <Badge variant="outline" className="text-rose-600 border-rose-200 bg-rose-50 gap-1"><XCircle className="h-3 w-3" /> Negado</Badge>;
-      case 'CANCELLED': return <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30 bg-muted/10 gap-1">Cancelado</Badge>;
+      case 'APPROVED': return <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50 gap-1 font-black text-[9px] uppercase"><CheckCircle2 className="h-3 w-3" /> Aprovado</Badge>;
+      case 'PENDING': return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 gap-1 font-black text-[9px] uppercase"><Clock className="h-3 w-3" /> Pendente</Badge>;
+      case 'COMPLETED': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 gap-1 font-black text-[9px] uppercase">Concluído</Badge>;
+      case 'DENIED': return <Badge variant="outline" className="text-rose-600 border-rose-200 bg-rose-50 gap-1 font-black text-[9px] uppercase"><XCircle className="h-3 w-3" /> Negado</Badge>;
+      case 'CANCELLED': return <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30 bg-muted/10 gap-1 font-black text-[9px] uppercase">Cancelado</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -337,152 +334,6 @@ export default function RequestsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        {/* Painel Técnico: Dialog Visualização de Detalhes */}
-        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-          <DialogContent className="sm:max-w-[550px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-slate-50">
-            {viewingRequest ? (
-              <div className="flex flex-col h-full">
-                <div className="bg-primary p-6 text-primary-foreground relative overflow-hidden">
-                  <div className="absolute -right-6 -top-6 opacity-10">
-                    <Activity className="h-32 w-32" />
-                  </div>
-                  <DialogHeader className="space-y-0 text-left relative z-10">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="bg-white/20 p-2.5 rounded-2xl">
-                        <ClipboardList className="h-7 w-7" />
-                      </div>
-                      <div>
-                        <DialogTitle className="text-xl font-black uppercase tracking-tight">Painel Técnico</DialogTitle>
-                        <DialogDescription className="text-[10px] uppercase font-bold text-primary-foreground/80 tracking-widest">Protocolo: {viewingRequest.id}</DialogDescription>
-                      </div>
-                    </div>
-                  </DialogHeader>
-                  <div className="mt-4 flex items-center justify-between relative z-10">
-                    <div className="flex items-center gap-2">
-                      <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center font-bold text-lg">
-                        {viewingRequest.patientName[0]}
-                      </div>
-                      <span className="text-2xl font-black">{viewingRequest.patientName}</span>
-                    </div>
-                    {getStatusBadge(viewingRequest.status)}
-                  </div>
-                </div>
-                
-                <div className="p-6 space-y-6 overflow-y-auto max-h-[65vh] no-scrollbar">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Card className="p-4 border-none shadow-sm bg-white flex flex-col gap-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Horário Agendado</p>
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                        <Clock className="h-4 w-4 text-primary" />
-                        {new Date(viewingRequest.requestedTime).toLocaleString([], { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </Card>
-                    <Card className="p-4 border-none shadow-sm bg-white flex flex-col gap-1">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Prioridade Clínica</p>
-                      <div className="flex items-center gap-2">
-                        {getUrgencyBadge(viewingRequest.urgencyLevel)}
-                      </div>
-                    </Card>
-                  </div>
-
-                  <div className="space-y-4 bg-white p-5 rounded-2xl shadow-sm">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                      <Navigation className="h-4 w-4 text-primary" /> Roteirização do Trajeto
-                    </h4>
-                    <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-slate-100">
-                      <div className="flex items-start gap-4 relative">
-                        <div className="mt-1 size-6 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center z-10 shrink-0">
-                          <div className="size-2 rounded-full bg-primary" />
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[9px] font-black text-primary uppercase tracking-tighter leading-none">Origem (Coleta)</p>
-                          <p className="text-sm font-bold text-slate-700">{viewingRequest.pickupLocation}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-4 relative">
-                        <div className="mt-1 size-6 rounded-full bg-rose-50 border-2 border-rose-500 flex items-center justify-center z-10 shrink-0">
-                          <MapPin className="h-3.5 w-3.5 text-rose-500" />
-                        </div>
-                        <div className="space-y-0.5">
-                          <p className="text-[9px] font-black text-rose-500 uppercase tracking-tighter leading-none">Destino (Desembarque)</p>
-                          <p className="text-sm font-bold text-slate-700">{viewingRequest.destinationLocation}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Dados do Manifesto / Logística */}
-                  <div className="space-y-3 animate-in slide-in-from-bottom-2">
-                    <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2 px-1">
-                      <ShieldCheck className="h-4 w-4" /> Logística do Manifesto
-                    </h4>
-                    
-                    {viewingRequest.status === 'APPROVED' || viewingRequest.status === 'COMPLETED' ? (
-                      <div className="bg-emerald-600 rounded-3xl p-5 space-y-5 shadow-xl shadow-emerald-100">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="bg-white/20 p-2.5 rounded-2xl text-white">
-                              <Ambulance className="h-6 w-6" />
-                            </div>
-                            <div>
-                              <p className="text-[9px] font-black text-emerald-100 uppercase tracking-tighter leading-none">Viatura Atribuída</p>
-                              <p className="text-base font-black text-white">{viewingRequest.vehicleId || "Viatura Local"}</p>
-                            </div>
-                          </div>
-                          <Badge className="bg-white text-emerald-600 border-none font-black text-[10px] h-6 px-3">{viewingRequest.manifestId}</Badge>
-                        </div>
-                        <div className="flex items-center gap-3 border-t border-white/10 pt-4">
-                          <div className="bg-white/20 p-2.5 rounded-2xl text-white">
-                            <User className="h-6 w-6" />
-                          </div>
-                          <div>
-                            <p className="text-[9px] font-black text-emerald-100 uppercase tracking-tighter leading-none">Condutor Responsável</p>
-                            <p className="text-base font-black text-white">{viewingRequest.driverId || "Plantão Logística"}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : viewingRequest.status === 'PENDING' ? (
-                      <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center space-y-2">
-                        <div className="bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Activity className="h-6 w-6 text-slate-300" />
-                        </div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-tight">Aguardando Atribuição<br/>de Manifesto</p>
-                        <p className="text-[10px] text-slate-400">O painel de logística será preenchido<br/>após a aprovação da secretaria.</p>
-                      </div>
-                    ) : (
-                      <div className="bg-slate-200/50 rounded-3xl p-6 text-center">
-                        <p className="text-xs font-bold text-slate-500 uppercase">Solicitação {viewingRequest.status === 'DENIED' ? 'Negada' : 'Cancelada'}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mb-1">Unidade Solicitante</p>
-                    <p className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-                      <div className="size-1.5 rounded-full bg-primary" /> {viewingRequest.ubsId} - Sistema Municipal de Rio Claro
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-white border-t flex gap-3">
-                  <Button variant="outline" className="flex-1 rounded-2xl h-12 font-black text-[10px] uppercase tracking-widest border-slate-200 text-slate-500" onClick={() => setIsViewDialogOpen(false)}>Fechar Painel</Button>
-                  {viewingRequest.status === 'PENDING' && (
-                    <Button className="flex-1 rounded-2xl h-12 font-black text-[10px] uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-100" onClick={() => {
-                      handleStatusUpdate(viewingRequest.id, 'APPROVED');
-                      setIsViewDialogOpen(false);
-                    }}>Aprovar e Atribuir</Button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="p-20 text-center flex flex-col items-center gap-4">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Carregando Ficha Técnica...</p>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
 
       <div className="relative">
@@ -505,7 +356,7 @@ export default function RequestsPage() {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/40">
-                <TableRow className="border-none">
+                <TableRow className="border-none hover:bg-transparent">
                   <TableHead className="min-w-[180px] font-bold">Paciente</TableHead>
                   <TableHead className="min-w-[150px] font-bold">Destino / Horário</TableHead>
                   <TableHead className="font-bold">Prioridade</TableHead>
@@ -515,81 +366,210 @@ export default function RequestsPage() {
               </TableHeader>
               <TableBody>
                 {filteredRequests.map((req) => (
-                  <TableRow key={req.id} className="hover:bg-muted/20">
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-sm">{req.patientName}</span>
-                        <span className="text-[10px] text-muted-foreground uppercase">{req.id}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1.5 text-xs text-foreground/80">
-                          <MapPin className="h-3 w-3 text-primary/60 shrink-0" />
-                          <span className="truncate max-w-[140px]">{req.destinationLocation}</span>
+                  <React.Fragment key={req.id}>
+                    <TableRow 
+                      className={cn(
+                        "transition-colors",
+                        expandedRequestId === req.id ? "bg-primary/5 hover:bg-primary/10 border-b-0" : "hover:bg-muted/20"
+                      )}
+                    >
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-sm">{req.patientName}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase">{req.id}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {new Date(req.requestedTime).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 text-xs text-foreground/80">
+                            <MapPin className="h-3 w-3 text-primary/60 shrink-0" />
+                            <span className="truncate max-w-[140px]">{req.destinationLocation}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {new Date(req.requestedTime).toLocaleString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getUrgencyBadge(req.urgencyLevel)}</TableCell>
-                    <TableCell>{getStatusBadge(req.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-primary hover:bg-primary/10 rounded-full"
-                          onClick={() => openTechnicalPanel(req)}
-                          title="Ver Painel Técnico"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 transition-colors">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
-                            <DropdownMenuItem onClick={() => openTechnicalPanel(req)} className="gap-2 cursor-pointer">
-                              <Activity className="h-4 w-4" /> Abrir Ficha Técnica
-                            </DropdownMenuItem>
-                            
-                            {req.status === 'PENDING' && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(req.id, 'APPROVED')} className="gap-2 cursor-pointer text-emerald-600 focus:text-emerald-600">
-                                  <Check className="h-4 w-4" /> Aprovar Pedido
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleStatusUpdate(req.id, 'DENIED')} className="gap-2 cursor-pointer text-rose-600 focus:text-rose-600">
-                                  <X className="h-4 w-4" /> Negar Pedido
-                                </DropdownMenuItem>
-                              </>
+                      </TableCell>
+                      <TableCell>{getUrgencyBadge(req.urgencyLevel)}</TableCell>
+                      <TableCell>{getStatusBadge(req.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button 
+                            variant={expandedRequestId === req.id ? "default" : "ghost"}
+                            size="icon" 
+                            className={cn(
+                              "h-8 w-8 rounded-full transition-all",
+                              expandedRequestId === req.id ? "bg-primary shadow-lg" : "text-primary hover:bg-primary/10"
                             )}
+                            onClick={() => toggleExpand(req.id)}
+                            title="Ver Painel Técnico"
+                          >
+                            {expandedRequestId === req.id ? <ChevronUp className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 transition-colors">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
+                              <DropdownMenuItem onClick={() => toggleExpand(req.id)} className="gap-2 cursor-pointer">
+                                <Activity className="h-4 w-4" /> Abrir Ficha Técnica
+                              </DropdownMenuItem>
+                              
+                              {req.status === 'PENDING' && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => handleStatusUpdate(req.id, 'APPROVED')} className="gap-2 cursor-pointer text-emerald-600 focus:text-emerald-600">
+                                    <Check className="h-4 w-4" /> Aprovar Pedido
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleStatusUpdate(req.id, 'DENIED')} className="gap-2 cursor-pointer text-rose-600 focus:text-rose-600">
+                                    <X className="h-4 w-4" /> Negar Pedido
+                                  </DropdownMenuItem>
+                                </>
+                              )}
 
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => { 
-                              setEditingRequest(req); 
-                              setPatientId(req.patientId); 
-                              setDestination(req.destinationLocation); 
-                              setUrgency(req.urgencyLevel); 
-                              setScheduledTime(req.requestedTime.slice(0, 16));
-                              setIsDialogOpen(true); 
-                            }} className="gap-2 cursor-pointer">
-                              <Edit className="h-4 w-4" /> Editar Dados
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem className="text-destructive focus:text-destructive gap-2 cursor-pointer" onClick={() => handleDelete(req.id)}>
-                              <Trash2 className="h-4 w-4" /> Excluir Registro
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => { 
+                                setEditingRequest(req); 
+                                setPatientId(req.patientId); 
+                                setDestination(req.destinationLocation); 
+                                setUrgency(req.urgencyLevel); 
+                                setScheduledTime(req.requestedTime.slice(0, 16));
+                                setIsDialogOpen(true); 
+                              }} className="gap-2 cursor-pointer">
+                                <Edit className="h-4 w-4" /> Editar Dados
+                              </DropdownMenuItem>
+                              
+                              <DropdownMenuItem className="text-destructive focus:text-destructive gap-2 cursor-pointer" onClick={() => handleDelete(req.id)}>
+                                <Trash2 className="h-4 w-4" /> Excluir Registro
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Linha Expansível: Painel Técnico Acordeon */}
+                    {expandedRequestId === req.id && (
+                      <TableRow className="bg-primary/[0.02] border-b-2 border-primary/10">
+                        <TableCell colSpan={5} className="p-0">
+                          <div className="p-4 sm:p-6 animate-in slide-in-from-top-2 duration-300">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                              {/* Coluna 1: Dados do Trajeto */}
+                              <div className="space-y-4 bg-white p-5 rounded-2xl shadow-sm border border-primary/5">
+                                <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                                  <Navigation className="h-4 w-4" /> Roteirização do Trajeto
+                                </h4>
+                                <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-slate-100">
+                                  <div className="flex items-start gap-4 relative">
+                                    <div className="mt-1 size-6 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center z-10 shrink-0">
+                                      <div className="size-2 rounded-full bg-primary" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                      <p className="text-[9px] font-black text-primary uppercase tracking-tighter leading-none">Origem (Coleta)</p>
+                                      <p className="text-sm font-bold text-slate-700">{req.pickupLocation}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-start gap-4 relative">
+                                    <div className="mt-1 size-6 rounded-full bg-rose-50 border-2 border-rose-500 flex items-center justify-center z-10 shrink-0">
+                                      <MapPin className="h-3.5 w-3.5 text-rose-500" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                      <p className="text-[9px] font-black text-rose-500 uppercase tracking-tighter leading-none">Destino (Desembarque)</p>
+                                      <p className="text-sm font-bold text-slate-700">{req.destinationLocation}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <Separator className="bg-slate-50" />
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-muted-foreground font-medium uppercase tracking-tighter">UBS Solicitante:</span>
+                                  <Badge variant="outline" className="font-bold border-primary/20 text-primary">{req.ubsId}</Badge>
+                                </div>
+                              </div>
+
+                              {/* Coluna 2: Logística do Manifesto */}
+                              <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2 px-1">
+                                  <ShieldCheck className="h-4 w-4" /> Logística do Manifesto
+                                </h4>
+                                
+                                {req.status === 'APPROVED' || req.status === 'COMPLETED' ? (
+                                  <div className="bg-emerald-600 rounded-3xl p-5 space-y-5 shadow-xl shadow-emerald-100/50 text-white">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-3">
+                                        <div className="bg-white/20 p-2.5 rounded-2xl">
+                                          <Ambulance className="h-6 w-6" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[9px] font-black text-emerald-100 uppercase tracking-tighter leading-none">Viatura Atribuída</p>
+                                          <p className="text-base font-black">{req.vehicleId || "Viatura Local"}</p>
+                                        </div>
+                                      </div>
+                                      <Badge className="bg-white text-emerald-600 border-none font-black text-[10px] h-6 px-3">{req.manifestId}</Badge>
+                                    </div>
+                                    <div className="flex items-center gap-3 border-t border-white/10 pt-4">
+                                      <div className="bg-white/20 p-2.5 rounded-2xl">
+                                        <User className="h-6 w-6" />
+                                      </div>
+                                      <div>
+                                        <p className="text-[9px] font-black text-emerald-100 uppercase tracking-tighter leading-none">Condutor Responsável</p>
+                                        <p className="text-base font-black">{req.driverId || "Plantão Logística"}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : req.status === 'PENDING' ? (
+                                  <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center space-y-2 h-full flex flex-col items-center justify-center">
+                                    <div className="bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                                      <Activity className="h-6 w-6 text-slate-300" />
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-tight">Aguardando Atribuição<br/>de Manifesto</p>
+                                    <Button 
+                                      className="mt-4 bg-emerald-600 hover:bg-emerald-700 h-9 font-black text-[10px] uppercase tracking-widest"
+                                      onClick={() => handleStatusUpdate(req.id, 'APPROVED')}
+                                    >
+                                      Aprovar e Atribuir
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <div className="bg-slate-100 border rounded-3xl p-8 text-center text-slate-400 flex flex-col items-center justify-center h-full">
+                                    <XCircle className="h-8 w-8 mb-2 opacity-20" />
+                                    <p className="text-xs font-bold uppercase">Solicitação Inativa</p>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Coluna 3: Notas e IA */}
+                              <div className="space-y-4 bg-slate-50 p-5 rounded-3xl border border-slate-200/50">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                  <ClipboardList className="h-4 w-4" /> Observações Clínicas
+                                </h4>
+                                <div className="space-y-3">
+                                  <div className="bg-white p-3 rounded-xl border border-slate-100 text-xs text-slate-600 leading-relaxed italic">
+                                    &quot;{req.aiRecommendation || "Nenhuma nota clínica adicional fornecida para esta solicitação."}&quot;
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="bg-white p-2 rounded-lg border text-center">
+                                      <p className="text-[8px] font-black text-slate-400 uppercase">Prioridade</p>
+                                      <p className="text-[10px] font-bold text-slate-700">{req.urgencyLevel.toUpperCase()}</p>
+                                    </div>
+                                    <div className="bg-white p-2 rounded-lg border text-center">
+                                      <p className="text-[8px] font-black text-slate-400 uppercase">Turno</p>
+                                      <p className="text-[10px] font-bold text-slate-700">MANHÃ</p>
+                                    </div>
+                                  </div>
+                                  <Button variant="outline" className="w-full h-10 rounded-xl gap-2 font-black text-[10px] uppercase tracking-widest" onClick={() => toggleExpand(req.id)}>
+                                    Recolher Painel
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
                 ))}
               </TableBody>
             </Table>
