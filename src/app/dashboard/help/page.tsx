@@ -10,7 +10,9 @@ import {
   Users, 
   MapPin,
   Clock,
-  HelpCircle
+  HelpCircle,
+  History,
+  Rocket
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -65,6 +67,45 @@ export default function AdminHelpPage() {
       </div>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
+        <AccordionItem value="changelog" className="border-2 border-emerald-100 rounded-2xl bg-emerald-50/30 px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-emerald-500 p-3 rounded-xl text-white shadow-lg shadow-emerald-200">
+                <Rocket className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-lg text-emerald-700">Novidades da Versão 1.0</p>
+                  <Badge className="bg-emerald-500 text-white border-none text-[10px]">STABLE</Badge>
+                </div>
+                <p className="text-sm text-emerald-600/80 font-medium">Veja o que há de novo no FluxoSaúde</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <p className="text-xs font-black text-emerald-700 uppercase tracking-widest border-b border-emerald-100 pb-1">Funcionalidades</p>
+                <ul className="text-xs space-y-2 list-none">
+                  <li className="flex gap-2"><b>• IA Unificada:</b> Modelo Nvidia Nemotron para alta performance.</li>
+                  <li className="flex gap-2"><b>• PWA:</b> Sistema autoinstalável em qualquer dispositivo.</li>
+                  <li className="flex gap-2"><b>• Telemetria:</b> Controle de combustível, odômetro e manutenção.</li>
+                  <li className="flex gap-2"><b>• Notificações:</b> Alertas em tempo real via Web Push.</li>
+                </ul>
+              </div>
+              <div className="space-y-3">
+                <p className="text-xs font-black text-emerald-700 uppercase tracking-widest border-b border-emerald-100 pb-1">Operação</p>
+                <ul className="text-xs space-y-2 list-none">
+                  <li className="flex gap-2"><b>• Feedbacks:</b> Relatórios de campo enviados pelos motoristas.</li>
+                  <li className="flex gap-2"><b>• Sigilo:</b> Pseudonimização automática de dados sensíveis.</li>
+                  <li className="flex gap-2"><b>• RBAC:</b> Controle de acesso robusto baseado em perfis.</li>
+                  <li className="flex gap-2"><b>• Temas:</b> Verde Saúde, Azul Municipal e Roxo Inovação.</li>
+                </ul>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
         <AccordionItem value="approvals" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">

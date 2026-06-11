@@ -10,7 +10,9 @@ import {
   MapPin, 
   Route,
   ShieldAlert,
-  PhoneCall
+  PhoneCall,
+  Rocket,
+  History
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -45,6 +47,57 @@ export default function UbsHelpPage() {
       </div>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
+        {/* Nova seção do Changelog integrada */}
+        <AccordionItem value="changelog" className="border-2 border-primary/20 rounded-2xl bg-primary/5 px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-primary p-3 rounded-xl text-white shadow-lg shadow-primary/20">
+                <Rocket className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-lg text-primary">Novidades da Versão 1.0</p>
+                  <Badge variant="outline" className="text-[10px] font-black border-primary text-primary bg-white">OFICIAL</Badge>
+                </div>
+                <p className="text-sm text-primary/70 font-medium">Lançamento estável v1.0.0</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="bg-white p-4 rounded-xl border border-primary/10 shadow-inner">
+              <p className="text-xs font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
+                <History className="h-3 w-3" /> Histórico de Avanços
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">•</span>
+                  <p><b>PWA:</b> Instale o portal na tela inicial do seu celular.</p>
+                </div>
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">•</span>
+                  <p><b>Manifestos:</b> Acompanhe em tempo real quem buscará o paciente.</p>
+                </div>
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">•</span>
+                  <p><b>IA Nvidia:</b> Sugestão de urgência baseada no protocolo local.</p>
+                </div>
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">•</span>
+                  <p><b>Base CNS:</b> Registro centralizado com histórico clínico.</p>
+                </div>
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">•</span>
+                  <p><b>Notificações:</b> Receba alertas de aprovação instantâneos.</p>
+                </div>
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">•</span>
+                  <p><b>Multi-Perfil:</b> Interface otimizada para recepção de UBS.</p>
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
         <AccordionItem value="requests" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
