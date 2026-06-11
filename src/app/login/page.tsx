@@ -81,14 +81,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 relative">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2 relative">
-          <div className="absolute -top-4 right-0">
-             <Badge className="bg-emerald-500 text-white border-none font-black text-[10px] h-6 px-3 shadow-lg animate-bounce">
-               v1.0.0 STABLE
-             </Badge>
-          </div>
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl ring-4 ring-primary/10">
             <Ambulance className="h-8 w-8" />
           </div>
@@ -196,6 +191,13 @@ export default function LoginPage() {
             </CardFooter>
           </form>
         </Card>
+      </div>
+
+      {/* Versão fixada no rodapé da página */}
+      <div className="absolute bottom-6 flex justify-center w-full pointer-events-none">
+        <Badge className="bg-emerald-500 text-white border-none font-black text-[10px] h-6 px-3 shadow-lg pointer-events-auto">
+          v1.0.0 STABLE
+        </Badge>
       </div>
     </div>
   );
