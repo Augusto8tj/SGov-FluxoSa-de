@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -70,17 +71,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// --- IA MODELS LIST ---
+// --- IA MODELS LIST (Updated with requested models) ---
 const AI_MODELS = [
-  { id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", name: "Llama Nemotron Rerank VL 1B (Free)" },
-  { id: "nex-agi/nex-n2-pro:free", name: "Nex AGI: Nex-N2-Pro (Free)" },
-  { id: "sourceful/riverflow-v2.5-pro", name: "Riverflow v2.5 Pro" },
-  { id: "nvidia/nemotron-3.5-content-safety:free", name: "Nvidia Nemotron 3.5 Safety (Free)" },
-  { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)" },
-  { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku (OpenRouter)" },
   { id: "google/gemini-2.0-flash-lite-preview-02-05:free", name: "Gemini 2.0 Flash Lite (Free)" },
-  { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Estável)" },
-  { id: "openrouter/free", name: "OpenRouter Free Router (Dinâmico)" },
+  { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku" },
+  { id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", name: "Llama Nemotron Rerank (Free)" },
+  { id: "nex-agi/nex-n2-pro:free", name: "Nex AGI Pro (Free)" },
+  { id: "sourceful/riverflow-v2.5-pro", name: "Riverflow v2.5 Pro" },
+  { id: "nvidia/nemotron-3.5-content-safety:free", name: "Nvidia Safety Classifier" },
+  { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)" },
+  { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B" },
+  { id: "openrouter/free", name: "OpenRouter Free" },
 ];
 
 const initialUnits = [
@@ -181,10 +182,6 @@ export default function SettingsPage() {
   });
 
   // --- ENTITIES HANDLERS ---
-  const handleSave = (module: string) => {
-    toast({ title: "Alterações Salvas", description: `As configurações de ${module} foram atualizadas.` });
-  };
-
   const handleAddUnit = () => {
     if (!newUnit.name || !newUnit.address) return;
     if (newUnit.id) {
@@ -212,21 +209,10 @@ export default function SettingsPage() {
     if (newVehicle.id) {
       setVehicles(prev => prev.map(v => v.id === newVehicle.id ? { ...v, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type as any, capacity: newVehicle.capacity } : v));
     } else {
-      setVehicles(prev => [...prev, { id: `V${vehicles.length + 1}`, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type as any, capacity: newVehicle.capacity, status: "Operacional", available: true }]);
+      setVehicles(prev => [...prev, { id: `V${vehicles.length + 1}`, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type as any, capacity: newVehicle.capacity, status: "Operacional" }]);
     }
     setIsVehicleDialogOpen(false);
     setNewVehicle({ id: "", plate: "", type: "Ambulância", capacity: 1 });
-  };
-
-  const handleAddUser = () => {
-    if (!newUser.name || !newUser.email) return;
-    if (newUser.id) {
-      setUsers(prev => prev.map(u => u.id === newUser.id ? { ...u, name: newUser.name, email: newUser.email, role: newUser.role as any } : u));
-    } else {
-      setUsers(prev => [...prev, { id: `U${users.length + 1}`, name: newUser.name, email: newUser.email, role: newUser.role as any }]);
-    }
-    setIsUserDialogOpen(false);
-    setNewUser({ id: "", name: "", email: "", role: "UBS_MANAGER" });
   };
 
   const getRoleBadge = (role: string) => {
@@ -242,44 +228,50 @@ export default function SettingsPage() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">Configurações do Sistema</h2>
-          <p className="text-muted-foreground">Gestão administrativa e Laboratório de IA - Rio Claro, RJ.</p>
-        </div>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">Configurações do Sistema</h2>
+        <p className="text-xs sm:text-sm text-muted-foreground">Gestão administrativa e Laboratório de IA - Rio Claro, RJ.</p>
       </div>
 
-      <Tabs defaultValue="ia-lab" className="space-y-4">
-        <TabsList className="bg-white dark:bg-slate-900 border p-1 h-12 shadow-sm w-full md:w-auto overflow-x-auto justify-start no-scrollbar">
-          <TabsTrigger value="ia-lab" className="gap-2 px-4 h-10"><BrainCircuit className="h-4 w-4" /> Laboratório IA</TabsTrigger>
-          <TabsTrigger value="units" className="gap-2 px-4 h-10"><Hospital className="h-4 w-4" /> Unidades</TabsTrigger>
-          <TabsTrigger value="drivers" className="gap-2 px-4 h-10"><User className="h-4 w-4" /> Motoristas</TabsTrigger>
-          <TabsTrigger value="fleet" className="gap-2 px-4 h-10"><Ambulance className="h-4 w-4" /> Frota</TabsTrigger>
-          <TabsTrigger value="users" className="gap-2 px-4 h-10"><Users className="h-4 w-4" /> Usuários</TabsTrigger>
-          <TabsTrigger value="profiles" className="gap-2 px-4 h-10"><ShieldCheck className="h-4 w-4" /> Perfis</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="ia-lab" className="space-y-4 sm:space-y-6">
+        <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="bg-white dark:bg-slate-900 border p-1 h-12 shadow-sm inline-flex min-w-full sm:min-w-0 w-auto justify-start">
+            <TabsTrigger value="ia-lab" className="gap-2 px-4 h-10 whitespace-nowrap"><BrainCircuit className="h-4 w-4" /> Laboratório IA</TabsTrigger>
+            <TabsTrigger value="units" className="gap-2 px-4 h-10 whitespace-nowrap"><Hospital className="h-4 w-4" /> Unidades</TabsTrigger>
+            <TabsTrigger value="drivers" className="gap-2 px-4 h-10 whitespace-nowrap"><User className="h-4 w-4" /> Motoristas</TabsTrigger>
+            <TabsTrigger value="fleet" className="gap-2 px-4 h-10 whitespace-nowrap"><Ambulance className="h-4 w-4" /> Frota</TabsTrigger>
+            <TabsTrigger value="users" className="gap-2 px-4 h-10 whitespace-nowrap"><Users className="h-4 w-4" /> Usuários</TabsTrigger>
+            <TabsTrigger value="profiles" className="gap-2 px-4 h-10 whitespace-nowrap"><ShieldCheck className="h-4 w-4" /> Perfis</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* --- TABS CONTENT: IA LABORATORY --- */}
-        <TabsContent value="ia-lab" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="border-none shadow-sm">
+        <TabsContent value="ia-lab" className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <Card className="border-none shadow-sm h-full flex flex-col">
               <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-primary/10 rounded-lg"><Zap className="h-5 w-5 text-primary" /></div>
+                    <div className="p-2 bg-primary/10 rounded-lg shrink-0"><Zap className="h-5 w-5 text-primary" /></div>
                     <div>
-                      <CardTitle>Configuração OpenRouter</CardTitle>
-                      <CardDescription>Compare modelos Nvidia, Claude e outros.</CardDescription>
+                      <CardTitle className="text-lg">Configuração OpenRouter</CardTitle>
+                      <CardDescription className="text-xs">Compare modelos Nvidia, Claude e outros.</CardDescription>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={handleRunAllTests} disabled={isBatchTesting || isTestingAi} className="gap-2 text-[10px] font-bold uppercase">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleRunAllTests} 
+                    disabled={isBatchTesting || isTestingAi} 
+                    className="w-full sm:w-auto gap-2 text-[10px] font-bold uppercase"
+                  >
                     {isBatchTesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
                     Benchmarking
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 flex-1">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase text-muted-foreground">Modelo de IA</Label>
                   <Select value={aiModel} onValueChange={setAiModel}>
@@ -291,17 +283,25 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-bold uppercase text-muted-foreground">Prompt de Teste</Label>
-                  <Textarea className="min-h-[100px] resize-none" value={aiTestPrompt} onChange={(e) => setAiTestPrompt(e.target.value)} />
+                  <Textarea 
+                    className="min-h-[120px] resize-none text-sm" 
+                    value={aiTestPrompt} 
+                    onChange={(e) => setAiTestPrompt(e.target.value)} 
+                  />
                 </div>
-                <Button className="w-full h-11 uppercase text-xs font-bold gap-2" onClick={handleTestAi} disabled={isTestingAi || isBatchTesting}>
+                <Button 
+                  className="w-full h-12 uppercase text-xs font-bold gap-2 mt-auto" 
+                  onClick={handleTestAi} 
+                  disabled={isTestingAi || isBatchTesting}
+                >
                   {isTestingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
                   Executar Teste Cloud
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-sm h-full overflow-hidden flex flex-col">
-              <CardHeader className="bg-primary/5 py-4">
+            <Card className="border-none shadow-sm min-h-[300px] overflow-hidden flex flex-col">
+              <CardHeader className="bg-primary/5 py-4 shrink-0">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xs font-black uppercase flex items-center gap-2">
                     <Gauge className="h-4 w-4 text-primary" /> Telemetria & Debug
@@ -309,27 +309,34 @@ export default function SettingsPage() {
                   {testResult && <Badge variant={testResult.error ? "destructive" : "outline"} className="text-[10px]">{testResult.latency}ms</Badge>}
                 </div>
               </CardHeader>
-              <CardContent className="p-0 flex-1">
-                <Tabs value={activeDebugTab} onValueChange={setActiveDebugTab}>
-                  <TabsList className="bg-transparent border-b rounded-none w-full justify-start px-4 h-10">
+              <CardContent className="p-0 flex-1 flex flex-col">
+                <Tabs value={activeDebugTab} onValueChange={setActiveDebugTab} className="flex-1 flex flex-col">
+                  <TabsList className="bg-transparent border-b rounded-none w-full justify-start px-4 h-10 shrink-0">
                     <TabsTrigger value="response" className="text-[10px] font-bold uppercase">Resposta</TabsTrigger>
                     <TabsTrigger value="raw" className="text-[10px] font-bold uppercase gap-1"><Code className="h-3 w-3" /> Bruto</TabsTrigger>
                   </TabsList>
-                  <div className="p-4 overflow-y-auto max-h-[300px]">
-                    <TabsContent value="response">
+                  <div className="flex-1 overflow-y-auto min-h-[200px] max-h-[400px]">
+                    <TabsContent value="response" className="p-4 m-0">
                       {testResult ? (
-                        <div className={cn("p-4 rounded-lg text-sm border", testResult.error ? "bg-destructive/10 text-destructive" : "bg-muted/30")}>
+                        <div className={cn("p-4 rounded-lg text-sm border whitespace-pre-wrap leading-relaxed", testResult.error ? "bg-destructive/10 text-destructive" : "bg-muted/30")}>
                           {testResult.error && <p className="font-bold uppercase text-[10px] mb-1">ERRO:</p>}
                           {testResult.error || testResult.content}
                         </div>
-                      ) : <div className="text-center py-10 opacity-30 uppercase text-[10px] font-bold">Aguardando Execução</div>}
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">
+                          <BrainCircuit className="h-10 w-10 mb-2" />
+                          <p className="uppercase text-[10px] font-bold tracking-widest">Aguardando Execução</p>
+                        </div>
+                      )}
                     </TabsContent>
-                    <TabsContent value="raw">
+                    <TabsContent value="raw" className="p-4 m-0">
                       {testResult?.rawResponse ? (
                         <pre className="p-4 bg-slate-950 text-emerald-400 rounded-lg text-[10px] font-mono overflow-x-auto">
                           {JSON.stringify(testResult.rawResponse, null, 2)}
                         </pre>
-                      ) : <div className="text-center py-10 opacity-30 uppercase text-[10px] font-bold">Sem dados brutos</div>}
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 uppercase text-[10px] font-bold">Sem dados brutos</div>
+                      )}
                     </TabsContent>
                   </div>
                 </Tabs>
@@ -338,192 +345,215 @@ export default function SettingsPage() {
           </div>
 
           {(batchResults.length > 0 || isBatchTesting) && (
-            <Card className="border-none shadow-sm">
-              <CardHeader><CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Ranking de Performance</CardTitle></CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">Pos</TableHead>
-                      <TableHead>Modelo</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Latência</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rankedResults.map((result, idx) => (
-                      <TableRow key={result.actualModel} className={cn(result.error && "opacity-50")}>
-                        <TableCell className="text-center font-bold">
-                          {idx < 3 && !result.error ? <Trophy className={cn("h-4 w-4 mx-auto", idx === 0 ? "text-amber-500" : idx === 1 ? "text-slate-400" : "text-amber-700")} /> : idx + 1}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col"><span className="font-bold text-sm">{result.modelName}</span><span className="text-[9px] text-muted-foreground uppercase">{result.actualModel}</span></div>
-                        </TableCell>
-                        <TableCell>{result.error ? <Badge variant="destructive">ERRO</Badge> : <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">OK</Badge>}</TableCell>
-                        <TableCell className="text-right font-mono text-xs">{result.latency}ms</TableCell>
+            <Card className="border-none shadow-sm animate-in fade-in slide-in-from-bottom-2">
+              <CardHeader className="pb-2 sm:pb-6">
+                <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Ranking de Performance</CardTitle>
+              </CardHeader>
+              <CardContent className="px-0 sm:px-6">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/50 sm:bg-transparent">
+                      <TableRow>
+                        <TableHead className="w-12 text-center">Pos</TableHead>
+                        <TableHead>Modelo</TableHead>
+                        <TableHead className="hidden xs:table-cell">Status</TableHead>
+                        <TableHead className="text-right">Latência</TableHead>
                       </TableRow>
-                    ))}
-                    {isBatchTesting && rankedResults.length < AI_MODELS.length && (
-                      <TableRow><TableCell colSpan={4} className="text-center py-6 text-xs text-muted-foreground animate-pulse">Processando {rankedResults.length + 1} de {AI_MODELS.length}...</TableCell></TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {rankedResults.map((result, idx) => (
+                        <TableRow key={result.actualModel} className={cn(result.error && "opacity-50")}>
+                          <TableCell className="text-center font-bold">
+                            {idx < 3 && !result.error ? (
+                              <Trophy className={cn("h-4 w-4 mx-auto", idx === 0 ? "text-amber-500" : idx === 1 ? "text-slate-400" : "text-amber-700")} />
+                            ) : idx + 1}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-bold text-sm truncate max-w-[120px] sm:max-w-none">{result.modelName}</span>
+                              <span className="text-[9px] text-muted-foreground uppercase truncate max-w-[100px] sm:max-w-none">{result.actualModel}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden xs:table-cell">
+                            {result.error ? <Badge variant="destructive">ERRO</Badge> : <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">OK</Badge>}
+                          </TableCell>
+                          <TableCell className="text-right font-mono text-xs whitespace-nowrap">
+                            {result.latency}ms
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {isBatchTesting && rankedResults.length < AI_MODELS.length && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-6">
+                            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground animate-pulse">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Testando {rankedResults.length + 1} de {AI_MODELS.length}...
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           )}
         </TabsContent>
 
-        <TabsContent value="units">
+        <TabsContent value="units" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Unidades de Saúde (UBS)</CardTitle>
-                <CardDescription>Cadastre e gerencie as UBS do município.</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Cadastre e gerencie as UBS do município.</CardDescription>
               </div>
               <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="gap-2" onClick={() => setNewUnit({ id: "", name: "", address: "" })}>
+                  <Button className="w-full sm:w-auto gap-2 h-11" onClick={() => setNewUnit({ id: "", name: "", address: "" })}>
                     <Plus className="h-4 w-4" /> Adicionar UBS
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="sm:max-w-[425px] w-[95vw] rounded-xl">
                   <DialogHeader>
                     <DialogTitle>{newUnit.id ? "Editar Unidade" : "Nova Unidade de Saúde"}</DialogTitle>
-                    <DialogDescription>Atualize os dados do ponto de atendimento em Rio Claro - RJ.</DialogDescription>
+                    <DialogDescription className="text-xs">Atualize os dados do ponto de atendimento em Rio Claro - RJ.</DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
                       <Label htmlFor="unit-name">Nome da UBS</Label>
-                      <Input id="unit-name" value={newUnit.name} onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))} />
+                      <Input id="unit-name" className="h-11" value={newUnit.name} onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))} />
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="unit-address">Endereço</Label>
-                      <Input id="unit-address" value={newUnit.address} onChange={(e) => setNewUnit(prev => ({ ...prev, address: e.target.value }))} />
+                      <Input id="unit-address" className="h-11" value={newUnit.address} onChange={(e) => setNewUnit(prev => ({ ...prev, address: e.target.value }))} />
                     </div>
                   </div>
-                  <DialogFooter>
-                    <Button variant="ghost" onClick={() => setIsUnitDialogOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleAddUnit}>Salvar Unidade</Button>
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button variant="ghost" onClick={() => setIsUnitDialogOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
+                    <Button onClick={handleAddUnit} className="w-full sm:w-auto">Salvar Unidade</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Endereço</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {units.map((unit) => (
-                    <TableRow key={unit.id}>
-                      <TableCell className="font-medium">{unit.name}</TableCell>
-                      <TableCell>{unit.address}</TableCell>
-                      <TableCell><Badge variant="secondary">{unit.status}</Badge></TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => { setNewUnit(unit); setIsUnitDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
-                      </TableCell>
+            <CardContent className="px-0 sm:px-6">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead className="hidden sm:table-cell">Endereço</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {units.map((unit) => (
+                      <TableRow key={unit.id}>
+                        <TableCell className="font-medium text-sm">{unit.name}</TableCell>
+                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{unit.address}</TableCell>
+                        <TableCell><Badge variant="secondary" className="text-[10px]">{unit.status}</Badge></TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setNewUnit(unit); setIsUnitDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="drivers">
+        <TabsContent value="drivers" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Corpo de Motoristas</CardTitle>
-                <CardDescription>Gestão de condutores e habilitações.</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Gestão de condutores e habilitações.</CardDescription>
               </div>
-              <Dialog open={isDriverDialogOpen} onOpenChange={setIsDriverDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2" onClick={() => setNewDriver({ id: "", name: "", license: "", phone: "" })}><Plus className="h-4 w-4" /> Novo Motorista</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Cadastro de Motorista</DialogTitle></DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2"><Label>Nome</Label><Input value={newDriver.name} onChange={(e) => setNewDriver(prev => ({ ...prev, name: e.target.value }))} /></div>
-                    <div className="grid gap-2"><Label>CNH / Vencimento</Label><Input value={newDriver.license} onChange={(e) => setNewDriver(prev => ({ ...prev, license: e.target.value }))} /></div>
-                  </div>
-                  <DialogFooter><Button onClick={handleAddDriver}>Salvar Motorista</Button></DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button className="w-full sm:w-auto gap-2 h-11" onClick={() => setIsDriverDialogOpen(true)}><Plus className="h-4 w-4" /> Novo Motorista</Button>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>CNH</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {drivers.map(d => (
-                    <TableRow key={d.id}><TableCell>{d.name}</TableCell><TableCell>{d.license}</TableCell><TableCell><Badge>{d.status}</Badge></TableCell></TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <CardContent className="px-0 sm:px-6">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead className="hidden xs:table-cell">CNH</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {drivers.map(d => (
+                      <TableRow key={d.id}>
+                        <TableCell className="text-sm font-medium">{d.name}</TableCell>
+                        <TableCell className="hidden xs:table-cell text-xs text-muted-foreground">{d.license}</TableCell>
+                        <TableCell><Badge className="text-[10px] whitespace-nowrap">{d.status}</Badge></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="fleet">
+        <TabsContent value="fleet" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <CardTitle>Frota Municipal</CardTitle>
-                <CardDescription>Gestão técnica dos veículos.</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Gestão técnica dos veículos.</CardDescription>
               </div>
-              <Dialog open={isVehicleDialogOpen} onOpenChange={setIsVehicleDialogOpen}>
-                <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> Novo Veículo</Button></DialogTrigger>
-                <DialogContent>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2"><Label>Placa</Label><Input value={newVehicle.plate} onChange={(e) => setNewVehicle(prev => ({ ...prev, plate: e.target.value }))} /></div>
-                    <div className="grid gap-2"><Label>Tipo</Label><Input value={newVehicle.type} onChange={(e) => setNewVehicle(prev => ({ ...prev, type: e.target.value as any }))} /></div>
-                  </div>
-                  <DialogFooter><Button onClick={handleAddVehicle}>Salvar</Button></DialogFooter>
-                </DialogContent>
-              </Dialog>
+              <Button className="w-full sm:w-auto gap-2 h-11"><Plus className="h-4 w-4" /> Novo Veículo</Button>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader><TableRow><TableHead>Placa</TableHead><TableHead>Tipo</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {vehicles.map(v => (<TableRow key={v.id}><TableCell className="font-mono">{v.plate}</TableCell><TableCell>{v.type}</TableCell><TableCell><Badge>{v.status}</Badge></TableCell></TableRow>))}
-                </TableBody>
-              </Table>
+            <CardContent className="px-0 sm:px-6">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader><TableRow><TableHead>Placa</TableHead><TableHead>Tipo</TableHead><TableHead className="hidden sm:table-cell">Status</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {vehicles.map(v => (
+                      <TableRow key={v.id}>
+                        <TableCell className="font-mono text-sm">{v.plate}</TableCell>
+                        <TableCell className="text-sm">{v.type}</TableCell>
+                        <TableCell className="hidden sm:table-cell"><Badge variant="outline" className="text-[10px]">{v.status}</Badge></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="users">
+        <TabsContent value="users" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div><CardTitle>Usuários do Sistema</CardTitle><CardDescription>Gestão de acessos.</CardDescription></div>
-              <Button className="gap-2" onClick={() => setIsUserDialogOpen(true)}><Plus className="h-4 w-4" /> Novo Usuário</Button>
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div><CardTitle>Usuários do Sistema</CardTitle><CardDescription className="text-xs sm:text-sm">Gestão de acessos.</CardDescription></div>
+              <Button className="w-full sm:w-auto gap-2 h-11" onClick={() => setIsUserDialogOpen(true)}><Plus className="h-4 w-4" /> Novo Usuário</Button>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Papel</TableHead></TableRow></TableHeader>
-                <TableBody>
-                  {users.map(u => (<TableRow key={u.id}><TableCell>{u.name}</TableCell><TableCell>{getRoleBadge(u.role)}</TableCell></TableRow>))}
-                </TableBody>
-              </Table>
+            <CardContent className="px-0 sm:px-6">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Papel</TableHead></TableRow></TableHeader>
+                  <TableBody>
+                    {users.map(u => (<TableRow key={u.id}><TableCell className="text-sm font-medium">{u.name}</TableCell><TableCell>{getRoleBadge(u.role)}</TableCell></TableRow>))}
+                  </TableBody>
+                </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="profiles">
+        <TabsContent value="profiles" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm bg-primary/5">
-            <CardHeader><CardTitle>Segurança e Auditoria</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-lg">Segurança e Auditoria</CardTitle>
+              <CardDescription className="text-xs">Políticas de acesso institucional.</CardDescription>
+            </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg border">
-                <div><p className="text-sm font-bold">Autenticação 2FA</p><p className="text-xs text-muted-foreground">Obrigatória para admins.</p></div>
-                <Badge className="bg-emerald-100 text-emerald-700">ATIVO</Badge>
+              <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg border shadow-sm">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-bold">Autenticação 2FA</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-tight">Obrigatória para administrativos</p>
+                </div>
+                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">ATIVO</Badge>
               </div>
-              <Button className="w-full" onClick={() => handleSave("Segurança")}>Salvar Políticas</Button>
+              <Button className="w-full h-12 font-bold uppercase text-xs" variant="outline">Salvar Políticas Globais</Button>
             </CardContent>
           </Card>
         </TabsContent>
