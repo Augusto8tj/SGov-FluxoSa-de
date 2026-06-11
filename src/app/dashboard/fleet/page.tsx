@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { 
   Plus, 
   Search, 
@@ -8,7 +9,16 @@ import {
   Settings, 
   CheckCircle2, 
   Wrench,
-  Filter
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  User,
+  Calendar,
+  Gauge,
+  History,
+  Fuel,
+  Activity,
+  ShieldCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +45,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Vehicle } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 const initialVehicles: (Vehicle & { status: 'AVAILABLE' | 'MAINTENANCE' | 'IN_USE' })[] = [
   { id: "V-001", type: "Ambulância", licensePlate: "ABC-1234", capacity: 2, available: true, status: 'AVAILABLE' },
@@ -47,6 +59,7 @@ export default function FleetPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [vehicles, setVehicles] = useState(initialVehicles);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [expandedVehicleId, setExpandedVehicleId] = useState<string | null>(null);
   const [newVehicle, setNewVehicle] = useState({ plate: "", type: "Ambulância", capacity: 1 });
   const { toast } = useToast();
 
@@ -57,9 +70,9 @@ export default function FleetPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'AVAILABLE': return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">Disponível</Badge>;
-      case 'IN_USE': return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">Em Rota</Badge>;
-      case 'MAINTENANCE': return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none">Manutenção</Badge>;
+      case 'AVAILABLE': return <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none font-bold text-[10px] uppercase">Disponível</Badge>;
+      case 'IN_USE': return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none font-bold text-[10px] uppercase">Em Rota</Badge>;
+      case 'MAINTENANCE': return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none font-bold text-[10px] uppercase">Manutenção</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -85,6 +98,10 @@ export default function FleetPage() {
     toast({ title: "Veículo Cadastrado", description: "O veículo foi adicionado com sucesso." });
   };
 
+  const toggleExpand = (id: string) => {
+    setExpandedVehicleId(expandedVehicleId === id ? null : id);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -95,11 +112,11 @@ export default function FleetPage() {
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 shadow-md">
+            <Button className="gap-2 shadow-md h-11 px-6 rounded-xl">
               <Plus className="h-4 w-4" /> Novo Veículo
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="rounded-2xl">
             <DialogHeader>
               <DialogTitle>Cadastrar Veículo</DialogTitle>
               <DialogDescription>Adicione um novo veículo à frota municipal.</DialogDescription>
@@ -110,6 +127,7 @@ export default function FleetPage() {
                 <Input 
                   id="plate" 
                   placeholder="AAA-0000" 
+                  className="h-12 rounded-xl"
                   value={newVehicle.plate}
                   onChange={(e) => setNewVehicle(prev => ({ ...prev, plate: e.target.value }))}
                 />
@@ -121,7 +139,7 @@ export default function FleetPage() {
                     value={newVehicle.type} 
                     onValueChange={(val) => setNewVehicle(prev => ({ ...prev, type: val as any }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 rounded-xl">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
@@ -133,10 +151,11 @@ export default function FleetPage() {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="cap">Capacidade (Pacientes)</Label>
+                  <Label htmlFor="cap">Capacidade</Label>
                   <Input 
                     id="cap" 
                     type="number" 
+                    className="h-12 rounded-xl"
                     value={newVehicle.capacity}
                     onChange={(e) => setNewVehicle(prev => ({ ...prev, capacity: parseInt(e.target.value) }))}
                   />
@@ -144,115 +163,226 @@ export default function FleetPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleSaveVehicle}>Salvar Veículo</Button>
+              <Button onClick={handleSaveVehicle} className="h-11 rounded-xl shadow-lg">Salvar Veículo</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="border-none shadow-sm">
+        <Card className="border-none shadow-sm rounded-2xl bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase flex items-center gap-2">
+            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase flex items-center gap-2 tracking-widest">
               <Ambulance className="h-4 w-4 text-primary" /> Frota Total
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{vehicles.length}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Veículos registrados</p>
+            <p className="text-3xl font-black">{vehicles.length}</p>
+            <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold">Unidades registradas</p>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-sm">
+        <Card className="border-none shadow-sm rounded-2xl bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase flex items-center gap-2">
+            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase flex items-center gap-2 tracking-widest">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Operacionais
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{vehicles.filter(v => v.status === 'AVAILABLE').length}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Prontos para serviço</p>
+            <p className="text-3xl font-black text-emerald-600">{vehicles.filter(v => v.status === 'AVAILABLE').length}</p>
+            <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold">Prontos para serviço</p>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-sm">
+        <Card className="border-none shadow-sm rounded-2xl bg-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase flex items-center gap-2">
+            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase flex items-center gap-2 tracking-widest">
               <Wrench className="h-4 w-4 text-amber-500" /> Manutenção
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{vehicles.filter(v => v.status === 'MAINTENANCE').length}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Em revisão técnica</p>
+            <p className="text-3xl font-black text-amber-600">{vehicles.filter(v => v.status === 'MAINTENANCE').length}</p>
+            <p className="text-[10px] text-muted-foreground mt-1 uppercase font-bold">Em revisão técnica</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
             placeholder="Buscar por placa ou modelo..." 
-            className="pl-10"
+            className="pl-10 h-11 rounded-xl bg-card border-none shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button 
-          variant="outline" 
-          size="icon"
-          onClick={() => toast({ title: "Filtros", description: "Opções de busca avançada habilitadas." })}
-        >
-          <Filter className="h-4 w-4" />
-        </Button>
+        <Button variant="outline" size="icon" className="h-11 w-11 rounded-xl shrink-0"><Filter className="h-4 w-4" /></Button>
       </div>
 
-      <Card className="border-none shadow-sm overflow-hidden">
-        <CardContent className="p-0">
+      <Card className="border-none shadow-md overflow-hidden bg-card rounded-2xl">
+        <div className="overflow-x-auto">
           <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow>
-                <TableHead>Veículo</TableHead>
-                <TableHead>Placa</TableHead>
-                <TableHead>Capacidade</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+            <TableHeader className="bg-muted/30">
+              <TableRow className="border-none">
+                <TableHead className="font-bold">Veículo</TableHead>
+                <TableHead className="font-bold">Placa</TableHead>
+                <TableHead className="font-bold">Capacidade</TableHead>
+                <TableHead className="font-bold">Status</TableHead>
+                <TableHead className="text-right font-bold">Painel / Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredVehicles.length > 0 ? (
                 filteredVehicles.map((vehicle) => (
-                  <TableRow key={vehicle.id} className="hover:bg-muted/30">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                          <Ambulance className="h-4 w-4" />
+                  <React.Fragment key={vehicle.id}>
+                    <TableRow 
+                      className={cn(
+                        "transition-colors group",
+                        expandedVehicleId === vehicle.id ? "bg-primary/[0.03] hover:bg-primary/[0.05] border-b-0" : "hover:bg-muted/10"
+                      )}
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "h-10 w-10 rounded-2xl flex items-center justify-center transition-colors",
+                            expandedVehicleId === vehicle.id ? "bg-primary text-white shadow-lg" : "bg-primary/10 text-primary group-hover:bg-primary/20"
+                          )}>
+                            <Ambulance className="h-5 w-5" />
+                          </div>
+                          <span className="font-bold text-sm">{vehicle.type}</span>
                         </div>
-                        <span className="font-medium">{vehicle.type}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono">{vehicle.licensePlate}</TableCell>
-                    <TableCell>{vehicle.capacity} {vehicle.capacity === 1 ? 'Vaga' : 'Vagas'}</TableCell>
-                    <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => toast({ title: "Configurações", description: `Abrindo painel técnico do veículo ${vehicle.licensePlate}.` })}
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs font-black text-muted-foreground uppercase">{vehicle.licensePlate}</TableCell>
+                      <TableCell className="text-sm font-medium">{vehicle.capacity} {vehicle.capacity === 1 ? 'Vaga' : 'Vagas'}</TableCell>
+                      <TableCell>{getStatusBadge(vehicle.status || 'AVAILABLE')}</TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          variant={expandedVehicleId === vehicle.id ? "default" : "ghost"} 
+                          size="icon"
+                          className={cn(
+                            "h-9 w-9 rounded-full transition-all",
+                            expandedVehicleId === vehicle.id ? "bg-primary shadow-lg" : "text-primary hover:bg-primary/10"
+                          )}
+                          onClick={() => toggleExpand(vehicle.id)}
+                        >
+                          {expandedVehicleId === vehicle.id ? <ChevronUp className="h-4 w-4" /> : <Settings className="h-4 w-4" />}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Acordeon Expansível: Painel Técnico do Veículo */}
+                    {expandedVehicleId === vehicle.id && (
+                      <TableRow className="bg-primary/[0.03] border-b-2 border-primary/10">
+                        <TableCell colSpan={5} className="p-0">
+                          <div className="p-4 sm:p-6 animate-in slide-in-from-top-2 duration-300">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                              {/* Coluna 1: Status Operacional */}
+                              <div className="space-y-4 bg-white p-5 rounded-3xl shadow-sm border border-primary/5">
+                                <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                                  <Activity className="h-4 w-4" /> Status de Operação
+                                </h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="p-3 bg-slate-50 rounded-2xl flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 text-slate-400">
+                                      <Fuel className="h-3 w-3" />
+                                      <span className="text-[9px] font-black uppercase">Combustível</span>
+                                    </div>
+                                    <p className="text-sm font-black text-slate-700">85% (Cheio)</p>
+                                  </div>
+                                  <div className="p-3 bg-slate-50 rounded-2xl flex flex-col gap-1">
+                                    <div className="flex items-center gap-2 text-slate-400">
+                                      <Gauge className="h-3 w-3" />
+                                      <span className="text-[9px] font-black uppercase">Odômetro</span>
+                                    </div>
+                                    <p className="text-sm font-black text-slate-700">12.450 km</p>
+                                  </div>
+                                </div>
+                                <div className="space-y-2">
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Condutor Escalatado:</p>
+                                  <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/10 rounded-2xl">
+                                    <div className="bg-primary/20 p-2 rounded-xl text-primary">
+                                      <User className="h-4 w-4" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                      <p className="text-xs font-bold text-slate-700">Carlos Alberto Silva</p>
+                                      <p className="text-[9px] font-medium text-primary uppercase">Plantão Diurno</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Coluna 2: Manutenção e Revisão */}
+                              <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-amber-600 uppercase tracking-widest flex items-center gap-2 px-1">
+                                  <Wrench className="h-4 w-4" /> Plano de Manutenção
+                                </h4>
+                                <div className="bg-amber-600 rounded-[2.5rem] p-5 space-y-5 shadow-xl shadow-amber-100/50 text-white">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <div className="bg-white/20 p-2.5 rounded-2xl">
+                                        <Calendar className="h-6 w-6" />
+                                      </div>
+                                      <div>
+                                        <p className="text-[9px] font-black text-amber-100 uppercase tracking-tighter leading-none">Próxima Revisão</p>
+                                        <p className="text-base font-black">15 Jun 2024</p>
+                                      </div>
+                                    </div>
+                                    <Badge className="bg-white text-amber-600 border-none font-black text-[10px] h-6 px-3 uppercase">Pendente</Badge>
+                                  </div>
+                                  <div className="flex items-center gap-3 border-t border-white/10 pt-4">
+                                    <div className="bg-white/20 p-2.5 rounded-2xl">
+                                      <ShieldCheck className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                      <p className="text-[9px] font-black text-amber-100 uppercase tracking-tighter leading-none">Seguro Municipal</p>
+                                      <p className="text-base font-black">Vigente (AIG)</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <Button variant="outline" className="w-full h-11 rounded-2xl border-dashed border-2 text-xs font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-all">
+                                  Registrar Ocorrência
+                                </Button>
+                              </div>
+
+                              {/* Coluna 3: Histórico e IA */}
+                              <div className="space-y-4 bg-slate-50 p-5 rounded-3xl border border-slate-200/50">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                  <History className="h-4 w-4" /> Histórico Técnico
+                                </h4>
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100">
+                                    <span className="text-[10px] font-bold text-slate-600 uppercase">Troca de Óleo</span>
+                                    <span className="text-[10px] font-black text-slate-400">12/04/2024</span>
+                                  </div>
+                                  <div className="flex items-center justify-between p-3 bg-white rounded-xl border border-slate-100">
+                                    <span className="text-[10px] font-bold text-slate-600 uppercase">Pneus (Par)</span>
+                                    <span className="text-[10px] font-black text-slate-400">02/02/2024</span>
+                                  </div>
+                                  <Separator className="my-2 bg-slate-200" />
+                                  <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest mb-1">IA: Prognóstico Técnico</p>
+                                    <p className="text-[11px] font-medium text-slate-600 italic leading-relaxed">
+                                      "O veículo apresenta desgaste normal. Sugerimos revisão do sistema de freios na próxima parada técnica devido à topografia de Lídice."
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                    Nenhum veículo encontrado.
+                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground font-medium italic">
+                    Nenhum veículo encontrado para a busca.
                   </TableCell>
                 </TableRow>
               )}
             </TableBody>
           </Table>
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
