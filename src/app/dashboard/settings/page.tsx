@@ -16,7 +16,9 @@ import {
   Trash2,
   Key,
   MapPin,
-  Phone
+  Phone,
+  Mail,
+  UserCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,12 +69,18 @@ const initialVehicles = [
   { id: "V2", plate: "XYZ-5678", type: "Van", capacity: 12, status: "Operacional" },
 ];
 
+const initialUsers = [
+  { id: "U1", name: "Dr. Ricardo Silva", email: "secretario@rioclaro.rj.gov.br", role: "SECRETARY" },
+  { id: "U2", name: "Márcia Oliveira", email: "ubs.central@rioclaro.rj.gov.br", role: "UBS_MANAGER" },
+];
+
 export default function SettingsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [units, setUnits] = useState(initialUnits);
   const [drivers, setDrivers] = useState(initialDrivers);
   const [vehicles, setVehicles] = useState(initialVehicles);
+  const [users, setUsers] = useState(initialUsers);
   
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
   const [newUnit, setNewUnit] = useState({ id: "", name: "", address: "" });
@@ -82,6 +90,9 @@ export default function SettingsPage() {
 
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ id: "", plate: "", type: "Ambulância", capacity: 1 });
+
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+  const [newUser, setNewUser] = useState({ id: "", name: "", email: "", role: "UBS_MANAGER" });
 
   useEffect(() => {
     setMounted(true);
@@ -141,7 +152,7 @@ export default function SettingsPage() {
         status: "Disponível"
       };
       setDrivers(prev => [...prev, driver]);
-      toast({ title: "Motorista Cadastrado", description: `${driver.name} foi adicionado ao sistema.` });
+      toast({ title: "Motorista Cadastrada", description: `${driver.name} foi adicionado ao sistema.` });
     }
 
     setIsDriverDialogOpen(false);
@@ -181,6 +192,45 @@ export default function SettingsPage() {
   const handleEditVehicle = (vehicle: any) => {
     setNewVehicle({ id: vehicle.id, plate: vehicle.plate, type: vehicle.type, capacity: vehicle.capacity });
     setIsVehicleDialogOpen(true);
+  };
+
+  const handleAddUser = () => {
+    if (!newUser.name || !newUser.email) {
+      toast({ title: "Erro", description: "Preencha o nome e o e-mail do usuário.", variant: "destructive" });
+      return;
+    }
+
+    if (newUser.id) {
+      setUsers(prev => prev.map(u => u.id === newUser.id ? { ...u, name: newUser.name, email: newUser.email, role: newUser.role } : u));
+      toast({ title: "Usuário Atualizado", description: `Os dados de ${newUser.name} foram salvos.` });
+    } else {
+      const user = {
+        id: `U${users.length + 1}`,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
+      };
+      setUsers(prev => [...prev, user]);
+      toast({ title: "Usuário Cadastrado", description: `${user.name} agora tem acesso ao sistema.` });
+    }
+
+    setIsUserDialogOpen(false);
+    setNewUser({ id: "", name: "", email: "", role: "UBS_MANAGER" });
+  };
+
+  const handleEditUser = (user: any) => {
+    setNewUser({ id: user.id, name: user.name, email: user.email, role: user.role });
+    setIsUserDialogOpen(true);
+  };
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'SECRETARY': return <Badge variant="outline" className="border-primary text-primary">Secretário</Badge>;
+      case 'UBS_MANAGER': return <Badge variant="outline" className="border-emerald-600 text-emerald-600">UBS</Badge>;
+      case 'DRIVER': return <Badge variant="outline" className="border-accent text-accent-foreground">Motorista</Badge>;
+      case 'ADMIN': return <Badge variant="destructive">Admin</Badge>;
+      default: return <Badge variant="secondary">{role}</Badge>;
+    }
   };
 
   if (!mounted) {
@@ -516,7 +566,61 @@ export default function SettingsPage() {
                 <CardTitle>Usuários do Sistema</CardTitle>
                 <CardDescription>Gerencie quem acessa as plataformas de gestão e operação.</CardDescription>
               </div>
-              <Button onClick={() => handleSave("Usuários")}>Novo Usuário</Button>
+              <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2" onClick={() => setNewUser({ id: "", name: "", email: "", role: "UBS_MANAGER" })}>
+                    <Plus className="h-4 w-4" /> Novo Usuário
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{newUser.id ? "Editar Usuário" : "Cadastrar Novo Usuário"}</DialogTitle>
+                    <DialogDescription>Defina as credenciais e permissões de acesso.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="u-name">Nome Completo</Label>
+                      <Input 
+                        id="u-name" 
+                        placeholder="Ex: João da Silva" 
+                        value={newUser.name}
+                        onChange={(e) => setNewUser(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="u-email">E-mail Institucional</Label>
+                      <Input 
+                        id="u-email" 
+                        type="email"
+                        placeholder="usuario@rioclaro.rj.gov.br" 
+                        value={newUser.email}
+                        onChange={(e) => setNewUser(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>Perfil de Acesso</Label>
+                      <Select 
+                        value={newUser.role} 
+                        onValueChange={(val) => setNewUser(prev => ({ ...prev, role: val as any }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o papel" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SECRETARY">Secretário</SelectItem>
+                          <SelectItem value="UBS_MANAGER">Gerente UBS</SelectItem>
+                          <SelectItem value="DRIVER">Motorista (Acesso Móvel)</SelectItem>
+                          <SelectItem value="ADMIN">Administrador</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="ghost" onClick={() => setIsUserDialogOpen(false)}>Cancelar</Button>
+                    <Button onClick={handleAddUser}>{newUser.id ? "Salvar Alterações" : "Criar Usuário"}</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
               <Table>
@@ -529,28 +633,45 @@ export default function SettingsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">Dr. Ricardo Silva</TableCell>
-                    <TableCell>secretario@rioclaro.rj.gov.br</TableCell>
-                    <TableCell><Badge variant="outline" className="border-primary text-primary">Secretário</Badge></TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast({ title: "Segurança", description: "Enviando link de redefinição de senha." })}><Key className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast({ title: "Editar", description: "Acessando perfil do usuário." })}><Edit className="h-4 w-4" /></Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Márcia Oliveira</TableCell>
-                    <TableCell>ubs.central@rioclaro.rj.gov.br</TableCell>
-                    <TableCell><Badge variant="outline" className="border-emerald-600 text-emerald-600">UBS</Badge></TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast({ title: "Segurança", description: "Enviando link de redefinição de senha." })}><Key className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => toast({ title: "Editar", description: "Acessando perfil do usuário." })}><Edit className="h-4 w-4" /></Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  {users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <UserCheck className="h-4 w-4 text-primary" />
+                          {user.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Mail className="h-3 w-3" />
+                          {user.email}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getRoleBadge(user.role)}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditUser(user); }}>
+                              <Edit className="h-4 w-4 mr-2" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => toast({ title: "Segurança", description: `Um link de redefinição de senha foi enviado para ${user.email}.` })}>
+                              <Key className="h-4 w-4 mr-2" /> Resetar Senha
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onSelect={() => {
+                              setUsers(prev => prev.filter(u => u.id !== user.id));
+                              toast({ title: "Acesso Revogado", description: `O usuário ${user.name} foi removido do sistema.`, variant: "destructive" });
+                            }}>
+                              <Trash2 className="h-4 w-4 mr-2" /> Remover
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
@@ -570,14 +691,14 @@ export default function SettingsPage() {
                     <p className="text-sm font-bold">Secretário</p>
                     <p className="text-[10px] text-muted-foreground">Acesso Total + Auditoria</p>
                   </div>
-                  <Badge className="bg-primary">ADMIN</Badge>
+                  <Badge className="bg-primary">SECRETARY</Badge>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div>
                     <p className="text-sm font-bold">Gerente UBS</p>
                     <p className="text-[10px] text-muted-foreground">Solicitação e Cadastro de Pacientes</p>
                   </div>
-                  <Badge className="bg-emerald-600">UBS</Badge>
+                  <Badge className="bg-emerald-600">UBS_MANAGER</Badge>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div>
