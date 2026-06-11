@@ -73,9 +73,11 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Configurações">
-              <Settings className="size-5" />
-              <span>Configurações</span>
+            <SidebarMenuButton tooltip="Configurações" asChild>
+              <a href="/dashboard/settings" className="flex items-center gap-3">
+                <Settings className="size-5" />
+                <span>Configurações</span>
+              </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
