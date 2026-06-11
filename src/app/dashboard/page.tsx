@@ -31,6 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { generateSystemInsights, SystemInsightsOutput } from "@/ai/flows/generate-system-insights-flow";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 // Dados Mock para Demonstração (Rio Claro - RJ)
 const MOCK_REQUESTS = [
@@ -209,8 +210,14 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            <Button variant="ghost" className="w-full mt-6 text-[10px] font-bold uppercase tracking-wider h-8 text-primary">
-              Ver Histórico Completo
+            <Button 
+              variant="ghost" 
+              className="w-full mt-6 text-[10px] font-bold uppercase tracking-wider h-8 text-primary"
+              asChild
+            >
+              <Link href="/dashboard/requests">
+                Ver Histórico Completo
+              </Link>
             </Button>
           </CardContent>
         </Card>
