@@ -71,7 +71,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// --- IA MODELS LIST (Updated with requested models) ---
 const AI_MODELS = [
   { id: "google/gemini-2.0-flash-lite-preview-02-05:free", name: "Gemini 2.0 Flash Lite (Free)" },
   { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku" },
@@ -108,7 +107,6 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   
-  // --- IA LAB STATE ---
   const [aiModel, setAiModel] = useState("google/gemini-2.0-flash-lite-preview-02-05:free");
   const [aiTestPrompt, setAiTestPrompt] = useState("Dê um resumo das metas de saúde pública específicas para o município de Rio Claro, Rio de Janeiro (RJ) para 2024.");
   const [testResult, setTestResult] = useState<ModelTesterOutput | null>(null);
@@ -117,7 +115,6 @@ export default function SettingsPage() {
   const [batchResults, setBatchResults] = useState<(ModelTesterOutput & { modelName: string })[]>([]);
   const [activeDebugTab, setActiveDebugTab] = useState("response");
 
-  // --- ENTITIES STATE ---
   const [units, setUnits] = useState(initialUnits);
   const [drivers, setDrivers] = useState(initialDrivers);
   const [vehicles, setVehicles] = useState(initialVehicles);
@@ -136,7 +133,6 @@ export default function SettingsPage() {
     setMounted(true);
   }, []);
 
-  // --- IA LAB HANDLERS ---
   const handleTestAi = async () => {
     setIsTestingAi(true);
     setTestResult(null);
@@ -181,7 +177,6 @@ export default function SettingsPage() {
     return a.latency - b.latency;
   });
 
-  // --- ENTITIES HANDLERS ---
   const handleAddUnit = () => {
     if (!newUnit.name || !newUnit.address) return;
     if (newUnit.id) {
@@ -229,28 +224,27 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 px-1 sm:px-0">
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">Configurações do Sistema</h2>
         <p className="text-xs sm:text-sm text-muted-foreground">Gestão administrativa e Laboratório de IA - Rio Claro, RJ.</p>
       </div>
 
       <Tabs defaultValue="ia-lab" className="space-y-4 sm:space-y-6">
-        <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-          <TabsList className="bg-white dark:bg-slate-900 border p-1 h-12 shadow-sm inline-flex min-w-full sm:min-w-0 w-auto justify-start">
-            <TabsTrigger value="ia-lab" className="gap-2 px-4 h-10 whitespace-nowrap"><BrainCircuit className="h-4 w-4" /> Laboratório IA</TabsTrigger>
-            <TabsTrigger value="units" className="gap-2 px-4 h-10 whitespace-nowrap"><Hospital className="h-4 w-4" /> Unidades</TabsTrigger>
-            <TabsTrigger value="drivers" className="gap-2 px-4 h-10 whitespace-nowrap"><User className="h-4 w-4" /> Motoristas</TabsTrigger>
-            <TabsTrigger value="fleet" className="gap-2 px-4 h-10 whitespace-nowrap"><Ambulance className="h-4 w-4" /> Frota</TabsTrigger>
-            <TabsTrigger value="users" className="gap-2 px-4 h-10 whitespace-nowrap"><Users className="h-4 w-4" /> Usuários</TabsTrigger>
-            <TabsTrigger value="profiles" className="gap-2 px-4 h-10 whitespace-nowrap"><ShieldCheck className="h-4 w-4" /> Perfis</TabsTrigger>
+        <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 bg-background/50 sticky top-16 z-30 pb-2">
+          <TabsList className="bg-white dark:bg-slate-900 border p-1 h-12 shadow-sm inline-flex min-w-full sm:min-w-0 w-auto justify-start rounded-xl">
+            <TabsTrigger value="ia-lab" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><BrainCircuit className="h-4 w-4" /> Laboratório IA</TabsTrigger>
+            <TabsTrigger value="units" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><Hospital className="h-4 w-4" /> Unidades</TabsTrigger>
+            <TabsTrigger value="drivers" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><User className="h-4 w-4" /> Motoristas</TabsTrigger>
+            <TabsTrigger value="fleet" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><Ambulance className="h-4 w-4" /> Frota</TabsTrigger>
+            <TabsTrigger value="users" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><Users className="h-4 w-4" /> Usuários</TabsTrigger>
+            <TabsTrigger value="profiles" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><ShieldCheck className="h-4 w-4" /> Perfis</TabsTrigger>
           </TabsList>
         </div>
 
-        {/* --- TABS CONTENT: IA LABORATORY --- */}
-        <TabsContent value="ia-lab" className="space-y-4 sm:space-y-6">
+        <TabsContent value="ia-lab" className="space-y-4 sm:space-y-6 outline-none">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            <Card className="border-none shadow-sm h-full flex flex-col">
-              <CardHeader className="pb-4">
+            <Card className="border-none shadow-sm h-full flex flex-col rounded-2xl overflow-hidden">
+              <CardHeader className="pb-4 border-b bg-muted/5">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-primary/10 rounded-lg shrink-0"><Zap className="h-5 w-5 text-primary" /></div>
@@ -264,33 +258,35 @@ export default function SettingsPage() {
                     size="sm" 
                     onClick={handleRunAllTests} 
                     disabled={isBatchTesting || isTestingAi} 
-                    className="w-full sm:w-auto gap-2 text-[10px] font-bold uppercase"
+                    className="w-full sm:w-auto gap-2 text-[10px] font-bold uppercase h-9 rounded-lg"
                   >
                     {isBatchTesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
                     Benchmarking
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4 flex-1">
+              <CardContent className="space-y-4 flex-1 pt-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">Modelo de IA</Label>
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground px-1">Modelo de IA</Label>
                   <Select value={aiModel} onValueChange={setAiModel}>
-                    <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {AI_MODELS.map(m => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                    <SelectTrigger className="h-12 rounded-xl bg-muted/20 border-muted-foreground/10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {AI_MODELS.map(m => <SelectItem key={m.id} value={m.id} className="rounded-lg">{m.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase text-muted-foreground">Prompt de Teste</Label>
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground px-1">Prompt de Teste</Label>
                   <Textarea 
-                    className="min-h-[120px] resize-none text-sm" 
+                    className="min-h-[140px] resize-none text-sm rounded-xl bg-muted/20 border-muted-foreground/10 focus:ring-primary/20" 
                     value={aiTestPrompt} 
                     onChange={(e) => setAiTestPrompt(e.target.value)} 
                   />
                 </div>
                 <Button 
-                  className="w-full h-12 uppercase text-xs font-bold gap-2 mt-auto" 
+                  className="w-full h-12 rounded-xl uppercase text-xs font-bold gap-2 mt-auto shadow-lg shadow-primary/10" 
                   onClick={handleTestAi} 
                   disabled={isTestingAi || isBatchTesting}
                 >
@@ -300,42 +296,46 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-sm min-h-[300px] overflow-hidden flex flex-col">
-              <CardHeader className="bg-primary/5 py-4 shrink-0">
+            <Card className="border-none shadow-sm min-h-[350px] overflow-hidden flex flex-col rounded-2xl">
+              <CardHeader className="bg-primary/5 py-4 shrink-0 border-b">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xs font-black uppercase flex items-center gap-2">
+                  <CardTitle className="text-xs font-black uppercase flex items-center gap-2 tracking-tighter">
                     <Gauge className="h-4 w-4 text-primary" /> Telemetria & Debug
                   </CardTitle>
-                  {testResult && <Badge variant={testResult.error ? "destructive" : "outline"} className="text-[10px]">{testResult.latency}ms</Badge>}
+                  {testResult && <Badge variant={testResult.error ? "destructive" : "outline"} className="text-[10px] px-2 h-6 rounded-full">{testResult.latency}ms</Badge>}
                 </div>
               </CardHeader>
-              <CardContent className="p-0 flex-1 flex flex-col">
+              <CardContent className="p-0 flex-1 flex flex-col bg-muted/5">
                 <Tabs value={activeDebugTab} onValueChange={setActiveDebugTab} className="flex-1 flex flex-col">
-                  <TabsList className="bg-transparent border-b rounded-none w-full justify-start px-4 h-10 shrink-0">
-                    <TabsTrigger value="response" className="text-[10px] font-bold uppercase">Resposta</TabsTrigger>
-                    <TabsTrigger value="raw" className="text-[10px] font-bold uppercase gap-1"><Code className="h-3 w-3" /> Bruto</TabsTrigger>
+                  <TabsList className="bg-transparent border-b rounded-none w-full justify-start px-4 h-11 shrink-0 gap-4">
+                    <TabsTrigger value="response" className="text-[10px] font-bold uppercase rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 h-11">Resposta</TabsTrigger>
+                    <TabsTrigger value="raw" className="text-[10px] font-bold uppercase rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 h-11 gap-1"><Code className="h-3 w-3" /> Bruto</TabsTrigger>
                   </TabsList>
-                  <div className="flex-1 overflow-y-auto min-h-[200px] max-h-[400px]">
-                    <TabsContent value="response" className="p-4 m-0">
+                  <div className="flex-1 overflow-y-auto">
+                    <TabsContent value="response" className="p-4 m-0 focus-visible:ring-0">
                       {testResult ? (
-                        <div className={cn("p-4 rounded-lg text-sm border whitespace-pre-wrap leading-relaxed", testResult.error ? "bg-destructive/10 text-destructive" : "bg-muted/30")}>
-                          {testResult.error && <p className="font-bold uppercase text-[10px] mb-1">ERRO:</p>}
+                        <div className={cn("p-5 rounded-2xl text-sm border whitespace-pre-wrap leading-relaxed shadow-inner", testResult.error ? "bg-destructive/10 text-destructive border-destructive/20" : "bg-card")}>
+                          {testResult.error && <p className="font-bold uppercase text-[10px] mb-2 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> ERRO NO PROVEDOR:</p>}
                           {testResult.error || testResult.content}
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 grayscale">
-                          <BrainCircuit className="h-10 w-10 mb-2" />
-                          <p className="uppercase text-[10px] font-bold tracking-widest">Aguardando Execução</p>
+                        <div className="flex flex-col items-center justify-center py-24 text-center opacity-30 grayscale">
+                          <div className="p-4 bg-muted rounded-full mb-3">
+                            <BrainCircuit className="h-10 w-10" />
+                          </div>
+                          <p className="uppercase text-[10px] font-black tracking-widest">Aguardando Execução</p>
                         </div>
                       )}
                     </TabsContent>
-                    <TabsContent value="raw" className="p-4 m-0">
+                    <TabsContent value="raw" className="p-4 m-0 focus-visible:ring-0">
                       {testResult?.rawResponse ? (
-                        <pre className="p-4 bg-slate-950 text-emerald-400 rounded-lg text-[10px] font-mono overflow-x-auto">
-                          {JSON.stringify(testResult.rawResponse, null, 2)}
-                        </pre>
+                        <div className="rounded-2xl overflow-hidden border">
+                          <pre className="p-5 bg-slate-950 text-emerald-400 text-[10px] font-mono overflow-x-auto">
+                            {JSON.stringify(testResult.rawResponse, null, 2)}
+                          </pre>
+                        </div>
                       ) : (
-                        <div className="flex flex-col items-center justify-center py-20 text-center opacity-30 uppercase text-[10px] font-bold">Sem dados brutos</div>
+                        <div className="flex flex-col items-center justify-center py-24 text-center opacity-30 uppercase text-[10px] font-black tracking-widest">Sem dados brutos</div>
                       )}
                     </TabsContent>
                   </div>
@@ -345,12 +345,12 @@ export default function SettingsPage() {
           </div>
 
           {(batchResults.length > 0 || isBatchTesting) && (
-            <Card className="border-none shadow-sm animate-in fade-in slide-in-from-bottom-2">
-              <CardHeader className="pb-2 sm:pb-6">
+            <Card className="border-none shadow-sm animate-in fade-in slide-in-from-bottom-2 rounded-2xl overflow-hidden">
+              <CardHeader className="pb-2 sm:pb-6 border-b bg-muted/5">
                 <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Ranking de Performance</CardTitle>
               </CardHeader>
-              <CardContent className="px-0 sm:px-6">
-                <div className="overflow-x-auto">
+              <CardContent className="p-0 sm:p-6">
+                <div className="overflow-x-auto no-scrollbar">
                   <Table>
                     <TableHeader className="bg-muted/50 sm:bg-transparent">
                       <TableRow>
@@ -362,7 +362,7 @@ export default function SettingsPage() {
                     </TableHeader>
                     <TableBody>
                       {rankedResults.map((result, idx) => (
-                        <TableRow key={result.actualModel} className={cn(result.error && "opacity-50")}>
+                        <TableRow key={result.actualModel} className={cn(result.error && "opacity-50", "group")}>
                           <TableCell className="text-center font-bold">
                             {idx < 3 && !result.error ? (
                               <Trophy className={cn("h-4 w-4 mx-auto", idx === 0 ? "text-amber-500" : idx === 1 ? "text-slate-400" : "text-amber-700")} />
@@ -370,23 +370,23 @@ export default function SettingsPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
-                              <span className="font-bold text-sm truncate max-w-[120px] sm:max-w-none">{result.modelName}</span>
+                              <span className="font-bold text-sm truncate max-w-[140px] sm:max-w-none">{result.modelName}</span>
                               <span className="text-[9px] text-muted-foreground uppercase truncate max-w-[100px] sm:max-w-none">{result.actualModel}</span>
                             </div>
                           </TableCell>
                           <TableCell className="hidden xs:table-cell">
-                            {result.error ? <Badge variant="destructive">ERRO</Badge> : <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">OK</Badge>}
+                            {result.error ? <Badge variant="destructive" className="rounded-full text-[9px] h-5">ERRO</Badge> : <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 rounded-full text-[9px] h-5">OK</Badge>}
                           </TableCell>
-                          <TableCell className="text-right font-mono text-xs whitespace-nowrap">
+                          <TableCell className="text-right font-mono text-xs whitespace-nowrap tabular-nums">
                             {result.latency}ms
                           </TableCell>
                         </TableRow>
                       ))}
                       {isBatchTesting && rankedResults.length < AI_MODELS.length && (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-6">
-                            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground animate-pulse">
-                              <Loader2 className="h-3 w-3 animate-spin" />
+                          <TableCell colSpan={4} className="text-center py-8">
+                            <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground animate-pulse font-medium">
+                              <Loader2 className="h-4 w-4 animate-spin text-primary" />
                               Testando {rankedResults.length + 1} de {AI_MODELS.length}...
                             </div>
                           </TableCell>
@@ -401,19 +401,19 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="units" className="space-y-4 sm:space-y-6">
-          <Card className="border-none shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b bg-muted/5">
               <div>
                 <CardTitle>Unidades de Saúde (UBS)</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">Cadastre e gerencie as UBS do município.</CardDescription>
               </div>
               <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto gap-2 h-11" onClick={() => setNewUnit({ id: "", name: "", address: "" })}>
+                  <Button className="w-full sm:w-auto gap-2 h-11 rounded-xl shadow-md" onClick={() => setNewUnit({ id: "", name: "", address: "" })}>
                     <Plus className="h-4 w-4" /> Adicionar UBS
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] w-[95vw] rounded-xl">
+                <DialogContent className="sm:max-w-[425px] w-[95vw] rounded-2xl">
                   <DialogHeader>
                     <DialogTitle>{newUnit.id ? "Editar Unidade" : "Nova Unidade de Saúde"}</DialogTitle>
                     <DialogDescription className="text-xs">Atualize os dados do ponto de atendimento em Rio Claro - RJ.</DialogDescription>
@@ -421,22 +421,22 @@ export default function SettingsPage() {
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
                       <Label htmlFor="unit-name">Nome da UBS</Label>
-                      <Input id="unit-name" className="h-11" value={newUnit.name} onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))} />
+                      <Input id="unit-name" className="h-12 rounded-xl" value={newUnit.name} onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))} />
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="unit-address">Endereço</Label>
-                      <Input id="unit-address" className="h-11" value={newUnit.address} onChange={(e) => setNewUnit(prev => ({ ...prev, address: e.target.value }))} />
+                      <Input id="unit-address" className="h-12 rounded-xl" value={newUnit.address} onChange={(e) => setNewUnit(prev => ({ ...prev, address: e.target.value }))} />
                     </div>
                   </div>
                   <DialogFooter className="gap-2 sm:gap-0">
-                    <Button variant="ghost" onClick={() => setIsUnitDialogOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
-                    <Button onClick={handleAddUnit} className="w-full sm:w-auto">Salvar Unidade</Button>
+                    <Button variant="ghost" onClick={() => setIsUnitDialogOpen(false)} className="w-full sm:w-auto rounded-xl">Cancelar</Button>
+                    <Button onClick={handleAddUnit} className="w-full sm:w-auto rounded-xl shadow-lg">Salvar Unidade</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
             </CardHeader>
-            <CardContent className="px-0 sm:px-6">
-              <div className="overflow-x-auto">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto no-scrollbar">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -448,12 +448,12 @@ export default function SettingsPage() {
                   </TableHeader>
                   <TableBody>
                     {units.map((unit) => (
-                      <TableRow key={unit.id}>
-                        <TableCell className="font-medium text-sm">{unit.name}</TableCell>
+                      <TableRow key={unit.id} className="group hover:bg-muted/30">
+                        <TableCell className="font-bold text-sm">{unit.name}</TableCell>
                         <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{unit.address}</TableCell>
-                        <TableCell><Badge variant="secondary" className="text-[10px]">{unit.status}</Badge></TableCell>
+                        <TableCell><Badge variant="secondary" className="text-[10px] rounded-full px-2">{unit.status}</Badge></TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setNewUnit(unit); setIsUnitDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={() => { setNewUnit(unit); setIsUnitDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -465,24 +465,24 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="drivers" className="space-y-4 sm:space-y-6">
-          <Card className="border-none shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b bg-muted/5">
               <div>
                 <CardTitle>Corpo de Motoristas</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">Gestão de condutores e habilitações.</CardDescription>
               </div>
-              <Button className="w-full sm:w-auto gap-2 h-11" onClick={() => setIsDriverDialogOpen(true)}><Plus className="h-4 w-4" /> Novo Motorista</Button>
+              <Button className="w-full sm:w-auto gap-2 h-11 rounded-xl shadow-md" onClick={() => setIsDriverDialogOpen(true)}><Plus className="h-4 w-4" /> Novo Motorista</Button>
             </CardHeader>
-            <CardContent className="px-0 sm:px-6">
-              <div className="overflow-x-auto">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto no-scrollbar">
                 <Table>
                   <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead className="hidden xs:table-cell">CNH</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {drivers.map(d => (
-                      <TableRow key={d.id}>
-                        <TableCell className="text-sm font-medium">{d.name}</TableCell>
+                      <TableRow key={d.id} className="hover:bg-muted/30">
+                        <TableCell className="text-sm font-bold">{d.name}</TableCell>
                         <TableCell className="hidden xs:table-cell text-xs text-muted-foreground">{d.license}</TableCell>
-                        <TableCell><Badge className="text-[10px] whitespace-nowrap">{d.status}</Badge></TableCell>
+                        <TableCell><Badge className="text-[10px] whitespace-nowrap rounded-full px-2">{d.status}</Badge></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -493,24 +493,24 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="fleet" className="space-y-4 sm:space-y-6">
-          <Card className="border-none shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b bg-muted/5">
               <div>
                 <CardTitle>Frota Municipal</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">Gestão técnica dos veículos.</CardDescription>
               </div>
-              <Button className="w-full sm:w-auto gap-2 h-11"><Plus className="h-4 w-4" /> Novo Veículo</Button>
+              <Button className="w-full sm:w-auto gap-2 h-11 rounded-xl shadow-md"><Plus className="h-4 w-4" /> Novo Veículo</Button>
             </CardHeader>
-            <CardContent className="px-0 sm:px-6">
-              <div className="overflow-x-auto">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto no-scrollbar">
                 <Table>
                   <TableHeader><TableRow><TableHead>Placa</TableHead><TableHead>Tipo</TableHead><TableHead className="hidden sm:table-cell">Status</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {vehicles.map(v => (
-                      <TableRow key={v.id}>
-                        <TableCell className="font-mono text-sm">{v.plate}</TableCell>
-                        <TableCell className="text-sm">{v.type}</TableCell>
-                        <TableCell className="hidden sm:table-cell"><Badge variant="outline" className="text-[10px]">{v.status}</Badge></TableCell>
+                      <TableRow key={v.id} className="hover:bg-muted/30">
+                        <TableCell className="font-mono text-sm font-bold">{v.plate}</TableCell>
+                        <TableCell className="text-sm font-medium">{v.type}</TableCell>
+                        <TableCell className="hidden sm:table-cell"><Badge variant="outline" className="text-[10px] rounded-full px-2">{v.status}</Badge></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -521,17 +521,17 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4 sm:space-y-6">
-          <Card className="border-none shadow-sm">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b bg-muted/5">
               <div><CardTitle>Usuários do Sistema</CardTitle><CardDescription className="text-xs sm:text-sm">Gestão de acessos.</CardDescription></div>
-              <Button className="w-full sm:w-auto gap-2 h-11" onClick={() => setIsUserDialogOpen(true)}><Plus className="h-4 w-4" /> Novo Usuário</Button>
+              <Button className="w-full sm:w-auto gap-2 h-11 rounded-xl shadow-md" onClick={() => setIsUserDialogOpen(true)}><Plus className="h-4 w-4" /> Novo Usuário</Button>
             </CardHeader>
-            <CardContent className="px-0 sm:px-6">
-              <div className="overflow-x-auto">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto no-scrollbar">
                 <Table>
                   <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Papel</TableHead></TableRow></TableHeader>
                   <TableBody>
-                    {users.map(u => (<TableRow key={u.id}><TableCell className="text-sm font-medium">{u.name}</TableCell><TableCell>{getRoleBadge(u.role)}</TableCell></TableRow>))}
+                    {users.map(u => (<TableRow key={u.id} className="hover:bg-muted/30"><TableCell className="text-sm font-bold">{u.name}</TableCell><TableCell>{getRoleBadge(u.role)}</TableCell></TableRow>))}
                   </TableBody>
                 </Table>
               </div>
@@ -539,21 +539,21 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="profiles" className="space-y-4 sm:space-y-6">
-          <Card className="border-none shadow-sm bg-primary/5">
-            <CardHeader>
+        <TabsContent value="profiles" className="space-y-4 sm:space-y-6 outline-none">
+          <Card className="border-none shadow-sm bg-primary/5 rounded-2xl overflow-hidden">
+            <CardHeader className="border-b bg-primary/10">
               <CardTitle className="text-lg">Segurança e Auditoria</CardTitle>
               <CardDescription className="text-xs">Políticas de acesso institucional.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-lg border shadow-sm">
+            <CardContent className="space-y-4 pt-6">
+              <div className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-2xl border shadow-sm group hover:border-primary/30 transition-all">
                 <div className="space-y-0.5">
-                  <p className="text-sm font-bold">Autenticação 2FA</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-tight">Obrigatória para administrativos</p>
+                  <p className="text-sm font-black">Autenticação 2FA</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-tighter">Obrigatória para administrativos</p>
                 </div>
-                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none">ATIVO</Badge>
+                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none rounded-full h-6 px-3">ATIVO</Badge>
               </div>
-              <Button className="w-full h-12 font-bold uppercase text-xs" variant="outline">Salvar Políticas Globais</Button>
+              <Button className="w-full h-12 font-bold uppercase text-xs rounded-xl shadow-lg shadow-primary/5" variant="outline">Salvar Políticas Globais</Button>
             </CardContent>
           </Card>
         </TabsContent>
