@@ -6,7 +6,10 @@ import {
   Ambulance, 
   Clock, 
   AlertCircle,
-  MapPin
+  MapPin,
+  BrainCircuit,
+  Zap,
+  ArrowRight
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,6 +27,7 @@ import {
 } from "recharts";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import { generateSystemInsights, SystemInsightsOutput } from "@/ai/flows/generate-system-insights-flow";
 
 const chartData = [
   { name: "UBS Central", count: 24 },
@@ -35,9 +39,10 @@ const chartData = [
 
 export default function DashboardPage() {
   const [isWithinWindow, setIsWithinWindow] = useState(false);
+  const [aiBriefing, setAiBriefing] = useState<SystemInsightsOutput | null>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
 
   useEffect(() => {
-    // Determine the initial status only after hydration to avoid SSR mismatch
     const checkTime = () => {
       const now = new Date();
       const hour = now.getHours();
@@ -45,9 +50,28 @@ export default function DashboardPage() {
     };
     
     checkTime();
-    const timer = setInterval(checkTime, 60000); // Update every minute
+    const timer = setInterval(checkTime, 60000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleGenerateBriefing = async () => {
+    setLoadingAi(true);
+    try {
+      const result = await generateSystemInsights({
+        pendingRequests: 42,
+        activeVehicles: 14,
+        totalVehicles: 18,
+        criticalPatientsCount: 5,
+        currentHour: new Date().getHours()
+      });
+      setAiBriefing(result);
+    } catch (error) {
+      console.error("Erro ao gerar briefing", error);
+    } finally {
+      setLoadingAi(null as any);
+      setLoadingAi(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -57,8 +81,18 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">Visão geral do sistema de transporte sanitário hoje.</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2 border-primary/20 bg-white"
+            onClick={handleGenerateBriefing}
+            disabled={loadingAi}
+          >
+            <BrainCircuit className={cn("h-4 w-4 text-primary", loadingAi && "animate-pulse")} />
+            {loadingAi ? "Analisando..." : "Briefing de IA"}
+          </Button>
           {isWithinWindow ? (
-            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200 px-3 py-1 animate-pulse">
+            <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200 px-3 py-1">
               <Clock className="w-3 h-3 mr-1" /> Janela Aberta (08h-13h)
             </Badge>
           ) : (
@@ -68,6 +102,30 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {aiBriefing && (
+        <Card className="border-l-4 border-l-primary bg-primary/5 border-none shadow-sm">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
+                <Zap className="h-4 w-4 fill-primary" /> INSIGHTS ESTRATÉGICOS DA IA
+              </CardTitle>
+              <Badge className={cn(
+                aiBriefing.alertLevel === 'critical' ? 'bg-rose-100 text-rose-700' : 
+                aiBriefing.alertLevel === 'warning' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+              )}>
+                Alerta: {aiBriefing.alertLevel.toUpperCase()}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm leading-relaxed text-foreground/90">{aiBriefing.briefing}</p>
+            <div className="flex items-center gap-2 text-xs font-bold text-primary bg-white w-fit px-3 py-1 rounded-full shadow-sm">
+              <ArrowRight className="h-3 w-3" /> Ação Prioritária: {aiBriefing.priorityAction}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard 

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -10,7 +9,9 @@ import {
   CheckCircle2, 
   MoreVertical,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  BrainCircuit,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { TransportRequest, TransportStatus } from "@/lib/types";
+import { classifyUrgency } from "@/ai/flows/classify-urgency-flow";
+import { Textarea } from "@/components/ui/textarea";
 
 const mockRequests: TransportRequest[] = [
   {
@@ -90,7 +93,28 @@ const mockRequests: TransportRequest[] = [
 export default function RequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [patientNotes, setPatientNotes] = useState("");
+  const [destination, setDestination] = useState("");
+  const [suggestedUrgency, setSuggestedUrgency] = useState<string | null>(null);
+  const [isClassifying, setIsClassifying] = useState(false);
   const { toast } = useToast();
+
+  const handleAiUrgency = async () => {
+    if (!patientNotes || !destination) {
+      toast({ title: "Dados incompletos", description: "Preencha o destino e observações para a IA analisar.", variant: "destructive" });
+      return;
+    }
+    setIsClassifying(true);
+    try {
+      const result = await classifyUrgency({ patientNotes, destination });
+      setSuggestedUrgency(result.suggestedUrgency);
+      toast({ title: "Análise da IA", description: result.reasoning });
+    } catch (error) {
+      toast({ title: "Erro na IA", description: "Não foi possível classificar agora.", variant: "destructive" });
+    } finally {
+      setIsClassifying(false);
+    }
+  };
 
   const handleCreateRequest = (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,7 +168,7 @@ export default function RequestsPage() {
             <DialogHeader>
               <DialogTitle>Solicitar Transporte</DialogTitle>
               <DialogDescription>
-                Preencha os dados do paciente e do trajeto para solicitar o transporte.
+                Preencha os dados do paciente e use a IA para classificar a urgência.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleCreateRequest} className="space-y-4 py-4">
@@ -161,24 +185,43 @@ export default function RequestsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="destination">Destino</Label>
+                <Input 
+                  id="destination" 
+                  placeholder="Ex: Hospital Municipal, Clínica Renal" 
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                  required 
+                />
+              </div>
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="notes">Observações Clínicas</Label>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 text-[10px] gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={handleAiUrgency}
+                    disabled={isClassifying}
+                  >
+                    {isClassifying ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3" />}
+                    Assistência de IA
+                  </Button>
+                </div>
+                <Textarea 
+                  id="notes" 
+                  placeholder="Ex: Paciente com dificuldade de locomoção, requer maca." 
+                  value={patientNotes}
+                  onChange={(e) => setPatientNotes(e.target.value)}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="ubs">UBS de Origem</Label>
-                  <Select required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Origem" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="u1">UBS Central</SelectItem>
-                      <SelectItem value="u2">UBS Rio Claro</SelectItem>
-                      <SelectItem value="u3">UBS Norte</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
                   <Label htmlFor="urgency">Urgência</Label>
-                  <Select required>
-                    <SelectTrigger>
+                  <Select required defaultValue={suggestedUrgency || undefined}>
+                    <SelectTrigger className={suggestedUrgency ? "border-primary bg-primary/5" : ""}>
                       <SelectValue placeholder="Nível" />
                     </SelectTrigger>
                     <SelectContent>
@@ -188,15 +231,12 @@ export default function RequestsPage() {
                       <SelectItem value="critical">Crítico</SelectItem>
                     </SelectContent>
                   </Select>
+                  {suggestedUrgency && <p className="text-[10px] text-primary font-bold">IA sugeriu: {suggestedUrgency.toUpperCase()}</p>}
                 </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="destination">Destino</Label>
-                <Input id="destination" placeholder="Hospital, Clínica, etc." required />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="time">Data e Hora</Label>
-                <Input id="time" type="datetime-local" required />
+                <div className="grid gap-2">
+                  <Label htmlFor="time">Data e Hora</Label>
+                  <Input id="time" type="datetime-local" required />
+                </div>
               </div>
               <DialogFooter className="pt-4">
                 <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
