@@ -41,15 +41,17 @@ export default function DashboardLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-card/80 backdrop-blur-md sticky top-0 z-20">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-3 sm:px-4 bg-card/80 backdrop-blur-md sticky top-0 z-40">
           <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Separator orientation="vertical" className="mr-2 h-4 hidden xs:block" />
           <div className="flex-1 overflow-hidden">
-            <h1 className="text-[10px] sm:text-xs font-bold text-primary truncate uppercase tracking-widest">SGov FluxoSaúde - Rio Claro, RJ</h1>
+            <h1 className="text-[10px] xs:text-xs font-bold text-primary truncate uppercase tracking-widest leading-none">
+              SGov FluxoSaúde <span className="hidden xs:inline">- Rio Claro, RJ</span>
+            </h1>
           </div>
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
             <ThemeSelector />
-            <div className="h-8 w-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs shrink-0 uppercase">
+            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-[10px] sm:text-xs shrink-0 uppercase shadow-inner">
               {user.email?.[0] || 'U'}
             </div>
           </div>
