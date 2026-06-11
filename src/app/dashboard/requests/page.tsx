@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   Plus, 
   Search, 
@@ -72,6 +72,7 @@ import { requestService } from "@/services/request-service";
 import { patientService } from "@/services/patient-service";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export default function RequestsPage() {
   const [mounted, setMounted] = useState(false);
@@ -396,6 +397,17 @@ export default function RequestsPage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button 
+                            variant="ghost"
+                            size="icon" 
+                            className="h-8 w-8 rounded-full text-primary hover:bg-primary/10"
+                            asChild
+                            title="Análise Estratégica (Secretário)"
+                          >
+                            <Link href="/dashboard/admin">
+                              <ShieldCheck className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button 
                             variant={expandedRequestId === req.id ? "default" : "ghost"}
                             size="icon" 
                             className={cn(
@@ -555,13 +567,20 @@ export default function RequestsPage() {
                                       <p className="text-[10px] font-bold text-slate-700">{req.urgencyLevel.toUpperCase()}</p>
                                     </div>
                                     <div className="bg-white p-2 rounded-lg border text-center">
-                                      <p className="text-[8px] font-black text-slate-400 uppercase">Turno</p>
-                                      <p className="text-[10px] font-bold text-slate-700">MANHÃ</p>
+                                      <p className="text-[8px] font-black text-slate-400 uppercase">Análise IA</p>
+                                      <p className="text-[10px] font-bold text-primary">SIGILO ATIVO</p>
                                     </div>
                                   </div>
-                                  <Button variant="outline" className="w-full h-10 rounded-xl gap-2 font-black text-[10px] uppercase tracking-widest" onClick={() => toggleExpand(req.id)}>
-                                    Recolher Painel
-                                  </Button>
+                                  <div className="space-y-2">
+                                    <Button variant="outline" className="w-full h-10 rounded-xl gap-2 font-black text-[10px] uppercase tracking-widest border-primary/20 text-primary" asChild>
+                                      <Link href="/dashboard/admin">
+                                        <ShieldCheck className="h-4 w-4" /> Abrir Painel de Comando
+                                      </Link>
+                                    </Button>
+                                    <Button variant="ghost" className="w-full h-10 rounded-xl gap-2 font-black text-[10px] uppercase tracking-widest" onClick={() => toggleExpand(req.id)}>
+                                      Recolher Ficha
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
