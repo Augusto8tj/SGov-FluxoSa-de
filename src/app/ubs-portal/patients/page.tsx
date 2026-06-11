@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   Edit,
   Trash2,
-  History,
   FileText,
   Loader2,
   Activity,
@@ -198,15 +197,21 @@ export default function UbsPatientsPage() {
             {viewingPatient && (
               <div className="flex flex-col h-full">
                 <div className="bg-primary p-6 text-primary-foreground">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-white/20 p-2.5 rounded-2xl">
-                      <FileText className="h-7 w-7" />
+                  <DialogHeader className="space-y-0 text-left">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="bg-white/20 p-2.5 rounded-2xl">
+                        <FileText className="h-7 w-7" />
+                      </div>
+                      <div>
+                        <DialogTitle className="text-xl font-black tracking-tight leading-none uppercase text-primary-foreground">
+                          Prontuário Digital
+                        </DialogTitle>
+                        <DialogDescription className="text-[10px] uppercase font-bold opacity-80 mt-1 tracking-widest text-primary-foreground">
+                          Secretaria de Saúde &bull; Rio Claro
+                        </DialogDescription>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-black tracking-tight leading-none uppercase">Prontuário Digital</h3>
-                      <p className="text-[10px] uppercase font-bold opacity-80 mt-1 tracking-widest">Secretaria de Saúde &bull; Rio Claro</p>
-                    </div>
-                  </div>
+                  </DialogHeader>
                   <div className="space-y-1">
                     <p className="text-2xl font-black">{viewingPatient.name}</p>
                     <p className="text-xs font-bold opacity-90 flex items-center gap-1">
