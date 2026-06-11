@@ -10,16 +10,14 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// Input Schemas
-const LocationSchema = z.object({
-  lat: z.number().describe('Latitude of the location.'),
-  lng: z.number().describe('Longitude of the location.'),
-});
-
+// Input Schemas - Explicitly defined without external refs for tool stability
 const AppointmentSchema = z.object({
   id: z.string().describe('Unique identifier for the appointment.'),
   patientId: z.string().describe('Identifier for the patient.'),
-  pickupLocation: LocationSchema.describe("Patient's pickup location."),
+  pickupLocation: z.object({
+    lat: z.number().describe('Latitude of the pickup point.'),
+    lng: z.number().describe('Longitude of the pickup point.'),
+  }).describe("Patient's pickup location."),
   destinationUbsId: z.string().describe('ID of the destination health post (UBS).'),
   scheduledTime: z.string().describe('Scheduled time for the appointment (e.g., "HH:MM").'),
   companionCount: z.number().optional().describe('Number of companions accompanying the patient.'),
@@ -29,21 +27,30 @@ const AppointmentSchema = z.object({
 const UbsSchema = z.object({
   id: z.string().describe('Unique identifier for the health post (UBS).'),
   name: z.string().describe('Name of the health post.'),
-  location: LocationSchema.describe('Location of the health post.'),
+  location: z.object({
+    lat: z.number().describe('Latitude of the UBS.'),
+    lng: z.number().describe('Longitude of the UBS.'),
+  }).describe('Location of the health post.'),
 });
 
 const VehicleSchema = z.object({
   id: z.string().describe('Unique identifier for the vehicle.'),
   type: z.string().describe('Type of vehicle (e.g., "ambulance", "van").'),
   capacity: z.number().describe('Maximum patient capacity of the vehicle.'),
-  currentLocation: LocationSchema.describe('Current location of the vehicle.'),
+  currentLocation: z.object({
+    lat: z.number().describe('Latitude of current position.'),
+    lng: z.number().describe('Longitude of current position.'),
+  }).describe('Current location of the vehicle.'),
   available: z.boolean().describe('Availability status of the vehicle.'),
 });
 
 const DriverSchema = z.object({
   id: z.string().describe('Unique identifier for the driver.'),
   name: z.string().describe('Name of the driver.'),
-  currentLocation: LocationSchema.describe('Current location of the driver.'),
+  currentLocation: z.object({
+    lat: z.number().describe('Latitude of driver position.'),
+    lng: z.number().describe('Longitude of driver position.'),
+  }).describe('Current location of the driver.'),
   available: z.boolean().describe('Availability status of the driver.'),
 });
 
@@ -52,7 +59,7 @@ const GenerateOptimizedRoutesInputSchema = z.object({
   ubs: z.array(UbsSchema).describe('List of health posts (UBS) in the system.'),
   vehicles: z.array(VehicleSchema).describe('List of available vehicles.'),
   drivers: z.array(DriverSchema).describe('List of available drivers.'),
-  enableAiAssistance: z.boolean().optional().default(true).describe('Whether the AI should actively assist in decision making, primarily by invoking the optimization tool.'),
+  enableAiAssistance: z.boolean().optional().default(true).describe('Whether the AI should actively assist in decision making.'),
 });
 export type GenerateOptimizedRoutesInput = z.infer<typeof GenerateOptimizedRoutesInputSchema>;
 
@@ -68,7 +75,7 @@ const RouteAssignmentSchema = z.object({
 
 const GenerateOptimizedRoutesOutputSchema = z.object({
   assignments: z.array(RouteAssignmentSchema).describe('Optimized route assignments for vehicles and drivers.'),
-  unassignedAppointmentIds: z.array(z.string()).optional().describe('List of appointment IDs that could not be assigned to any route by the AI.'),
+  unassignedAppointmentIds: z.array(z.string()).optional().describe('List of appointment IDs that could not be assigned.'),
   optimizationSummary: z.string().optional().describe('A summary of the optimization results provided by the AI.'),
 });
 export type GenerateOptimizedRoutesOutput = z.infer<typeof GenerateOptimizedRoutesOutputSchema>;
@@ -77,18 +84,18 @@ export type GenerateOptimizedRoutesOutput = z.infer<typeof GenerateOptimizedRout
 const optimizeRoutesWithOpenRouter = ai.defineTool(
   {
     name: 'optimizeRoutesWithOpenRouter',
-    description: 'Optimizes transportation routes and assigns vehicles and drivers based on patient appointments, vehicle availability, and driver assignments using an external optimization service.',
+    description: 'Optimizes transportation routes and assigns vehicles and drivers based on patient appointments, vehicle availability, and driver assignments.',
     inputSchema: z.object({
       appointments: z.array(AppointmentSchema),
       vehicles: z.array(VehicleSchema),
       drivers: z.array(DriverSchema),
       ubs: z.array(UbsSchema),
-    }).describe('Input data required by the optimization tool.'),
-    outputSchema: z.array(RouteAssignmentSchema).describe('Optimized route assignments returned by the tool.'),
+    }),
+    outputSchema: z.array(RouteAssignmentSchema),
   },
   async (input) => {
     // --- MOCK IMPLEMENTATION FOR ROUTE OPTIMIZATION ---
-    console.log('Optimization tool called with input:', input);
+    console.log('Optimization tool called.');
 
     const availableVehicles = input.vehicles.filter(v => v.available);
     const availableDrivers = input.drivers.filter(d => d.available);
@@ -111,7 +118,7 @@ const optimizeRoutesWithOpenRouter = ai.defineTool(
           route: [appointment.id],
           estimatedDurationMinutes: 15 + Math.random() * 30,
           estimatedDistanceKm: 5 + Math.random() * 20,
-          notes: `Atendimento otimizado para o agendamento ${appointment.id}.`
+          notes: `Trajeto otimizado por IA para o paciente ${appointment.patientId}.`
         });
 
         vehicleIndex++;
@@ -129,12 +136,12 @@ const optimizeRoutesPrompt = ai.definePrompt({
   input: { schema: GenerateOptimizedRoutesInputSchema },
   output: { schema: GenerateOptimizedRoutesOutputSchema },
   prompt: `Você é um assistente inteligente de otimização de rotas para o sistema SGov FluxoSaúde.
-Sua tarefa é utilizar os dados fornecidos para gerar as rotas de transporte mais eficientes e atribuir veículos e motoristas adequados para os agendamentos dos pacientes.
+Sua missão é gerar as rotas de transporte mais eficientes para os pacientes de Rio Claro - RJ.
 
 Siga estas instruções:
-1. Chame a ferramenta 'optimizeRoutesWithOpenRouter', passando todos os 'appointments', 'vehicles', 'drivers' e 'ubs' do input para ela.
-2. Com base nas atribuições retornadas pela ferramenta, identifique todos os IDs de agendamento que foram atribuídos a uma rota e quaisquer que não foram.
-3. Forneça as atribuições de rota finais, a lista de IDs de agendamento não atribuídos e um breve resumo da otimização no formato solicitado.`,
+1. Utilize a ferramenta 'optimizeRoutesWithOpenRouter' para calcular a melhor distribuição de pacientes entre os veículos e motoristas disponíveis.
+2. Analise o retorno da ferramenta e identifique se algum agendamento não pôde ser atendido.
+3. Forneça o resultado final contendo as atribuições de rota, a lista de IDs não atribuídos e um resumo estratégico da operação.`,
 });
 
 export async function generateOptimizedRoutes(input: GenerateOptimizedRoutesInput): Promise<GenerateOptimizedRoutesOutput> {
@@ -152,7 +159,7 @@ const generateOptimizedRoutesFlow = ai.defineFlow(
       return {
         assignments: [],
         unassignedAppointmentIds: input.appointments.map(app => app.id),
-        optimizationSummary: 'A assistência de IA para otimização de rotas está desativada. Nenhuma rota foi gerada.'
+        optimizationSummary: 'A assistência de IA para otimização de rotas está desativada.'
       };
     }
 
