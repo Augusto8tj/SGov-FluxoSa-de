@@ -18,7 +18,10 @@ import {
   History,
   Fuel,
   Activity,
-  ShieldCheck
+  ShieldCheck,
+  ClipboardList,
+  MapPin,
+  Clock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +56,13 @@ const initialVehicles: (Vehicle & { status: 'AVAILABLE' | 'MAINTENANCE' | 'IN_US
   { id: "V-002", type: "Van", licensePlate: "XYZ-5678", capacity: 12, available: false, status: 'IN_USE' },
   { id: "V-003", type: "Sedan", licensePlate: "KJH-9012", capacity: 4, available: false, status: 'MAINTENANCE' },
   { id: "V-004", type: "Acessível", licensePlate: "LMN-3456", capacity: 1, available: true, status: 'AVAILABLE' },
+];
+
+const MOCK_MANIFEST = [
+  { id: "S1", patient: "Maria Souza", time: "14:30", type: "COLETA", location: "UBS Central" },
+  { id: "S2", patient: "Maria Souza", time: "15:00", type: "ENTREGA", location: "Hospital Municipal" },
+  { id: "S3", patient: "José Santos", time: "15:15", type: "COLETA", location: "UBS Rio Claro Sul" },
+  { id: "S4", patient: "José Santos", time: "15:45", type: "ENTREGA", location: "Centro Hemodiálise" },
 ];
 
 export default function FleetPage() {
@@ -367,6 +377,42 @@ export default function FleetPage() {
                                 </div>
                               </div>
                             </div>
+
+                            {/* Seção Extra: Manifesto de Missão em Rota */}
+                            {vehicle.status === 'IN_USE' && (
+                              <div className="mt-6 space-y-4 bg-blue-50/50 p-6 rounded-[2rem] border border-blue-100 animate-in slide-in-from-bottom-2">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="text-[11px] font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                                    <ClipboardList className="h-4 w-4" /> Manifesto de Missão Ativa
+                                  </h4>
+                                  <Badge className="bg-blue-600 text-white border-none text-[9px] font-black uppercase">Rota em Progresso</Badge>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                  {MOCK_MANIFEST.map((stop) => (
+                                    <Card key={stop.id} className="border-none shadow-sm bg-white rounded-2xl overflow-hidden">
+                                      <CardContent className="p-4 space-y-2">
+                                        <div className="flex items-center justify-between">
+                                          <Badge variant="outline" className={cn(
+                                            "text-[8px] font-black uppercase px-2",
+                                            stop.type === 'COLETA' ? "text-emerald-600 border-emerald-100 bg-emerald-50" : "text-blue-600 border-blue-100 bg-blue-50"
+                                          )}>
+                                            {stop.type}
+                                          </Badge>
+                                          <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                                            <Clock className="h-3 w-3" /> {stop.time}
+                                          </span>
+                                        </div>
+                                        <p className="text-xs font-black text-slate-700 truncate">{stop.patient}</p>
+                                        <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                          <MapPin className="h-3 w-3 shrink-0" />
+                                          <span className="truncate">{stop.location}</span>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
