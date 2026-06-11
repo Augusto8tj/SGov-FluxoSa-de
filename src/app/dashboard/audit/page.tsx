@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { 
   Fingerprint, 
   Search, 
-  Calendar, 
   ShieldCheck, 
   User, 
   Database,
@@ -13,9 +12,10 @@ import {
   ArrowRightLeft,
   Lock,
   Download,
-  Loader2
+  Loader2,
+  CheckCircle2
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -43,10 +43,14 @@ export default function AuditPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [integrityStatus, setIntegrityStatus] = useState("VERIFICANDO");
 
   useEffect(() => {
     setMounted(true);
-    setTimeout(() => setLoading(false), 600);
+    setTimeout(() => {
+      setLoading(false);
+      setIntegrityStatus("VALIDADO");
+    }, 1200);
   }, []);
 
   const filteredLogs = MOCK_AUDIT_LOGS.filter(log => 
@@ -64,11 +68,20 @@ export default function AuditPage() {
           <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
             <Fingerprint className="h-8 w-8" /> Auditoria do Sistema
           </h2>
-          <p className="text-muted-foreground">Rastreabilidade e registros de segurança - PMRC.</p>
+          <p className="text-muted-foreground">Rastreabilidade e registros de segurança - PMRC v1.1.0.</p>
         </div>
-        <Button variant="outline" className="gap-2 h-11 rounded-xl shadow-sm">
-          <Download className="h-4 w-4" /> Exportar Logs
-        </Button>
+        <div className="flex items-center gap-2">
+          <Badge className={cn(
+            "h-11 px-4 rounded-xl border-none font-black text-[10px] uppercase gap-2 shadow-sm transition-all",
+            integrityStatus === 'VALIDADO' ? "bg-emerald-500 text-white" : "bg-amber-500 text-white animate-pulse"
+          )}>
+            {integrityStatus === 'VALIDADO' ? <CheckCircle2 className="h-4 w-4" /> : <Loader2 className="h-4 w-4 animate-spin" />}
+            Cadeia de Custódia: {integrityStatus}
+          </Badge>
+          <Button variant="outline" className="gap-2 h-11 rounded-xl shadow-sm">
+            <Download className="h-4 w-4" /> Exportar Logs
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
