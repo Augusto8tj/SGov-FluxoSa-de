@@ -5,21 +5,19 @@
 
 @layer base {
   :root {
-    /* Background: #F3F5F7 (Almost white blue) */
     --background: 210 20% 96%;
     --foreground: 210 40% 10%;
     --card: 0 0% 100%;
     --card-foreground: 210 40% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 210 40% 10%;
-    /* Primary: #2E7EB8 (Sober blue) */
+    /* Default: Blue */
     --primary: 205 60% 45%;
     --primary-foreground: 210 20% 98%;
     --secondary: 210 20% 90%;
     --secondary-foreground: 205 60% 25%;
     --muted: 210 20% 90%;
     --muted-foreground: 210 10% 40%;
-    /* Accent: #52E0D4 (Vibrant cyan) */
     --accent: 175 70% 60%;
     --accent-foreground: 205 60% 15%;
     --destructive: 0 84% 60%;
@@ -37,6 +35,52 @@
     --sidebar-border: 210 20% 90%;
     --sidebar-ring: 205 60% 45%;
   }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 213 31% 91%;
+    --card: 222 47% 11%;
+    --card-foreground: 213 31% 91%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 213 31% 91%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 222 47% 11%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 223 47% 11%;
+    --muted-foreground: 215.4 16.3% 56.9%;
+    --accent: 216 34% 17%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+
+  /* Nature Green Theme */
+  .theme-green {
+    --primary: 150 60% 35%;
+    --accent: 160 84% 39%;
+    --ring: 150 60% 35%;
+    --sidebar-primary: 150 60% 35%;
+  }
+  .theme-green.dark {
+    --primary: 150 60% 55%;
+    --accent: 160 84% 39%;
+  }
+
+  /* Royal Purple Theme */
+  .theme-purple {
+    --primary: 262 60% 45%;
+    --accent: 280 84% 60%;
+    --ring: 262 60% 45%;
+    --sidebar-primary: 262 60% 45%;
+  }
+  .theme-purple.dark {
+    --primary: 262 60% 65%;
+    --accent: 280 84% 60%;
+  }
 }
 
 @layer base {
@@ -44,7 +88,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body transition-colors duration-300;
   }
 }
 

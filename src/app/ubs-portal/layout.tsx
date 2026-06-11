@@ -2,6 +2,7 @@
 import { UbsSidebar } from "@/components/ubs/ubs-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { ThemeSelector } from "@/components/theme-selector";
 
 export default function UbsLayout({
   children,
@@ -12,13 +13,14 @@ export default function UbsLayout({
     <SidebarProvider>
       <UbsSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white/50 backdrop-blur-sm sticky top-0 z-20">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm sticky top-0 z-20">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex-1 overflow-hidden">
-            <h1 className="text-xs sm:text-sm font-semibold text-emerald-700 truncate">Portal UBS - Central Rio Claro</h1>
+            <h1 className="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-400 truncate">Portal UBS - Central Rio Claro</h1>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <ThemeSelector />
             <div className="text-right hidden xs:block">
               <p className="text-[10px] sm:text-xs font-medium truncate max-w-[80px] sm:max-w-none">Enf. Márcia</p>
               <p className="text-[8px] sm:text-[10px] text-muted-foreground uppercase">Gerente</p>
