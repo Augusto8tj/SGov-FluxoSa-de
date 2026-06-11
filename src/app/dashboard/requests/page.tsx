@@ -91,12 +91,25 @@ const mockRequests: TransportRequest[] = [
   }
 ];
 
+const INITIAL_DESTINATIONS = [
+  "Hospital Municipal Rio Claro",
+  "Centro de Hemodiálise",
+  "Santa Casa de Rio Claro",
+  "UPA 24h Rio Claro",
+  "Clínica de Especialidades",
+  "Hospital de Lídice",
+  "Centro de Reabilitação Municipal",
+  "Laboratório Central",
+  "Policlínica Leste"
+];
+
 export default function RequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [requests, setRequests] = useState(mockRequests);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [patientNotes, setPatientNotes] = useState("");
   const [destination, setDestination] = useState("");
+  const [recentDestinations, setRecentDestinations] = useState(INITIAL_DESTINATIONS);
   const [suggestedUrgency, setSuggestedUrgency] = useState<string | null>(null);
   const [isClassifying, setIsClassifying] = useState(false);
   const { toast } = useToast();
@@ -124,6 +137,24 @@ export default function RequestsPage() {
     } finally {
       setIsClassifying(false);
     }
+  };
+
+  const handleCreateRequest = () => {
+    if (!destination) {
+      toast({ title: "Destino necessário", description: "Por favor, informe o local de destino.", variant: "destructive" });
+      return;
+    }
+
+    // Armazenar novo destino se não existir na lista de sugestões
+    if (destination && !recentDestinations.includes(destination)) {
+      setRecentDestinations(prev => [destination, ...prev]);
+    }
+
+    toast({ title: "Agendamento Criado", description: "O pedido foi encaminhado para análise da secretaria." });
+    setIsDialogOpen(false);
+    setDestination("");
+    setPatientNotes("");
+    setSuggestedUrgency(null);
   };
 
   const handleDelete = (id: string) => {
@@ -186,11 +217,17 @@ export default function RequestsPage() {
                 <Label htmlFor="destination" className="text-xs">Destino</Label>
                 <Input 
                   id="destination" 
+                  list="destinations-list"
                   className="h-9 text-sm"
                   placeholder="Hospital, Clínica, etc." 
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
                 />
+                <datalist id="destinations-list">
+                  {recentDestinations.map((d, index) => (
+                    <option key={`${d}-${index}`} value={d} />
+                  ))}
+                </datalist>
               </div>
               <div className="grid gap-1.5">
                 <div className="flex items-center justify-between">
@@ -237,10 +274,7 @@ export default function RequestsPage() {
             </div>
             <DialogFooter className="flex-row gap-2 sm:gap-0">
               <Button variant="ghost" className="flex-1 sm:flex-none h-9 text-sm" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-              <Button className="flex-1 sm:flex-none h-9 text-sm" onClick={() => {
-                toast({ title: "Agendamento Criado", description: "O pedido foi encaminhado para análise da secretaria." });
-                setIsDialogOpen(false);
-              }}>Enviar</Button>
+              <Button className="flex-1 sm:flex-none h-9 text-sm" onClick={handleCreateRequest}>Enviar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
