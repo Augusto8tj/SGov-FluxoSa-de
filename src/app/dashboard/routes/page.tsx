@@ -182,37 +182,49 @@ export default function RoutesPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-4">
-        <Card className="lg:col-span-1 border-none shadow-sm rounded-2xl overflow-hidden">
-          <CardHeader className="bg-muted/30">
-            <CardTitle className="text-sm font-black uppercase tracking-widest">Fila de Espera</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-6">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground flex items-center gap-2">
-                <Navigation className="h-4 w-4" /> Aprovados sem Rota
-              </span>
-              <Badge variant={requests.length > 0 ? "default" : "secondary"}>{requests.length}</Badge>
+        <div className="lg:col-span-1 space-y-6">
+          <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
+            <CardHeader className="bg-muted/30">
+              <CardTitle className="text-sm font-black uppercase tracking-widest">Fila de Espera</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-6">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <Navigation className="h-4 w-4" /> Aprovados sem Rota
+                </span>
+                <Badge variant={requests.length > 0 ? "default" : "secondary"}>{requests.length}</Badge>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <Ambulance className="h-4 w-4" /> Viaturas Livres
+                </span>
+                <Badge variant="secondary">{vehicles.length}</Badge>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <UserCheck className="h-4 w-4" /> Motoristas Ativos
+                </span>
+                <Badge variant="secondary">{drivers.length}</Badge>
+              </div>
+            </CardContent>
+            <CardFooter className="pt-2 border-t mt-2">
+              <div className="flex items-center gap-2">
+                <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Algoritmo Rio Claro v1.1</span>
+              </div>
+            </CardFooter>
+          </Card>
+          
+          <div className="p-4 bg-amber-50 rounded-2xl border border-dashed border-amber-200 flex items-start gap-3">
+            <div className="h-8 w-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0">
+              <AlertTriangle className="h-4 w-4" />
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground flex items-center gap-2">
-                <Ambulance className="h-4 w-4" /> Viaturas Livres
-              </span>
-              <Badge variant="secondary">{vehicles.length}</Badge>
+            <div>
+              <p className="text-[10px] font-black uppercase text-amber-700">Atenção ao Confirmar</p>
+              <p className="text-[10px] text-amber-600 leading-tight">Ao clicar em "Gerar e Enviar", as solicitações serão atualizadas no banco de dados e os motoristas selecionados receberão a missão em seus dispositivos.</p>
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground flex items-center gap-2">
-                <UserCheck className="h-4 w-4" /> Motoristas Ativos
-              </span>
-              <Badge variant="secondary">{drivers.length}</Badge>
-            </div>
-          </CardContent>
-          <CardFooter className="pt-2 border-t mt-2">
-            <div className="flex items-center gap-2">
-              <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Algoritmo Rio Claro v1.1</span>
-            </div>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
 
         <div className="lg:col-span-3 space-y-6">
           {!result && !optimizing && (
@@ -239,26 +251,7 @@ export default function RoutesPage() {
 
           {result && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <Card className="bg-primary text-primary-foreground border-none shadow-xl rounded-3xl overflow-hidden">
-                <CardContent className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div className="flex gap-3">
-                    <Zap className="h-6 w-6 text-accent shrink-0 mt-1" />
-                    <div className="space-y-1">
-                      <p className="text-xs font-black uppercase tracking-widest opacity-80">Proposta de Escala Logística</p>
-                      <p className="text-sm font-medium leading-relaxed">{result.optimizationSummary}</p>
-                    </div>
-                  </div>
-                  <Button 
-                    className="bg-white text-primary hover:bg-slate-100 h-12 px-6 gap-2 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg"
-                    onClick={handleCommitManifestos}
-                    disabled={committing}
-                  >
-                    {committing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    {committing ? "Gravando..." : "Gerar e Enviar Manifestos"}
-                  </Button>
-                </CardContent>
-              </Card>
-
+              {/* Rotas Sugeridas */}
               <div className="grid gap-4 md:grid-cols-2">
                 {result.assignments.map((assignment, idx) => (
                   <Card key={idx} className="border-none shadow-sm overflow-hidden border-l-4 border-l-primary rounded-2xl bg-card">
@@ -319,18 +312,29 @@ export default function RoutesPage() {
                   </Card>
                 ))}
               </div>
+
+              {/* Proposta Final (Agora abaixo das rotas) */}
+              <Card className="bg-primary text-primary-foreground border-none shadow-xl rounded-3xl overflow-hidden mt-6">
+                <CardContent className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="flex gap-3">
+                    <Zap className="h-6 w-6 text-accent shrink-0 mt-1" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-black uppercase tracking-widest opacity-80">Proposta de Escala Logística</p>
+                      <p className="text-sm font-medium leading-relaxed">{result.optimizationSummary}</p>
+                    </div>
+                  </div>
+                  <Button 
+                    className="bg-white text-primary hover:bg-slate-100 h-12 px-6 gap-2 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg"
+                    onClick={handleCommitManifestos}
+                    disabled={committing}
+                  >
+                    {committing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    {committing ? "Gravando..." : "Gerar e Enviar Manifestos"}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           )}
-        </div>
-      </div>
-      
-      <div className="p-4 bg-amber-50 rounded-2xl border border-dashed border-amber-200 flex items-center gap-4">
-        <div className="h-10 w-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shrink-0">
-          <AlertTriangle className="h-5 w-5" />
-        </div>
-        <div>
-          <p className="text-xs font-black uppercase text-amber-700">Atenção ao Confirmar</p>
-          <p className="text-[11px] text-amber-600 leading-tight">Ao clicar em "Gerar e Enviar", as solicitações serão atualizadas no banco de dados e os motoristas selecionados receberão a missão em seus dispositivos.</p>
         </div>
       </div>
     </div>
