@@ -16,7 +16,12 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Eye,
+  Check,
+  X,
+  FileText,
+  User
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +52,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { TransportRequest, Patient } from "@/lib/types";
+import { TransportRequest, Patient, TransportStatus } from "@/lib/types";
 import { classifyUrgency } from "@/ai/flows/classify-urgency-flow";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -59,6 +64,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { requestService } from "@/services/request-service";
 import { patientService } from "@/services/patient-service";
+import { Separator } from "@/components/ui/separator";
 
 export default function RequestsPage() {
   const [mounted, setMounted] = useState(false);
@@ -66,8 +72,12 @@ export default function RequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [requests, setRequests] = useState<TransportRequest[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
+  // Dialog States
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  
+  // Form State
   const [patientId, setPatientId] = useState("");
   const [patientNotes, setPatientNotes] = useState("");
   const [destination, setDestination] = useState("");
@@ -75,6 +85,7 @@ export default function RequestsPage() {
   const [scheduledTime, setScheduledTime] = useState("");
   
   const [editingRequest, setEditingRequest] = useState<TransportRequest | null>(null);
+  const [viewingRequest, setViewingRequest] = useState<TransportRequest | null>(null);
   const [isClassifying, setIsClassifying] = useState(false);
   
   const { toast } = useToast();
@@ -88,7 +99,7 @@ export default function RequestsPage() {
       ]);
       setRequests(fetchedRequests);
       setPatients(fetchedPatients);
-    } catch {
+    } catch (error: any) {
       toast({ title: "Aviso", description: "Falha na sincronização. Verifique a conexão.", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -113,10 +124,20 @@ export default function RequestsPage() {
         title: "IA: Análise Concluída", 
         description: `Urgência sugerida: ${result.suggestedUrgency.toUpperCase()}.` 
       });
-    } catch {
+    } catch (error: any) {
       toast({ variant: "destructive", title: "IA Indisponível", description: "Não foi possível conectar ao motor Genkit." });
     } finally {
       setIsClassifying(false);
+    }
+  };
+
+  const handleStatusUpdate = async (id: string, status: TransportStatus) => {
+    try {
+      await requestService.updateRequest(id, { status });
+      toast({ title: "Status Atualizado", description: `Pedido definido como ${status}.` });
+      loadData();
+    } catch (error: any) {
+      toast({ title: "Erro", description: "Falha ao mudar status.", variant: "destructive" });
     }
   };
 
@@ -130,8 +151,8 @@ export default function RequestsPage() {
     const requestData = {
       patientId,
       patientName: patient?.name || "Paciente",
-      ubsId: "UBS-01",
-      pickupLocation: "UBS Central",
+      ubsId: editingRequest?.ubsId || "UBS-01",
+      pickupLocation: editingRequest?.pickupLocation || "UBS Central",
       destinationLocation: destination,
       requestedTime: scheduledTime || new Date().toISOString(),
       urgencyLevel: urgency as any,
@@ -148,7 +169,7 @@ export default function RequestsPage() {
       setIsDialogOpen(false);
       loadData();
       toast({ title: "Sucesso", description: "Solicitação processada com sucesso." });
-    } catch {
+    } catch (error: any) {
       toast({ title: "Erro", description: "Falha ao gravar solicitação.", variant: "destructive" });
     }
   };
@@ -158,7 +179,7 @@ export default function RequestsPage() {
       await requestService.deleteRequest(id);
       loadData();
       toast({ title: "Removido", description: "Solicitação cancelada." });
-    } catch {
+    } catch (error: any) {
       toast({ title: "Erro", description: "Não foi possível remover.", variant: "destructive" });
     }
   };
@@ -183,6 +204,7 @@ export default function RequestsPage() {
       case 'PENDING': return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 gap-1"><Clock className="h-3 w-3" /> Pendente</Badge>;
       case 'COMPLETED': return <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 gap-1">Concluído</Badge>;
       case 'DENIED': return <Badge variant="outline" className="text-rose-600 border-rose-200 bg-rose-50 gap-1"><XCircle className="h-3 w-3" /> Negado</Badge>;
+      case 'CANCELLED': return <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30 bg-muted/10 gap-1">Cancelado</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -208,6 +230,7 @@ export default function RequestsPage() {
           <Plus className="h-4 w-4" /> Novo Pedido
         </Button>
 
+        {/* Dialog Novo/Edição */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[550px] w-[95vw] rounded-xl overflow-y-auto max-h-[90vh]">
             <DialogHeader>
@@ -293,6 +316,86 @@ export default function RequestsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Dialog Visualização de Detalhes */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="sm:max-w-[500px] rounded-2xl p-0 overflow-hidden border-none shadow-2xl">
+            {viewingRequest && (
+              <div className="flex flex-col">
+                <div className="bg-primary p-6 text-primary-foreground">
+                  <DialogHeader className="space-y-0 text-left">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="bg-white/20 p-2 rounded-xl">
+                        <FileText className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <DialogTitle className="text-lg font-black uppercase tracking-tight">Detalhes do Agendamento</DialogTitle>
+                        <DialogDescription className="text-[10px] uppercase font-bold text-primary-foreground/80 tracking-widest">Protocolo: {viewingRequest.id}</DialogDescription>
+                      </div>
+                    </div>
+                  </DialogHeader>
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 opacity-70" />
+                      <span className="text-xl font-bold">{viewingRequest.patientName}</span>
+                    </div>
+                    {getStatusBadge(viewingRequest.status)}
+                  </div>
+                </div>
+                
+                <div className="p-6 space-y-6 bg-white">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Data e Horário</p>
+                      <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                        <Clock className="h-3.5 w-3.5 text-primary" />
+                        {new Date(viewingRequest.requestedTime).toLocaleString([], { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Urgência</p>
+                      {getUrgencyBadge(viewingRequest.urgencyLevel)}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 size-2 rounded-full bg-primary shrink-0" />
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Origem (Coleta)</p>
+                        <p className="text-sm font-bold text-slate-700">{viewingRequest.pickupLocation}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 size-2 rounded-full bg-rose-500 shrink-0" />
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Destino (Desembarque)</p>
+                        <p className="text-sm font-bold text-slate-700">{viewingRequest.destinationLocation}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mb-2">Unidade Solicitante</p>
+                    <p className="text-xs font-bold text-slate-600">{viewingRequest.ubsId} - Sistema Municipal</p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-slate-50 border-t flex gap-2">
+                  <Button variant="outline" className="flex-1 rounded-xl h-12 font-bold text-xs uppercase" onClick={() => setIsViewDialogOpen(false)}>Fechar</Button>
+                  {viewingRequest.status === 'PENDING' && (
+                    <Button className="flex-1 rounded-xl h-12 font-bold text-xs uppercase bg-emerald-600 hover:bg-emerald-700" onClick={() => {
+                      handleStatusUpdate(viewingRequest.id, 'APPROVED');
+                      setIsViewDialogOpen(false);
+                    }}>Aprovar Pedido</Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="relative">
@@ -351,7 +454,24 @@ export default function RequestsPage() {
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
+                          <DropdownMenuItem onClick={() => { setViewingRequest(req); setIsViewDialogOpen(true); }} className="gap-2 cursor-pointer">
+                            <Eye className="h-4 w-4" /> Ver Detalhes
+                          </DropdownMenuItem>
+                          
+                          {req.status === 'PENDING' && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleStatusUpdate(req.id, 'APPROVED')} className="gap-2 cursor-pointer text-emerald-600 focus:text-emerald-600">
+                                <Check className="h-4 w-4" /> Aprovar Pedido
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusUpdate(req.id, 'DENIED')} className="gap-2 cursor-pointer text-rose-600 focus:text-rose-600">
+                                <X className="h-4 w-4" /> Negar Pedido
+                              </DropdownMenuItem>
+                            </>
+                          )}
+
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => { 
                             setEditingRequest(req); 
                             setPatientId(req.patientId); 
@@ -359,12 +479,12 @@ export default function RequestsPage() {
                             setUrgency(req.urgencyLevel); 
                             setScheduledTime(req.requestedTime.slice(0, 16));
                             setIsDialogOpen(true); 
-                          }}>
-                            <Edit className="h-4 w-4 mr-2" /> Editar Solicitação
+                          }} className="gap-2 cursor-pointer">
+                            <Edit className="h-4 w-4" /> Editar Dados
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(req.id)}>
-                            <Trash2 className="h-4 w-4 mr-2" /> Cancelar Pedido
+                          
+                          <DropdownMenuItem className="text-destructive focus:text-destructive gap-2 cursor-pointer" onClick={() => handleDelete(req.id)}>
+                            <Trash2 className="h-4 w-4" /> Excluir Registro
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
