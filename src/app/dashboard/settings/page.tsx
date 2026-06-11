@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Settings, 
   Hospital, 
@@ -55,10 +55,15 @@ const initialDrivers = [
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
   const [units, setUnits] = useState(initialUnits);
   const [drivers, setDrivers] = useState(initialDrivers);
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
   const [newUnit, setNewUnit] = useState({ name: "", address: "" });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSave = (module: string) => {
     toast({
@@ -85,6 +90,10 @@ export default function SettingsPage() {
     setNewUnit({ name: "", address: "" });
     toast({ title: "Unidade Cadastrada", description: `${unit.name} foi adicionada ao sistema.` });
   };
+
+  if (!mounted) {
+    return <div className="p-8 text-center text-muted-foreground">Carregando configurações...</div>;
+  }
 
   return (
     <div className="space-y-6">
