@@ -9,6 +9,7 @@ import {
   doc, 
   query, 
   orderBy,
+  where,
   Timestamp 
 } from "firebase/firestore";
 import { TransportRequest } from "@/lib/types";
@@ -43,11 +44,36 @@ export const requestService = {
     }
   },
 
+  /**
+   * Busca uma solicitação pelo código de acesso do paciente.
+   */
+  async getByAccessCode(code: string): Promise<TransportRequest | null> {
+    try {
+      const q = query(collection(db, COLLECTION_NAME), where("patientAccessCode", "==", code));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        // Busca nos mocks para demonstração
+        return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
+      }
+
+      const docData = querySnapshot.docs[0];
+      return { id: docData.id, ...docData.data() } as TransportRequest;
+    } catch (error) {
+      console.error("Error searching by access code:", error);
+      return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
+    }
+  },
+
   async addRequest(request: Omit<TransportRequest, "id">): Promise<string> {
     try {
       const now = Timestamp.now().toDate().toISOString();
+      // Geração de código simples de 6 dígitos para o paciente
+      const patientAccessCode = Math.floor(100000 + Math.random() * 900000).toString();
+
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...request,
+        patientAccessCode,
         createdAt: now,
         updatedAt: now
       });

@@ -26,7 +26,8 @@
         "destinationLocation": { "type": "string" },
         "urgencyLevel": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
         "status": { "type": "string", "enum": ["PENDING", "APPROVED", "DENIED", "COMPLETED", "CANCELLED"] },
-        "requestedTime": { "type": "string", "format": "date-time" }
+        "requestedTime": { "type": "string", "format": "date-time" },
+        "patientAccessCode": { "type": "string", "description": "Código de 6 dígitos para acesso público do paciente." }
       }
     },
     "DriverReport": {

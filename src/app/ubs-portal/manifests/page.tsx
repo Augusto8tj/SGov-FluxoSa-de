@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -11,7 +12,9 @@ import {
   User, 
   ShieldCheck,
   ArrowRight,
-  Filter
+  Filter,
+  KeyRound,
+  ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,6 +68,11 @@ export default function UbsManifestsPage() {
     m.manifestId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    toast({ title: "Copiado!", description: `Código ${code} pronto para enviar.` });
+  };
+
   if (!mounted) return null;
 
   return (
@@ -72,7 +80,7 @@ export default function UbsManifestsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Manifestos de Viagem</h2>
-          <p className="text-sm text-muted-foreground">Acompanhe os veículos e horários de saída dos seus pacientes.</p>
+          <p className="text-sm text-muted-foreground">Acompanhe os veículos e forneça o acesso aos pacientes.</p>
         </div>
         <Button variant="outline" className="gap-2 h-11 px-6 rounded-xl" onClick={loadManifests}>
           <Clock className="h-4 w-4" /> Atualizar Escala
@@ -102,14 +110,14 @@ export default function UbsManifestsPage() {
             </div>
           </div>
         </Card>
-        <Card className="p-4 border-none bg-slate-50 border-l-4 border-l-slate-400">
+        <Card className="p-4 border-none bg-indigo-50 border-l-4 border-l-indigo-500">
           <div className="flex items-center gap-3">
-            <div className="bg-slate-200 p-2 rounded-lg text-slate-600">
-              <Route className="h-5 w-5" />
+            <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
+              <KeyRound className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Finalizados</p>
-              <p className="text-xl font-black">{manifests.filter(m => m.status === 'COMPLETED').length}</p>
+              <p className="text-[10px] font-black uppercase text-indigo-600 tracking-widest">Acesso Cidadão</p>
+              <p className="text-xl font-black">Ativo</p>
             </div>
           </div>
         </Card>
@@ -139,11 +147,11 @@ export default function UbsManifestsPage() {
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="border-none">
-                  <TableHead className="font-bold">Manifesto</TableHead>
+                  <TableHead className="font-bold">Manifesto / Acesso</TableHead>
                   <TableHead className="font-bold">Paciente & Destino</TableHead>
-                  <TableHead className="font-bold">Logística (Viatura/Motorista)</TableHead>
+                  <TableHead className="font-bold">Logística</TableHead>
                   <TableHead className="font-bold">Status</TableHead>
-                  <TableHead className="text-right font-bold">Saída</TableHead>
+                  <TableHead className="text-right font-bold">Ação</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -151,9 +159,18 @@ export default function UbsManifestsPage() {
                   filteredManifests.map((item) => (
                     <TableRow key={item.id} className="hover:bg-muted/10 group transition-colors">
                       <TableCell>
-                        <Badge className="bg-primary/10 text-primary border-none font-black text-[10px] h-6 px-3">
-                          {item.manifestId}
-                        </Badge>
+                        <div className="flex flex-col gap-1">
+                          <Badge className="bg-primary/10 text-primary border-none font-black text-[10px] h-6 px-3 w-fit">
+                            {item.manifestId}
+                          </Badge>
+                          <div 
+                            className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded cursor-pointer hover:bg-indigo-100 w-fit"
+                            onClick={() => handleCopyCode(item.patientAccessCode || "000000")}
+                            title="Clique para copiar o código de acesso do paciente"
+                          >
+                            <KeyRound className="h-3 w-3" /> {item.patientAccessCode}
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
@@ -181,14 +198,14 @@ export default function UbsManifestsPage() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex flex-col items-end">
-                          <span className="text-xs font-black text-slate-700">
-                            {new Date(item.requestedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}h
-                          </span>
-                          <span className="text-[9px] text-muted-foreground font-bold uppercase">
-                            {new Date(item.requestedTime).toLocaleDateString([], { day: '2-digit', month: '2-digit' })}
-                          </span>
-                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-2 text-indigo-600 font-bold text-[10px] uppercase h-8"
+                          onClick={() => window.open(`/patient-portal`, '_blank')}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" /> Portal
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -205,17 +222,17 @@ export default function UbsManifestsPage() {
         )}
       </Card>
 
-      <div className="p-6 bg-primary/5 rounded-[2.5rem] border border-primary/10 flex flex-col md:flex-row items-center gap-6">
+      <div className="p-6 bg-indigo-50 rounded-[2.5rem] border border-indigo-100 flex flex-col md:flex-row items-center gap-6">
         <div className="h-16 w-16 rounded-[2rem] bg-white shadow-lg flex items-center justify-center shrink-0">
-          <ShieldCheck className="h-8 w-8 text-primary" />
+          <KeyRound className="h-8 w-8 text-indigo-600" />
         </div>
         <div className="flex-1 text-center md:text-left">
-          <h4 className="font-black text-lg text-primary uppercase tracking-tighter">Transparência Logística</h4>
-          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl mt-1">
-            Esta tela permite que a recepção da UBS informe aos familiares e pacientes exatamente qual veículo virá buscá-los, aumentando a segurança e reduzindo a ansiedade durante a espera pelo transporte sanitário.
+          <h4 className="font-black text-lg text-indigo-700 uppercase tracking-tighter">Acesso do Cidadão</h4>
+          <p className="text-sm text-indigo-600 leading-relaxed max-w-2xl mt-1">
+            Cada viagem possui um <b>Código de Acesso</b> exclusivo. Forneça este número ao paciente para que ele consulte os detalhes do veículo e motorista pelo link público <b>/patient-portal</b>.
           </p>
         </div>
-        <ArrowRight className="h-6 w-6 text-primary hidden md:block opacity-30" />
+        <ArrowRight className="h-6 w-6 text-indigo-300 hidden md:block" />
       </div>
     </div>
   );

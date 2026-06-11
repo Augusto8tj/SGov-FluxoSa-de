@@ -101,6 +101,9 @@ export interface TransportRequest {
   assignedAt?: string;
   manifestId?: string;
   
+  // Suporte ao Paciente
+  patientAccessCode?: string;
+  
   // Suporte à IA
   aiRecommendation?: string;
   aiSuggestedAction?: 'approve' | 'deny' | 'escalate' | 'needs_more_info';

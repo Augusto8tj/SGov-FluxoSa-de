@@ -30,7 +30,8 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     manifestId: "MF-2024-001",
     vehicleId: "Ambulância (V1)",
     driverId: "Carlos Alberto Silva",
-    assignedAt: new Date().toISOString()
+    assignedAt: new Date().toISOString(),
+    patientAccessCode: "123456"
   },
   { 
     id: "REQ-002", 
@@ -47,7 +48,8 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     manifestId: "MF-2024-002",
     vehicleId: "Van (V2)",
     driverId: "Marcos Pereira",
-    assignedAt: new Date().toISOString()
+    assignedAt: new Date().toISOString(),
+    patientAccessCode: "654321"
   },
   { 
     id: "REQ-003", 
@@ -60,7 +62,8 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     status: "PENDING", 
     requestedTime: new Date(Date.now() + 7200000).toISOString(), 
     operatorId: "UBS_MGR",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    patientAccessCode: "112233"
   },
   { 
     id: "REQ-004", 
@@ -77,7 +80,8 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     manifestId: "MF-2024-004",
     vehicleId: "Sedan (V3)",
     driverId: "Ana Cláudia",
-    assignedAt: new Date().toISOString()
+    assignedAt: new Date().toISOString(),
+    patientAccessCode: "445566"
   }
 ];
 
