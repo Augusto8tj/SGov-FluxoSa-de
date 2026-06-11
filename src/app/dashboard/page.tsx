@@ -28,30 +28,33 @@ import {
   ResponsiveContainer,
   Cell
 } from "recharts";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { generateSystemInsights, SystemInsightsOutput } from "@/ai/flows/generate-system-insights-flow";
 import { useToast } from "@/hooks/use-toast";
-import { requestService } from "@/services/request-service";
-import { patientService } from "@/services/patient-service";
-import { vehicleService } from "@/services/vehicle-service";
-import { TransportRequest, Patient, Vehicle } from "@/lib/types";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+
+// Dados Mock para Demonstração (Rio Claro - RJ)
+const MOCK_REQUESTS = [
+  { id: "1", patientName: "Benedito Silva", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", status: "PENDING", urgencyLevel: "critical", createdAt: new Date().toISOString() },
+  { id: "2", patientName: "Maria de Fátima", pickupLocation: "UBS Central", destinationLocation: "Centro de Hemodiálise", status: "APPROVED", urgencyLevel: "high", createdAt: new Date().toISOString() },
+  { id: "3", patientName: "José Bonifácio", pickupLocation: "UBS Passa Três", destinationLocation: "UBS Central", status: "PENDING", urgencyLevel: "medium", createdAt: new Date().toISOString() },
+  { id: "4", patientName: "Ana Cláudia", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Regional", status: "COMPLETED", urgencyLevel: "low", createdAt: new Date().toISOString() },
+  { id: "5", patientName: "Wilson Oliveira", pickupLocation: "UBS Central", destinationLocation: "Clínica Ortopédica", status: "APPROVED", urgencyLevel: "medium", createdAt: new Date().toISOString() },
+];
+
+const MOCK_CHART = [
+  { name: "Lídice", count: 18 },
+  { name: "Central", count: 32 },
+  { name: "Passa Três", count: 12 },
+  { name: "S. Eliza", count: 8 },
+  { name: "Rural", count: 5 },
+];
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  const [requests, setRequests] = useState<TransportRequest[]>([]);
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  
   const [isWithinWindow, setIsWithinWindow] = useState(false);
   const [aiBriefing, setAiBriefing] = useState<SystemInsightsOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
-  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -63,82 +66,23 @@ export default function DashboardPage() {
     };
     
     checkTime();
-    const timer = setInterval(checkTime, 60000);
-    loadDashboardData();
-    return () => clearInterval(timer);
+    setTimeout(() => setLoading(false), 800);
   }, []);
-
-  const loadDashboardData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [reqData, patData, vehData] = await Promise.all([
-        requestService.getRequests(),
-        patientService.getPatients(),
-        vehicleService.getVehicles()
-      ]);
-      setRequests(reqData);
-      setPatients(patData);
-      setVehicles(vehData);
-    } catch (err) {
-      console.error("Erro ao carregar dashboard:", err);
-      setError("Não foi possível sincronizar os dados operacionais.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const kpis = useMemo(() => {
-    const pending = requests.filter(r => r.status === 'PENDING').length;
-    const critical = requests.filter(r => r.urgencyLevel === 'critical').length;
-    const activeVehicles = vehicles.filter(v => v.status === 'AVAILABLE').length;
-    const totalVehicles = vehicles.length;
-    const ubsSet = new Set(requests.map(r => r.ubsId || 'UBS Central'));
-    const ubsCount = ubsSet.size || 0;
-
-    return { pending, critical, activeVehicles, totalVehicles, ubsCount };
-  }, [requests, vehicles]);
-
-  const chartData = useMemo(() => {
-    if (requests.length === 0) return [];
-
-    const groups: Record<string, number> = {};
-    requests.forEach(req => {
-      const ubsName = req.pickupLocation || 'Outros';
-      groups[ubsName] = (groups[ubsName] || 0) + 1;
-    });
-
-    return Object.entries(groups)
-      .map(([name, count]) => ({
-        name: name.replace('UBS ', '').split(' ')[0],
-        fullName: name,
-        count
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  }, [requests]);
 
   const handleGenerateBriefing = async () => {
     setLoadingAi(true);
     try {
       const result = await generateSystemInsights({
-        pendingRequests: kpis.pending,
-        activeVehicles: kpis.activeVehicles,
-        totalVehicles: kpis.totalVehicles,
-        criticalPatientsCount: kpis.critical,
+        pendingRequests: 32,
+        activeVehicles: 8,
+        totalVehicles: 12,
+        criticalPatientsCount: 5,
         currentHour: new Date().getHours()
       });
       setAiBriefing(result);
-      toast({
-        title: "Briefing Atualizado",
-        description: "Insights gerados com sucesso pela IA.",
-      });
+      toast({ title: "Briefing Atualizado", description: "IA gerou novos insights estratégicos." });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "IA Indisponível",
-        description: "Tente novamente em instantes.",
-      });
+      toast({ variant: "destructive", title: "IA: Falha na Conexão", description: "Verificando chaves de API..." });
     } finally {
       setLoadingAi(false);
     }
@@ -150,7 +94,7 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground font-medium">Carregando indicadores...</p>
+        <p className="text-sm text-muted-foreground font-medium">Sincronizando painel governamental...</p>
       </div>
     );
   }
@@ -162,7 +106,7 @@ export default function DashboardPage() {
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary">Central de Comando</h2>
           <p className="text-xs sm:text-sm text-muted-foreground">Monitoramento em tempo real - Rio Claro, RJ.</p>
         </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
+        <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
             size="sm" 
@@ -214,107 +158,59 @@ export default function DashboardPage() {
       )}
 
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        <StatsCard 
-          title="Pendentes" 
-          value={kpis.pending} 
-          icon={Clock} 
-          description="Aguardando"
-        />
-        <StatsCard 
-          title="Cidadãos" 
-          value={patients.length} 
-          icon={Users} 
-          description="Total Base"
-        />
-        <StatsCard 
-          title="Operacionais" 
-          value={`${kpis.activeVehicles}/${kpis.totalVehicles}`} 
-          icon={Ambulance} 
-          description="Frota Pronta"
-        />
-        <StatsCard 
-          title="Unidades" 
-          value={kpis.ubsCount} 
-          icon={MapPin} 
-          description="Atendimento"
-        />
+        <StatsCard title="Pendentes" value="32" icon={Clock} description="Aguardando" />
+        <StatsCard title="Cidadãos" value="1.240" icon={Users} description="Total Base" />
+        <StatsCard title="Frota" value="8/12" icon={Ambulance} description="Veículos Ativos" />
+        <StatsCard title="Unidades" value="5" icon={MapPin} description="Pontos de Coleta" />
       </div>
 
       <div className="grid gap-4 sm:gap-6 md:grid-cols-7">
         <Card className="md:col-span-4 border-none shadow-sm overflow-hidden bg-card">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-base sm:text-lg">Fluxo por UBS</CardTitle>
-            <CardDescription className="text-xs">Demandas originadas por unidade de saúde.</CardDescription>
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg">Fluxo por Distrito</CardTitle>
+            <CardDescription className="text-xs">Demandas originadas por localidade.</CardDescription>
           </CardHeader>
           <CardContent className="h-[200px] sm:h-[300px] p-2 sm:p-6">
-            {chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                  />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                  <Tooltip 
-                    cursor={{ fill: 'hsl(var(--muted)/0.3)' }}
-                    contentStyle={{ borderRadius: '8px', background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', fontSize: '10px' }}
-                  />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={index === 0 ? "hsl(var(--primary))" : "hsl(var(--accent))"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
-                <Inbox className="h-10 w-10 opacity-20" />
-                <p className="text-xs font-medium">Sem dados para exibição gráfica.</p>
-              </div>
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={MOCK_CHART}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                <Tooltip cursor={{ fill: 'hsl(var(--muted)/0.3)' }} contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '10px' }} />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {MOCK_CHART.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={index === 1 ? "hsl(var(--primary))" : "hsl(var(--accent))"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
         <Card className="md:col-span-3 border-none shadow-sm bg-card">
-          <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-base sm:text-lg">Histórico Local</CardTitle>
-            <CardDescription className="text-xs">Últimas solicitações processadas.</CardDescription>
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg">Atividade Recente</CardTitle>
+            <CardDescription className="text-xs">Últimos transportes da malha viária.</CardDescription>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent>
             <div className="space-y-4">
-              {requests.length > 0 ? (
-                requests.slice(0, 5).map((item, i) => (
-                  <div key={item.id} className="flex items-start gap-3">
-                    <div className={cn(
-                      "mt-1.5 size-1.5 rounded-full shrink-0",
-                      item.status === 'APPROVED' ? "bg-primary" : 
-                      item.status === 'PENDING' ? "bg-accent" : "bg-muted-foreground"
-                    )} />
-                    <div className="flex-1 space-y-0.5 overflow-hidden">
-                      <p className="text-xs font-semibold leading-tight truncate">
-                        {item.patientName}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground truncate">
-                        {item.pickupLocation} → {item.destinationLocation}
-                      </p>
-                    </div>
-                    <span className="text-[9px] text-muted-foreground whitespace-nowrap mt-0.5">
-                      {item.createdAt ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: false, locale: ptBR }) : 'agora'}
-                    </span>
+              {MOCK_REQUESTS.map((item, i) => (
+                <div key={item.id} className="flex items-start gap-3">
+                  <div className={cn(
+                    "mt-1.5 size-1.5 rounded-full shrink-0",
+                    item.status === 'APPROVED' ? "bg-emerald-500" : 
+                    item.status === 'PENDING' ? "bg-amber-500" : "bg-slate-400"
+                  )} />
+                  <div className="flex-1 space-y-0.5">
+                    <p className="text-xs font-semibold leading-tight">{item.patientName}</p>
+                    <p className="text-[10px] text-muted-foreground">{item.pickupLocation} → {item.destinationLocation}</p>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-12 text-muted-foreground space-y-2">
-                  <Inbox className="h-8 w-8 mx-auto opacity-20" />
-                  <p className="text-xs font-medium">Nenhuma atividade recente.</p>
+                  <span className="text-[9px] text-muted-foreground whitespace-nowrap">há {i+2} min</span>
                 </div>
-              )}
+              ))}
             </div>
-            <Button variant="ghost" className="w-full mt-6 text-[10px] font-bold uppercase tracking-wider h-8 text-primary" onClick={() => loadDashboardData()}>
-              Sincronizar Dados
+            <Button variant="ghost" className="w-full mt-6 text-[10px] font-bold uppercase tracking-wider h-8 text-primary">
+              Ver Histórico Completo
             </Button>
           </CardContent>
         </Card>

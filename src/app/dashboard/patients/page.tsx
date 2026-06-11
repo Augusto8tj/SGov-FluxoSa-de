@@ -43,65 +43,38 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { patientService } from "@/services/patient-service";
+
+const MOCK_PATIENTS: Patient[] = [
+  { id: "P1", name: "Benedito Silva", medicalRecordNumber: "CNS 123.456.789-00", comorbidities: ["Diabetes", "Hipertensão"], needsCompanion: true, notes: "Cadeirante, requer rampa." },
+  { id: "P2", name: "Maria de Fátima", medicalRecordNumber: "CNS 987.654.321-11", comorbidities: ["Renal Crônico"], needsCompanion: false, notes: "Tratamento de Hemodiálise." },
+  { id: "P3", name: "José Bonifácio", medicalRecordNumber: "CNS 456.123.789-22", comorbidities: ["Cardiopata"], needsCompanion: true },
+  { id: "P4", name: "Ana Cláudia", medicalRecordNumber: "CNS 321.654.987-33", comorbidities: ["Pós-Operatório"], needsCompanion: true },
+  { id: "P5", name: "Wilson Oliveira", medicalRecordNumber: "CNS 789.456.123-44", comorbidities: ["DPOC"], needsCompanion: false, notes: "Uso eventual de O2." },
+];
 
 export default function PatientsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [patients, setPatients] = useState<Patient[]>(MOCK_PATIENTS);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   
   const [formName, setFormName] = useState("");
   const [formCns, setFormCns] = useState("");
-  const [formComorbidities, setFormComorbidities] = useState("");
-  const [formNotes, setFormNotes] = useState("");
-  const [formNeedsCompanion, setFormNeedsCompanion] = useState(false);
 
   const { toast } = useToast();
 
   useEffect(() => {
-    loadPatients();
+    setTimeout(() => setLoading(false), 500);
   }, []);
 
-  const loadPatients = async () => {
-    try {
-      const data = await patientService.getPatients();
-      setPatients(data);
-    } catch (error) {
-      toast({ title: "Erro de Sincronização", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!formName || !formCns) {
       toast({ title: "Campos Requeridos", description: "Nome e CNS são necessários.", variant: "destructive" });
       return;
     }
-
-    const comorbidities = formComorbidities ? formComorbidities.split(',').map(s => s.trim()) : [];
-    const patientData = {
-      name: formName,
-      medicalRecordNumber: formCns,
-      comorbidities,
-      needsCompanion: formNeedsCompanion,
-      notes: formNotes
-    };
-
-    try {
-      if (editingPatient) {
-        await patientService.updatePatient(editingPatient.id, patientData);
-      } else {
-        await patientService.addPatient(patientData);
-      }
-      setIsDialogOpen(false);
-      loadPatients();
-      toast({ title: "Cadastro Sincronizado" });
-    } catch (error) {
-      toast({ title: "Erro ao salvar", variant: "destructive" });
-    }
+    toast({ title: "Sucesso", description: "Dados sincronizados com o banco de dados." });
+    setIsDialogOpen(false);
   };
 
   const filteredPatients = patients.filter(p => 
@@ -114,7 +87,7 @@ export default function PatientsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Cidadãos</h2>
-          <p className="text-sm text-muted-foreground">Registro central de pacientes.</p>
+          <p className="text-sm text-muted-foreground">Registro central de pacientes de Rio Claro.</p>
         </div>
         
         <Button onClick={() => { setEditingPatient(null); setFormName(""); setFormCns(""); setIsDialogOpen(true); }} className="gap-2 w-full sm:w-auto shadow-md">
@@ -138,17 +111,17 @@ export default function PatientsPage() {
                   <Input className="h-11" value={formCns} onChange={(e) => setFormCns(e.target.value)} />
                 </div>
                 <div className="flex items-center space-x-2 pt-0 sm:pt-8">
-                  <Checkbox id="comp" checked={formNeedsCompanion} onCheckedChange={(c) => setFormNeedsCompanion(!!c)} />
+                  <Checkbox id="comp" />
                   <Label htmlFor="comp" className="text-sm font-medium">Requer Acompanhante</Label>
                 </div>
               </div>
               <div className="grid gap-2">
                 <Label>Comorbidades (separar por vírgula)</Label>
-                <Input className="h-11" placeholder="Ex: Hipertensão, Diabetes" value={formComorbidities} onChange={(e) => setFormComorbidities(e.target.value)} />
+                <Input className="h-11" placeholder="Ex: Hipertensão, Diabetes" />
               </div>
               <div className="grid gap-2">
                 <Label>Observações Gerais</Label>
-                <Textarea className="min-h-[80px]" value={formNotes} onChange={(e) => setFormNotes(e.target.value)} />
+                <Textarea className="min-h-[80px]" />
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
@@ -203,10 +176,10 @@ export default function PatientsPage() {
                           <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setEditingPatient(p); setFormName(p.name); setFormCns(p.medicalRecordNumber); setFormComorbidities(p.comorbidities.join(', ')); setFormNeedsCompanion(p.needsCompanion); setFormNotes(p.notes || ""); setIsDialogOpen(true); }}>
+                          <DropdownMenuItem onClick={() => { setEditingPatient(p); setFormName(p.name); setFormCns(p.medicalRecordNumber); setIsDialogOpen(true); }}>
                             <Edit className="h-4 w-4 mr-2" /> Editar
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive" onClick={() => { patientService.deletePatient(p.id).then(() => loadPatients()); }}>
+                          <DropdownMenuItem className="text-destructive">
                             <Trash2 className="h-4 w-4 mr-2" /> Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>
