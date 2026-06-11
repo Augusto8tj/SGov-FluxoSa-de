@@ -2,20 +2,22 @@
 
 Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
+## [1.1.0] - 2024-05-25
+### 🛡️ Segurança & Auditoria
+- **Painel de Auditoria:** Rastreabilidade completa de ações administrativas para o perfil Secretaria, incluindo logs de IP e timestamp.
+- **Relatórios de Campo:** Novo canal de comunicação bidirecional entre motoristas e logística para registro de ocorrências em tempo real.
+- **Cadeia de Custódia:** Implementação de logs imutáveis para garantir a integridade dos dados governamentais.
+
+### 🚗 Gestão de Frota & Operação
+- **Telemetria Expandida:** Monitoramento de nível de combustível, odômetro e status de sanitização integrados ao dashboard.
+- **Portal do Cidadão v1.1:** Melhorias na visualização segura e botão de encerramento de sessão pública.
+
 ## [1.0.0] - 2024-05-22
-### Lançamento da Versão Estável (v1.0.0)
-
-### 🚀 Novidades & Funcionalidades
-- **Portal do Cidadão (Público):** Novo canal seguro para pacientes consultarem o status de suas viagens via código de acesso de 6 dígitos, preservando o sigilo de dados.
-- **Manifestos de Viagem para UBS:** Visualização em tempo real das escalas logísticas (veículos e motoristas) diretamente no portal das unidades.
-- **Arquitetura Multi-Perfil:** Implementação completa dos quatro ecossistemas: Secretaria (Gestão), UBS (Demanda), Motorista (Execução) e Cidadão (Consulta).
-- **IA Unificada (Nvidia Nemotron):** Modelo Nvidia Nemotron Nano 9B via OpenRouter como padrão para triagem de urgência e otimização.
-- **PWA (Progressive Web App):** Sistema autoinstalável em Android, iOS e Desktop, com suporte a notificações Web Push para alertas críticos.
-- **Gestão de Frota Avançada:** Telemetria incluindo odômetro, nível de combustível e histórico de sanitização.
-
-### 🛡️ Segurança & Resiliência
-- **Sigilo de Dados (Pseudonimização):** Lógica de mascaramento de nomes de pacientes em canais públicos e processamento de IA.
-- **Autenticação Segura:** Fluxo de login robusto com redirecionamento inteligente baseado no perfil (RBAC).
+### 🚀 Lançamento da Versão Estável
+- **Portal do Cidadão:** Consulta segura via código de 6 dígitos.
+- **IA Unificada:** Integração com Nvidia Nemotron para triagem clínica.
+- **Multi-Perfil:** Ecossistemas para Secretaria, UBS e Motoristas.
+- **PWA:** Instalação nativa em dispositivos móveis.
 
 ---
 **Prefeitura de Rio Claro - RJ**

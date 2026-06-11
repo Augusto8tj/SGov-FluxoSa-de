@@ -24,7 +24,6 @@ export default function LoginPage() {
 
     const lowerEmail = email.toLowerCase();
 
-    // Lógica Hardcoded para Demonstração (Bypass Firebase Auth)
     const demoUsers = [
       { email: 'secretario@rioclaro.rj.gov.br', pass: 'admin123', role: 'admin' },
       { email: 'gerente.ubs@rioclaro.rj.gov.br', pass: 'admin123', role: 'ubs' },
@@ -34,7 +33,6 @@ export default function LoginPage() {
     const foundUser = demoUsers.find(u => u.email === lowerEmail && u.pass === password);
 
     if (foundUser) {
-      // Salva sessão local para o hook useAuth reconhecer
       const mockUser = {
         email: foundUser.email,
         uid: `demo-${foundUser.role}`,
@@ -49,7 +47,6 @@ export default function LoginPage() {
         description: `Bem-vindo ao sistema, ${foundUser.email.split('@')[0]}.`,
       });
 
-      // Redirecionamento inteligente baseado no papel (Role-Based Routing)
       setTimeout(() => {
         if (foundUser.role === 'driver') {
           router.push("/driver");
@@ -82,7 +79,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 overflow-x-hidden">
-      {/* Container Principal Centralizado */}
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md mx-auto space-y-8 py-10">
         <div className="text-center space-y-3">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl ring-4 ring-primary/10 transition-transform hover:scale-105">
@@ -208,10 +204,9 @@ export default function LoginPage() {
         </Card>
       </div>
 
-      {/* Rodapé da Página Reorganizado */}
       <footer className="w-full py-8 flex flex-col items-center gap-4 mt-auto">
         <Badge className="bg-emerald-500 text-white border-none font-black text-[10px] h-7 px-4 shadow-lg hover:bg-emerald-600 transition-colors">
-          v1.0.0 STABLE
+          v1.1.0 STABLE
         </Badge>
         <div className="flex flex-col items-center gap-1.5">
           <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">

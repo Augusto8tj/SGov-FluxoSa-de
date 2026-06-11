@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -88,7 +87,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem className="px-3 pb-2 text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">
-            {state !== "collapsed" && "Versão 1.0.0 Stable"}
+            {state !== "collapsed" && "Versão 1.1.0 Stable"}
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Configurações" asChild>

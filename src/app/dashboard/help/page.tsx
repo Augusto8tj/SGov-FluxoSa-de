@@ -13,7 +13,8 @@ import {
   History,
   Rocket,
   Smartphone,
-  Heart
+  Heart,
+  Fingerprint
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -31,7 +32,7 @@ export default function AdminHelpPage() {
         <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
           <BookOpen className="h-8 w-8" /> Manual do Gestor
         </h2>
-        <p className="text-muted-foreground italic">Guia de operação estratégica - PMRC v1.0.0 Stable</p>
+        <p className="text-muted-foreground italic">Guia de operação estratégica - PMRC v1.1.0 Stable</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -48,11 +49,11 @@ export default function AdminHelpPage() {
         <Card className="bg-emerald-50 border-none shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-black uppercase text-emerald-600 tracking-widest flex items-center gap-2">
-              <Zap className="h-4 w-4" /> IA Nvidia
+              <Fingerprint className="h-4 w-4" /> Auditoria v1.1
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-xs text-slate-600 leading-relaxed">Otimização de rotas e análise de prioridade clínica automática via Nemotron.</p>
+            <p className="text-xs text-slate-600 leading-relaxed">Rastreabilidade completa de ações e logs imutáveis de segurança.</p>
           </CardContent>
         </Card>
         <Card className="bg-rose-50 border-none shadow-sm">
@@ -64,89 +65,55 @@ export default function AdminHelpPage() {
           <CardContent>
             <p className="text-xs text-slate-600 leading-relaxed">Canal público de consulta para pacientes com privacidade garantida.</p>
           </CardContent>
-        </Card>
+        </div>
       </div>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
-        <AccordionItem value="changelog" className="border-2 border-emerald-100 rounded-2xl bg-emerald-50/30 px-4 shadow-sm overflow-hidden">
+        <AccordionItem value="changelog-v1-1" className="border-2 border-primary/20 rounded-2xl bg-primary/5 px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
-              <div className="bg-emerald-500 p-3 rounded-xl text-white shadow-lg shadow-emerald-200">
+              <div className="bg-primary p-3 rounded-xl text-white shadow-lg">
                 <Rocket className="h-6 w-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="font-black text-lg text-emerald-700">Novidades da Versão 1.0.0</p>
-                  <Badge className="bg-emerald-500 text-white border-none text-[10px]">STABLE</Badge>
+                  <p className="font-black text-lg text-primary">Novidades da Versão 1.1.0</p>
+                  <Badge className="bg-primary text-white border-none text-[10px]">NEW</Badge>
                 </div>
-                <p className="text-sm text-emerald-600/80 font-medium">Lançamento oficial do SGov FluxoSaúde</p>
+                <p className="text-sm text-primary/70 font-medium">Foco em Segurança e Auditoria</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                <p className="text-xs font-black text-emerald-700 uppercase tracking-widest border-b border-emerald-100 pb-1">Novas Funcionalidades</p>
+                <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1">Novas Funcionalidades</p>
                 <ul className="text-xs space-y-2 list-none">
-                  <li className="flex gap-2"><b>• Portal do Cidadão:</b> Consulta via código de 6 dígitos para pacientes.</li>
-                  <li className="flex gap-2"><b>• Manifestos UBS:</b> Unidades agora acompanham escalas em tempo real.</li>
-                  <li className="flex gap-2"><b>• IA Unificada:</b> Motor Nvidia Nemotron para máxima precisão.</li>
-                  <li className="flex gap-2"><b>• PWA:</b> Instalação como app e notificações Web Push.</li>
+                  <li className="flex gap-2"><b>• Auditoria do Sistema:</b> Logs detalhados de IP, usuário e recurso.</li>
+                  <li className="flex gap-2"><b>• Relatórios de Campo:</b> Visualização central de ocorrências dos motoristas.</li>
+                  <li className="flex gap-2"><b>• Telemetria de Frota:</b> Controle de combustível e odômetro integrado.</li>
                 </ul>
               </div>
               <div className="space-y-3">
-                <p className="text-xs font-black text-emerald-700 uppercase tracking-widest border-b border-emerald-100 pb-1">Operação & Segurança</p>
+                <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1">Segurança</p>
                 <ul className="text-xs space-y-2 list-none">
-                  <li className="flex gap-2"><b>• Sigilo Ativo:</b> Mascaramento de nomes em canais públicos.</li>
-                  <li className="flex gap-2"><b>• Telemetria:</b> Controle avançado de combustível e manutenção.</li>
-                  <li className="flex gap-2"><b>• Temas:</b> Suporte a Verde Saúde, Azul Municipal e Roxo Inovação.</li>
+                  <li className="flex gap-2"><b>• Imutabilidade:</b> Registros de logs protegidos contra edição.</li>
+                  <li className="flex gap-2"><b>• Pseudonimização:</b> Refinamento do mascaramento de nomes na IA.</li>
                 </ul>
               </div>
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="pwa" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
-                <Smartphone className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">Instalação e Notificações</p>
-                <p className="text-sm text-muted-foreground">Como usar o SGov como um App</p>
-              </div>
+        <AccordionItem value="changelog-v1-0" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-4">
+            <div className="flex items-center gap-3">
+              <History className="h-4 w-4 text-muted-foreground" />
+              <p className="font-bold text-sm">Histórico: Versão 1.0.0 Stable</p>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-4 pb-6">
-            <p className="text-sm">O sistema utiliza tecnologia <b>PWA</b>. Para instalar:</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 rounded-xl border">
-                <p className="font-bold text-xs uppercase mb-2">Instalação</p>
-                <p className="text-xs">Clique no banner de instalação ou use a opção "Adicionar à Tela de Início" no seu navegador móvel.</p>
-              </div>
-              <div className="p-4 bg-slate-50 rounded-xl border">
-                <p className="font-bold text-xs uppercase mb-2">Notificações</p>
-                <p className="text-xs">Aceite o pedido de notificações para receber alertas de novas solicitações e emergências em tempo real.</p>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="approvals" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-primary/10 p-3 rounded-xl text-primary">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">Triagem e Aprovações</p>
-                <p className="text-sm text-muted-foreground">Como autorizar pedidos das UBS</p>
-              </div>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-4 pb-6">
-            <p className="text-sm">As solicitações chegam com status <b>PENDENTE</b>. Ao aprovar, um manifesto é gerado automaticamente e o paciente pode consultá-lo no portal público usando o código gerado pelo sistema.</p>
+          <AccordionContent className="text-slate-500 text-xs px-2 pb-4">
+            Lançamento oficial com Portal do Cidadão, IA Nvidia Nemotron, Multi-perfil e tecnologia PWA.
           </AccordionContent>
         </AccordionItem>
       </Accordion>
@@ -155,8 +122,8 @@ export default function AdminHelpPage() {
         <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
           <HelpCircle className="h-10 w-10 text-muted-foreground opacity-30" />
           <div>
-            <p className="font-bold">Ainda precisa de ajuda?</p>
-            <p className="text-sm text-muted-foreground">Contate o suporte técnico da Secretaria de Ordem Pública pelo ramal 110.</p>
+            <p className="font-bold">Dúvidas Técnicas?</p>
+            <p className="text-sm text-muted-foreground">Suporte da Secretaria Municipal de Ordem Pública - Rio Claro.</p>
           </div>
         </CardContent>
       </Card>
