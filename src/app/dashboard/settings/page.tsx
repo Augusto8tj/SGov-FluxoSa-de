@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,19 +9,12 @@ import {
   Users, 
   ShieldCheck, 
   Plus, 
-  Search,
-  MoreVertical,
   Edit,
-  Trash2,
   Key,
-  MapPin,
-  Phone,
-  Mail,
-  UserCheck,
-  BrainCircuit,
-  Zap,
-  Loader2,
-  Activity,
+  BrainCircuit, 
+  Zap, 
+  Loader2, 
+  Activity, 
   Gauge,
   Code,
   AlertCircle,
@@ -62,6 +54,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { runModelTest, ModelTesterOutput } from "@/ai/flows/model-tester-flow";
 import { cn } from "@/lib/utils";
+import { UserRole } from "@/lib/types";
 
 const AI_MODELS = [
   { id: "google/gemini-2.0-flash-lite-preview-02-05:free", name: "Gemini 2.0 Flash Lite (Free)" },
@@ -86,13 +79,13 @@ const initialDrivers = [
 ];
 
 const initialVehicles = [
-  { id: "V1", plate: "ABC-1234", type: "Ambulância", capacity: 2, status: "Operacional" },
-  { id: "V2", plate: "XYZ-5678", type: "Van", capacity: 12, status: "Operacional" },
+  { id: "V1", plate: "ABC-1234", type: "Ambulância" as const, capacity: 2, status: "Operacional" },
+  { id: "V2", plate: "XYZ-5678", type: "Van" as const, capacity: 12, status: "Operacional" },
 ];
 
 const initialUsers = [
-  { id: "U1", name: "Dr. Ricardo Silva", email: "secretario@rioclaro.rj.gov.br", role: "SECRETARY" },
-  { id: "U2", name: "Márcia Oliveira", email: "ubs.central@rioclaro.rj.gov.br", role: "UBS_MANAGER" },
+  { id: "U1", name: "Dr. Ricardo Silva", email: "secretario@rioclaro.rj.gov.br", role: "SECRETARY" as UserRole },
+  { id: "U2", name: "Márcia Oliveira", email: "ubs.central@rioclaro.rj.gov.br", role: "UBS_MANAGER" as UserRole },
 ];
 
 export default function SettingsPage() {
@@ -117,9 +110,9 @@ export default function SettingsPage() {
   const [isDriverDialogOpen, setIsDriverDialogOpen] = useState(false);
   const [newDriver, setNewDriver] = useState({ id: "", name: "", license: "", phone: "" });
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
-  const [newVehicle, setNewVehicle] = useState({ id: "", plate: "", type: "Ambulância", capacity: 1 });
+  const [newVehicle, setNewVehicle] = useState({ id: "", plate: "", type: "Ambulância" as 'Ambulância' | 'Van' | 'Sedan' | 'Acessível', capacity: 1 });
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
-  const [newUser, setNewUser] = useState({ id: "", name: "", email: "", role: "UBS_MANAGER" });
+  const [newUser, setNewUser] = useState({ id: "", name: "", email: "", role: "UBS_MANAGER" as UserRole });
 
   useEffect(() => {
     setMounted(true);
@@ -154,7 +147,7 @@ export default function SettingsPage() {
         const result = await runModelTest(aiTestPrompt, model.id);
         results.push({ ...result, modelName: model.name });
         setBatchResults([...results]);
-      } catch (e) {
+      } catch {
         results.push({ content: "Erro", latency: 0, actualModel: model.id, modelName: model.name, error: "Falha" });
         setBatchResults([...results]);
       }
@@ -196,9 +189,9 @@ export default function SettingsPage() {
   const handleAddVehicle = () => {
     if (!newVehicle.plate) return;
     if (newVehicle.id) {
-      setVehicles(prev => prev.map(v => v.id === newVehicle.id ? { ...v, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type as any, capacity: newVehicle.capacity } : v));
+      setVehicles(prev => prev.map(v => v.id === newVehicle.id ? { ...v, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type, capacity: newVehicle.capacity } : v));
     } else {
-      setVehicles(prev => [...prev, { id: `V${vehicles.length + 1}`, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type as any, capacity: newVehicle.capacity, status: "Operacional" }]);
+      setVehicles(prev => [...prev, { id: `V${vehicles.length + 1}`, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type, capacity: newVehicle.capacity, status: "Operacional" as const }]);
     }
     setIsVehicleDialogOpen(false);
     setNewVehicle({ id: "", plate: "", type: "Ambulância", capacity: 1 });
@@ -208,9 +201,9 @@ export default function SettingsPage() {
   const handleAddUser = () => {
     if (!newUser.name || !newUser.email) return;
     if (newUser.id) {
-      setUsers(prev => prev.map(u => u.id === newUser.id ? { ...u, name: newUser.name, email: newUser.email, role: newUser.role as any } : u));
+      setUsers(prev => prev.map(u => u.id === newUser.id ? { ...u, name: newUser.name, email: newUser.email, role: newUser.role } : u));
     } else {
-      setUsers(prev => [...prev, { id: `U${users.length + 1}`, name: newUser.name, email: newUser.email, role: newUser.role as any }]);
+      setUsers(prev => [...prev, { id: `U${users.length + 1}`, name: newUser.name, email: newUser.email, role: newUser.role }]);
     }
     setIsUserDialogOpen(false);
     setNewUser({ id: "", name: "", email: "", role: "UBS_MANAGER" });
