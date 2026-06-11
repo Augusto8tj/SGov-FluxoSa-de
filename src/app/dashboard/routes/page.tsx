@@ -124,7 +124,7 @@ export default function RoutesPage() {
           <CardFooter className="pt-2 border-t mt-2">
             <div className="flex items-center gap-2">
               <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">IA Gemini Flash Online</span>
+              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">IA Nvidia Nemotron Online</span>
             </div>
           </CardFooter>
         </Card>
