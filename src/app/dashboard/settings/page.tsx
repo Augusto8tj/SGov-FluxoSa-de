@@ -244,7 +244,7 @@ export default function SettingsPage() {
         <TabsContent value="ia-lab" className="space-y-4 sm:space-y-6 outline-none">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <Card className="border-none shadow-sm h-full flex flex-col rounded-2xl overflow-hidden">
-              <CardHeader className="pb-4 border-b bg-muted/5">
+              <CardHeader className="p-4 sm:p-6 pb-4 border-b bg-muted/5">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
                     <div className="p-2 bg-primary/10 rounded-lg shrink-0"><Zap className="h-5 w-5 text-primary" /></div>
@@ -297,7 +297,7 @@ export default function SettingsPage() {
             </Card>
 
             <Card className="border-none shadow-sm min-h-[350px] overflow-hidden flex flex-col rounded-2xl">
-              <CardHeader className="bg-primary/5 py-4 shrink-0 border-b">
+              <CardHeader className="bg-primary/5 py-4 shrink-0 border-b px-4 sm:px-6">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xs font-black uppercase flex items-center gap-2 tracking-tighter">
                     <Gauge className="h-4 w-4 text-primary" /> Telemetria & Debug
@@ -346,7 +346,7 @@ export default function SettingsPage() {
 
           {(batchResults.length > 0 || isBatchTesting) && (
             <Card className="border-none shadow-sm animate-in fade-in slide-in-from-bottom-2 rounded-2xl overflow-hidden">
-              <CardHeader className="pb-2 sm:pb-6 border-b bg-muted/5">
+              <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-6 border-b bg-muted/5">
                 <CardTitle className="text-base flex items-center gap-2"><BarChart3 className="h-5 w-5 text-primary" /> Ranking de Performance</CardTitle>
               </CardHeader>
               <CardContent className="p-0 sm:p-6">
@@ -402,7 +402,7 @@ export default function SettingsPage() {
 
         <TabsContent value="units" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b bg-muted/5">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 border-b bg-muted/5">
               <div>
                 <CardTitle>Unidades de Saúde (UBS)</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">Cadastre e gerencie as UBS do município.</CardDescription>
@@ -466,7 +466,7 @@ export default function SettingsPage() {
 
         <TabsContent value="drivers" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b bg-muted/5">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 border-b bg-muted/5">
               <div>
                 <CardTitle>Corpo de Motoristas</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">Gestão de condutores e habilitações.</CardDescription>
@@ -494,7 +494,7 @@ export default function SettingsPage() {
 
         <TabsContent value="fleet" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b bg-muted/5">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 border-b bg-muted/5">
               <div>
                 <CardTitle>Frota Municipal</CardTitle>
                 <CardDescription className="text-xs sm:text-sm">Gestão técnica dos veículos.</CardDescription>
@@ -522,7 +522,7 @@ export default function SettingsPage() {
 
         <TabsContent value="users" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b bg-muted/5">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 border-b bg-muted/5">
               <div><CardTitle>Usuários do Sistema</CardTitle><CardDescription className="text-xs sm:text-sm">Gestão de acessos.</CardDescription></div>
               <Button className="w-full sm:w-auto gap-2 h-11 rounded-xl shadow-md" onClick={() => setIsUserDialogOpen(true)}><Plus className="h-4 w-4" /> Novo Usuário</Button>
             </CardHeader>
@@ -541,11 +541,11 @@ export default function SettingsPage() {
 
         <TabsContent value="profiles" className="space-y-4 sm:space-y-6 outline-none">
           <Card className="border-none shadow-sm bg-primary/5 rounded-2xl overflow-hidden">
-            <CardHeader className="border-b bg-primary/10">
+            <CardHeader className="border-b bg-primary/10 p-4 sm:p-6">
               <CardTitle className="text-lg">Segurança e Auditoria</CardTitle>
               <CardDescription className="text-xs">Políticas de acesso institucional.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 pt-6">
+            <CardContent className="space-y-4 pt-6 p-4 sm:p-6">
               <div className="flex items-center justify-between p-5 bg-white dark:bg-slate-900 rounded-2xl border shadow-sm group hover:border-primary/30 transition-all">
                 <div className="space-y-0.5">
                   <p className="text-sm font-black">Autenticação 2FA</p>
