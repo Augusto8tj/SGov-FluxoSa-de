@@ -3,16 +3,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Loader2, Ambulance, BrainCircuit } from "lucide-react";
+import { ShieldCheck, Loader2, Ambulance, BrainCircuit, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const router = useRouter();
   const { toast } = useToast();
 
@@ -20,22 +22,36 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
 
+    // Simulação de delay de rede
     setTimeout(() => {
       setLoading(false);
-      if (email.includes("secretario")) {
+      
+      // Superusuário Hardcoded
+      if (email === "admin@rioclaro.rj.gov.br" && password === "admin123") {
+        toast({
+          title: "Acesso de Superusuário",
+          description: "Bem-vindo ao centro de comando administrativo.",
+        });
         router.push("/dashboard");
-      } else if (email.includes("ubs")) {
+        return;
+      }
+
+      // Lógica de acesso por perfil para testes rápidos
+      const lowerEmail = email.toLowerCase();
+      if (lowerEmail.includes("secretario")) {
+        router.push("/dashboard");
+      } else if (lowerEmail.includes("ubs")) {
         router.push("/ubs-portal");
-      } else if (email.includes("motorista")) {
+      } else if (lowerEmail.includes("motorista")) {
         router.push("/driver");
       } else {
         toast({
           title: "Acesso Negado",
-          description: "Usuário não reconhecido. Use um e-mail com 'secretario', 'ubs' ou 'motorista'.",
+          description: "Credenciais inválidas ou usuário não reconhecido.",
           variant: "destructive"
         });
       }
-    }, 1500);
+    }, 1200);
   };
 
   return (
@@ -56,12 +72,19 @@ export default function LoginPage() {
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
+              <Alert className="bg-primary/5 border-primary/20">
+                <AlertCircle className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-[10px] text-primary font-medium">
+                  Use <strong>admin@rioclaro.rj.gov.br</strong> / <strong>admin123</strong> para acesso total.
+                </AlertDescription>
+              </Alert>
+
               <div className="space-y-2">
                 <Label htmlFor="email">E-mail Institucional</Label>
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="ex: jose.silva@rioclaro.rj.gov.br" 
+                  placeholder="ex: admin@rioclaro.rj.gov.br" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required 
@@ -69,7 +92,13 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Senha</Label>
-                <Input id="password" type="password" required />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required 
+                />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
