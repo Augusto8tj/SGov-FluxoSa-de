@@ -230,14 +230,14 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="ia-lab" className="space-y-4 sm:space-y-6">
-        <div className="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 bg-background/50 sticky top-16 z-30 pb-2">
-          <TabsList className="bg-white dark:bg-slate-900 border p-1 h-12 shadow-sm inline-flex min-w-full sm:min-w-0 w-auto justify-start rounded-xl">
-            <TabsTrigger value="ia-lab" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><BrainCircuit className="h-4 w-4" /> Laboratório IA</TabsTrigger>
-            <TabsTrigger value="units" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><Hospital className="h-4 w-4" /> Unidades</TabsTrigger>
-            <TabsTrigger value="drivers" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><User className="h-4 w-4" /> Motoristas</TabsTrigger>
-            <TabsTrigger value="fleet" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><Ambulance className="h-4 w-4" /> Frota</TabsTrigger>
-            <TabsTrigger value="users" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><Users className="h-4 w-4" /> Usuários</TabsTrigger>
-            <TabsTrigger value="profiles" className="gap-2 px-6 h-10 whitespace-nowrap rounded-lg data-[state=active]:shadow-sm transition-all"><ShieldCheck className="h-4 w-4" /> Perfis</TabsTrigger>
+        <div className="bg-background/50 sticky top-16 z-30 pb-2">
+          <TabsList className="bg-white dark:bg-slate-900 border p-2 h-auto flex flex-col sm:flex-row sm:h-12 shadow-sm w-full sm:w-auto justify-start rounded-2xl sm:rounded-xl gap-1 sm:gap-0">
+            <TabsTrigger value="ia-lab" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg data-[state=active]:shadow-sm transition-all"><BrainCircuit className="h-4 w-4" /> Laboratório IA</TabsTrigger>
+            <TabsTrigger value="units" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg data-[state=active]:shadow-sm transition-all"><Hospital className="h-4 w-4" /> Unidades</TabsTrigger>
+            <TabsTrigger value="drivers" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg data-[state=active]:shadow-sm transition-all"><User className="h-4 w-4" /> Motoristas</TabsTrigger>
+            <TabsTrigger value="fleet" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg data-[state=active]:shadow-sm transition-all"><Ambulance className="h-4 w-4" /> Frota</TabsTrigger>
+            <TabsTrigger value="users" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg data-[state=active]:shadow-sm transition-all"><Users className="h-4 w-4" /> Usuários</TabsTrigger>
+            <TabsTrigger value="profiles" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg data-[state=active]:shadow-sm transition-all"><ShieldCheck className="h-4 w-4" /> Perfis</TabsTrigger>
           </TabsList>
         </div>
 
