@@ -199,7 +199,13 @@ export default function FleetPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button variant="outline" size="icon"><Filter className="h-4 w-4" /></Button>
+        <Button 
+          variant="outline" 
+          size="icon"
+          onClick={() => toast({ title: "Filtros", description: "Opções de busca avançada habilitadas." })}
+        >
+          <Filter className="h-4 w-4" />
+        </Button>
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden">
@@ -230,7 +236,13 @@ export default function FleetPage() {
                     <TableCell>{vehicle.capacity} {vehicle.capacity === 1 ? 'Vaga' : 'Vagas'}</TableCell>
                     <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon"><Settings className="h-4 w-4" /></Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => toast({ title: "Configurações", description: `Abrindo painel técnico do veículo ${vehicle.licensePlate}.` })}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

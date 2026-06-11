@@ -84,7 +84,6 @@ export default function AdminPage() {
       toast({ title: "Solicitação Negada", description: `O pedido de ${req.patient} foi recusado.`, variant: "destructive" });
     }
     
-    // Clean analysis if exists
     if (analysis[id]) {
       const newAnalysis = { ...analysis };
       delete newAnalysis[id];
@@ -122,7 +121,11 @@ export default function AdminPage() {
               <CardTitle>Solicitações Aguardando</CardTitle>
               <CardDescription>Existem {requests.length} pedidos pendentes para hoje.</CardDescription>
             </div>
-            <Button variant="ghost" size="icon">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => toast({ title: "Filtros", description: "Opções de filtragem por UBS e Prioridade ativadas." })}
+            >
               <Filter className="h-4 w-4" />
             </Button>
           </CardHeader>
