@@ -1,16 +1,23 @@
+
 /**
  * @fileOverview Definições de tipos globais para o sistema SGov FluxoSaúde.
- * Inclui entidades de domínio, perfis de acesso e estados operacionais.
+ * Define a distinção clara entre os papéis administrativos e operacionais.
  */
 
 export type UserRole = 'UBS_MANAGER' | 'DRIVER' | 'ADMIN' | 'SECRETARY';
 
+/**
+ * Perfil de Usuário
+ * SECRETARY/ADMIN: Acesso ao dashboard central (/dashboard)
+ * UBS_MANAGER: Acesso ao portal da unidade (/ubs-portal)
+ * DRIVER: Acesso ao aplicativo de campo (/driver)
+ */
 export interface UserProfile {
   uid: string;
   name: string;
   email: string;
   role: UserRole;
-  unitId?: string; // ID da UBS (relevante apenas para UBS_MANAGER)
+  unitId?: string; // ID da UBS (obrigatório para UBS_MANAGER)
   createdAt: string;
 }
 
@@ -66,21 +73,16 @@ export interface TransportRequest {
   requestedTime: string;
   urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
   status: TransportStatus;
-  operatorId: string; // ID do usuário que criou/gerencia o pedido
+  operatorId: string; 
   createdAt: string;
   updatedAt?: string;
   
-  // Campos operacionais para escala e roteirização
   driverId?: string;
   vehicleId?: string;
   assignedAt?: string;
   manifestId?: string;
-  pickupLocationCoords?: { lat: number; lng: number };
-  destinationLocationCoords?: { lat: number; lng: number };
   
-  // Suporte à IA (Preservando compatibilidade com fluxos Genkit)
+  // Suporte à IA
   aiRecommendation?: string;
   aiSuggestedAction?: 'approve' | 'deny' | 'escalate' | 'needs_more_info';
-  
-  // TODO: Implementar trilha de auditoria para mudanças de status
 }
