@@ -28,7 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/tabs";
 import { 
   Table, 
   TableBody, 
@@ -55,9 +55,9 @@ import { cn } from "@/lib/utils";
 import { UserRole, Vehicle } from "@/lib/types";
 
 const AI_MODELS = [
+  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nvidia Nemotron Nano 9B (Padrão Free)" },
   { id: "google/gemini-2.0-flash-exp", name: "Gemini 2.0 Flash Exp" },
   { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Estável)" },
-  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nvidia Nemotron Nano 9B (Free)" },
   { id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", name: "Llama Nemotron Rerank (Free)" },
   { id: "nex-agi/nex-n2-pro:free", name: "Nex AGI Pro (Free)" },
   { id: "sourceful/riverflow-v2.5-pro", name: "Riverflow v2.5 Pro" },
@@ -93,7 +93,8 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   
-  const [aiModel, setAiModel] = useState("google/gemini-2.0-flash-exp");
+  // Padrão definido para Nvidia Nemotron Nano 9B
+  const [aiModel, setAiModel] = useState("nvidia/nemotron-nano-9b-v2:free");
   const [aiTestPrompt, setAiTestPrompt] = useState("Dê um resumo das metas de saúde pública específicas para o município de Rio Claro, Rio de Janeiro (RJ) para 2024.");
   const [testResult, setTestResult] = useState<ModelTesterOutput | null>(null);
   const [isTestingAi, setIsTestingAi] = useState(false);
@@ -282,7 +283,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4 flex-1 pt-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase text-muted-foreground px-1">Modelo de IA</Label>
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground px-1">Modelo de IA (Default: Nvidia)</Label>
                   <Select value={aiModel} onValueChange={setAiModel}>
                     <SelectTrigger className="h-12 rounded-xl bg-muted/20 border-muted-foreground/10">
                       <SelectValue />
@@ -367,7 +368,7 @@ export default function SettingsPage() {
               <CardContent className="p-0 sm:p-6">
                 <div className="overflow-x-auto no-scrollbar">
                   <Table>
-                    <TableHeader className="bg-muted/50 sm:bg-transparent">
+                    <TableHeader>
                       <TableRow>
                         <TableHead className="w-12 text-center">Pos</TableHead>
                         <TableHead>Modelo</TableHead>
