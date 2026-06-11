@@ -1,4 +1,3 @@
-
 import { UbsSidebar } from "@/components/ubs/ubs-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
