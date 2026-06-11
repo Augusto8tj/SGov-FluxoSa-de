@@ -85,7 +85,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          &copy; 2024 Secretaria Municipal de Saúde. Rio Claro - RJ.
+          2026 - Secretaria Municipal de Ordem Pública - PMRC
         </p>
       </div>
     </div>
