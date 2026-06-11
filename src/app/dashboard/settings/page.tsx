@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Table, 
   TableBody, 
@@ -130,7 +129,7 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="units" className="space-y-4">
-        <TabsList className="bg-white border p-1 h-12 shadow-sm w-full md:w-auto overflow-x-auto justify-start">
+        <TabsList className="bg-white dark:bg-slate-900 border p-1 h-12 shadow-sm w-full md:w-auto overflow-x-auto justify-start">
           <TabsTrigger value="units" className="gap-2 px-4 h-10"><Hospital className="h-4 w-4" /> Unidades</TabsTrigger>
           <TabsTrigger value="drivers" className="gap-2 px-4 h-10"><User className="h-4 w-4" /> Motoristas</TabsTrigger>
           <TabsTrigger value="fleet" className="gap-2 px-4 h-10"><Ambulance className="h-4 w-4" /> Frota</TabsTrigger>
@@ -418,9 +417,9 @@ export default function SettingsPage() {
               <CardContent className="space-y-4">
                 <div className="grid gap-2">
                   <Label>Tempo de Sessão (minutos)</Label>
-                  <Input type="number" defaultValue="120" className="bg-white" />
+                  <Input type="number" defaultValue="120" className="bg-white dark:bg-slate-900" />
                 </div>
-                <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-primary/10">
+                <div className="flex items-center gap-2 p-3 bg-white dark:bg-slate-900 rounded-lg border border-primary/10">
                   <Key className="h-5 w-5 text-primary" />
                   <div className="flex-1">
                     <p className="text-xs font-bold">Autenticação de Dois Fatores</p>
