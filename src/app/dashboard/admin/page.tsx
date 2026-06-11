@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   ShieldCheck, 
   BrainCircuit, 
@@ -37,12 +37,17 @@ const initialRequests = [
 ];
 
 export default function AdminPage() {
+  const [mounted, setMounted] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(true);
   const [requests, setRequests] = useState(initialRequests);
   const [analysis, setAnalysis] = useState<Record<string, ProvideDecisionSupportOutput>>({});
   const [loading, setLoading] = useState<string | null>(null);
   const [stats, setStats] = useState({ approved: 12, denied: 2 });
   const { toast } = useToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleAiAnalysis = async (req: typeof initialRequests[0]) => {
     if (!aiEnabled) return;
@@ -91,6 +96,8 @@ export default function AdminPage() {
     }
   };
 
+  if (!mounted) return null;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -98,10 +105,10 @@ export default function AdminPage() {
           <h2 className="text-3xl font-bold tracking-tight text-primary">Painel de Comando</h2>
           <p className="text-muted-foreground">Avaliação e aprovação centralizada de transportes.</p>
         </div>
-        <div className="flex items-center space-x-4 bg-white p-3 rounded-lg shadow-sm border">
+        <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 p-3 rounded-lg shadow-sm border">
           <div className="flex items-center space-x-2">
             <BrainCircuit className={aiEnabled ? "text-primary animate-pulse" : "text-muted-foreground"} />
-            <div className="grid gap-0.5">
+            <div className="grid gap-0.5 text-left">
               <Label htmlFor="ai-toggle" className="text-sm font-semibold">Assistente de IA</Label>
               <p className="text-[10px] text-muted-foreground uppercase">Decisões baseadas em dados</p>
             </div>
@@ -250,28 +257,6 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <History className="h-4 w-4" /> Histórico de Decisões
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-xs space-y-3">
-              <div className="flex justify-between items-center text-muted-foreground">
-                <span>Total Aprovado (Hoje)</span>
-                <span className="font-bold text-foreground">{stats.approved}</span>
-              </div>
-              <div className="flex justify-between items-center text-muted-foreground">
-                <span>Total Recusado (Hoje)</span>
-                <span className="font-bold text-foreground">{stats.denied}</span>
-              </div>
-              <div className="flex justify-between items-center text-muted-foreground">
-                <span>Uso da IA (Taxa de Acerto)</span>
-                <span className="font-bold text-emerald-600">92%</span>
-              </div>
             </CardContent>
           </Card>
         </div>
