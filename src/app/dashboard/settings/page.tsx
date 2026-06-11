@@ -56,7 +56,6 @@ import { cn } from "@/lib/utils";
 import { UserRole } from "@/lib/types";
 
 const AI_MODELS = [
-  { id: "google/gemini-2.0-flash-lite-preview-02-05:free", name: "Gemini 2.0 Flash Lite (Free)" },
   { id: "google/gemini-2.0-flash-exp", name: "Gemini 2.0 Flash Exp" },
   { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Estável)" },
   { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nvidia Nemotron Nano 9B (Free)" },
@@ -67,8 +66,8 @@ const AI_MODELS = [
   { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)" },
   { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku" },
   { id: "openrouter/free", name: "OpenRouter Free Router" },
-  { id: "google/gemma-4-26b-a4b:free", name: "Gemma 4 26B (Free)" },
-  { id: "openai/gpt-oss-120b:free", name: "GPT OSS 120B (Free)" },
+  { id: "google/gemma-2-9b-it", name: "Gemma 2 9B" },
+  { id: "openai/gpt-3.5-turbo", name: "GPT 3.5 Turbo" },
 ];
 
 const initialUnits = [
@@ -95,7 +94,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   
-  const [aiModel, setAiModel] = useState("google/gemini-2.0-flash-lite-preview-02-05:free");
+  const [aiModel, setAiModel] = useState("google/gemini-2.0-flash-exp");
   const [aiTestPrompt, setAiTestPrompt] = useState("Dê um resumo das metas de saúde pública específicas para o município de Rio Claro, Rio de Janeiro (RJ) para 2024.");
   const [testResult, setTestResult] = useState<ModelTesterOutput | null>(null);
   const [isTestingAi, setIsTestingAi] = useState(false);
@@ -113,7 +112,7 @@ export default function SettingsPage() {
   const [isDriverDialogOpen, setIsDriverDialogOpen] = useState(false);
   const [newDriver, setNewDriver] = useState({ id: "", name: "", license: "", phone: "" });
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
-  const [newVehicle, setNewVehicle] = useState({ id: "", plate: "", type: "Ambulância" as 'Ambulância' | 'Van' | 'Sedan' | 'Acessível', capacity: 1 });
+  const [newVehicle, setNewVehicle] = useState({ id: "", plate: "", type: "Ambulância" as any, capacity: 1 });
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [newUser, setNewUser] = useState({ id: "", name: "", email: "", role: "UBS_MANAGER" as UserRole });
 
@@ -144,14 +143,16 @@ export default function SettingsPage() {
     setBatchResults([]);
     toast({ title: "Benchmarking", description: "Testando todos os modelos do laboratório..." });
     
-    const results = [];
+    const results: (ModelTesterOutput & { modelName: string })[] = [];
     for (const model of AI_MODELS) {
       try {
         const result = await runModelTest(aiTestPrompt, model.id);
-        results.push({ ...result, modelName: model.name });
+        const entry = { ...result, modelName: model.name };
+        results.push(entry);
         setBatchResults([...results]);
       } catch {
-        results.push({ content: "Erro", latency: 0, actualModel: model.id, modelName: model.name, error: "Falha" });
+        const errorEntry = { content: "Erro", latency: 0, actualModel: model.id, modelName: model.name, error: "Falha" };
+        results.push(errorEntry);
         setBatchResults([...results]);
       }
     }
@@ -194,7 +195,7 @@ export default function SettingsPage() {
     if (newVehicle.id) {
       setVehicles(prev => prev.map(v => v.id === newVehicle.id ? { ...v, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type, capacity: newVehicle.capacity } : v));
     } else {
-      setVehicles(prev => [...prev, { id: `V${vehicles.length + 1}`, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type, capacity: newVehicle.capacity, status: "Operacional" as const }]);
+      setVehicles(prev => [...prev, { id: `V${vehicles.length + 1}`, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type, capacity: newVehicle.capacity, status: "Operacional" }]);
     }
     setIsVehicleDialogOpen(false);
     setNewVehicle({ id: "", plate: "", type: "Ambulância", capacity: 1 });
