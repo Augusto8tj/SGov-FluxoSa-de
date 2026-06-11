@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,7 +14,8 @@ import {
   LogOut,
   Heart,
   Star,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
+import { reportService } from "@/services/report-service";
 
 const MOCK_MISSION = [
   { id: "S1", name: "UBS Lídice", type: 'PICKUP', patient: "Benedito Silva", time: "08:00", address: "Distrito de Lídice, Rio Claro - RJ" },
@@ -51,10 +54,11 @@ export default function DriverDashboard() {
   const [checklistDone, setChecklistDone] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackNote, setFeedbackNote] = useState("");
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
   const [missionComplete, setMissionComplete] = useState(false);
   
   const { toast } = useToast();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -69,14 +73,13 @@ export default function DriverDashboard() {
   const getBriefing = async () => {
     setLoadingAi(true);
     try {
-      // IMPLEMENTAÇÃO DE SIGILO: Envia apenas o primeiro nome para o fluxo de IA
       const maskedPassengers = [
         { maskedName: "Benedito", needs: ["Maca", "Oxigênio"], urgency: "crítica" },
         { maskedName: "Maria", needs: ["Acompanhante"], urgency: "alta" }
       ];
 
       const result = await generateDriverBriefing({
-        driverName: "Carlos Alberto",
+        driverName: user?.name || "Condutor",
         vehicleType: "Ambulância Municipal",
         passengers: maskedPassengers,
         routeDetails: "Itinerário entre Lídice e Centro com 4 paradas planejadas."
@@ -90,13 +93,33 @@ export default function DriverDashboard() {
     }
   };
 
-  const handleFinalizeMission = () => {
-    setIsFeedbackOpen(false);
-    setMissionComplete(true);
-    toast({ 
-      title: "Jornada Encerrada", 
-      description: "Seu feedback foi enviado para a Central de Logística." 
-    });
+  const handleFinalizeMission = async () => {
+    if (!feedbackNote.trim()) {
+      toast({ title: "Atenção", description: "Por favor, relate como foi o seu turno.", variant: "destructive" });
+      return;
+    }
+
+    setIsSendingFeedback(true);
+    try {
+      await reportService.addReport({
+        driverId: user?.uid || "DRIVER",
+        driverName: user?.name || user?.email || "Motorista Municipal",
+        vehicleId: "Viatura Local",
+        content: feedbackNote,
+        timestamp: new Date().toISOString()
+      });
+
+      setIsFeedbackOpen(false);
+      setMissionComplete(true);
+      toast({ 
+        title: "Jornada Encerrada", 
+        description: "Seu feedback foi enviado para a Central de Logística." 
+      });
+    } catch (error: any) {
+      toast({ title: "Erro no envio", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSendingFeedback(false);
+    }
   };
 
   if (!mounted) return null;
@@ -314,7 +337,9 @@ export default function DriverDashboard() {
                 <Button 
                   className="w-full h-12 text-xs font-black uppercase tracking-widest shadow-lg rounded-xl" 
                   onClick={handleFinalizeMission}
+                  disabled={isSendingFeedback}
                 >
+                  {isSendingFeedback ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Enviar e Encerrar Turno
                 </Button>
               </DialogFooter>

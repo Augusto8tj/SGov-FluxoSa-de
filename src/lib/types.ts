@@ -97,3 +97,13 @@ export interface TransportRequest {
   aiRecommendation?: string;
   aiSuggestedAction?: 'approve' | 'deny' | 'escalate' | 'needs_more_info';
 }
+
+export interface DriverReport {
+  id: string;
+  driverId: string;
+  driverName: string;
+  vehicleId?: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+}

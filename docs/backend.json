@@ -28,6 +28,20 @@
         "status": { "type": "string", "enum": ["PENDING", "APPROVED", "DENIED", "COMPLETED", "CANCELLED"] },
         "requestedTime": { "type": "string", "format": "date-time" }
       }
+    },
+    "DriverReport": {
+      "title": "Relatório de Campo do Motorista",
+      "description": "Feedback enviado pelo motorista ao encerrar uma jornada.",
+      "type": "object",
+      "properties": {
+        "driverId": { "type": "string" },
+        "driverName": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["driverId", "driverName", "content", "timestamp"]
     }
   },
   "auth": {
@@ -41,6 +55,10 @@
     "/requests/{requestId}": {
       "schema": "TransportRequest",
       "description": "Solicitações de transporte realizadas pelas UBS."
+    },
+    "/reports/{reportId}": {
+      "schema": "DriverReport",
+      "description": "Feedbacks e relatórios enviados pelos condutores."
     }
   }
 }

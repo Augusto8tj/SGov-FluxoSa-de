@@ -11,7 +11,8 @@ import {
   ClipboardList,
   ShieldCheck,
   LogOut,
-  Settings
+  Settings,
+  MessageSquare
 } from "lucide-react";
 
 import {
@@ -35,6 +36,7 @@ const menuItems = [
   { title: "Veículos", icon: Ambulance, url: "/dashboard/fleet" },
   { title: "Postos (UBS)", icon: Hospital, url: "/dashboard/ubs" },
   { title: "Otimizador de Rotas", icon: MapPin, url: "/dashboard/routes" },
+  { title: "Relatórios de Campo", icon: MessageSquare, url: "/dashboard/reports" },
   { title: "Painel de Comando", icon: ShieldCheck, url: "/dashboard/admin" },
 ];
 
