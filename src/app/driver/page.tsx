@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { 
   MapPin, 
   Ambulance, 
@@ -13,7 +14,8 @@ import {
   AlertTriangle,
   Loader2,
   Navigation,
-  ExternalLink
+  ExternalLink,
+  Info
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,71 +34,103 @@ import { Textarea } from "@/components/ui/textarea";
 import { generateDriverBriefing, DriverBriefingOutput } from "@/ai/flows/generate-driver-briefing-flow";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-
-const mockRoute = {
-  id: "ROTA-RJ-042",
-  vehicle: "Ambulância - Rio Claro RJ",
-  startTime: "08:00",
-  stops: [
-    { 
-      id: "S1", 
-      name: "UBS Central (Rio Claro)", 
-      type: "PICKUP", 
-      patient: "Maria Souza", 
-      specialNeeds: ["Maca"], 
-      urgency: "high", 
-      time: "08:15",
-      location: { lat: -22.7214, lng: -44.1322 }
-    },
-    { 
-      id: "S2", 
-      name: "Hospital de Rio Claro", 
-      type: "DROPOFF", 
-      patient: "Maria Souza", 
-      time: "08:45",
-      location: { lat: -22.7230, lng: -44.1350 }
-    },
-    { 
-      id: "S3", 
-      name: "UBS Lídice", 
-      type: "PICKUP", 
-      patient: "João Pedro", 
-      specialNeeds: ["Cadeirante"], 
-      urgency: "medium", 
-      time: "09:30",
-      location: { lat: -22.8455, lng: -44.2312 }
-    },
-  ]
-};
+import { requestService } from "@/services/request-service";
+import { TransportRequest } from "@/lib/types";
+import { format } from "date-fns";
 
 export default function DriverDashboard() {
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [requests, setRequests] = useState<TransportRequest[]>([]);
   const [briefing, setBriefing] = useState<DriverBriefingOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [checklistDone, setChecklistDone] = useState(false);
   const [incidentReporting, setIncidentReporting] = useState(false);
   const { toast } = useToast();
 
-  const handleOpenMaps = (lat: number, lng: number) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+  useEffect(() => {
+    setMounted(true);
+    loadDriverData();
+  }, []);
+
+  const loadDriverData = async () => {
+    setLoading(true);
+    try {
+      const allRequests = await requestService.getRequests();
+      // Filtra apenas pedidos aprovados para o motorista
+      // Em uma etapa futura, filtraríamos por driverId
+      const approvedRequests = allRequests.filter(r => r.status === 'APPROVED');
+      setRequests(approvedRequests);
+    } catch (error) {
+      console.error("Erro ao carregar dados do motorista:", error);
+      toast({
+        title: "Erro de Conexão",
+        description: "Não foi possível carregar seu itinerário.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Transforma as solicitações em paradas de itinerário
+  const stops = useMemo(() => {
+    const tripStops: any[] = [];
+    requests.forEach(req => {
+      // Adiciona parada de coleta
+      tripStops.push({
+        id: `P-${req.id}`,
+        name: req.pickupLocation,
+        type: 'PICKUP',
+        patient: req.patientName,
+        urgency: req.urgencyLevel,
+        time: format(new Date(req.requestedTime), "HH:mm"),
+        coords: req.pickupLocationCoords,
+        address: req.pickupLocation
+      });
+      // Adiciona parada de entrega
+      tripStops.push({
+        id: `D-${req.id}`,
+        name: req.destinationLocation,
+        type: 'DROPOFF',
+        patient: req.patientName,
+        time: "Previsão +30min",
+        coords: req.destinationLocationCoords,
+        address: req.destinationLocation
+      });
+    });
+    return tripStops;
+  }, [requests]);
+
+  const handleOpenMaps = (address: string, coords?: { lat: number, lng: number }) => {
+    let url = "";
+    if (coords) {
+      url = `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lng}`;
+    } else {
+      url = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+    }
     window.open(url, '_blank');
   };
 
   const getBriefing = async () => {
+    if (requests.length === 0) return;
     setLoadingAi(true);
     try {
       const result = await generateDriverBriefing({
-        driverName: "Carlos Silva",
-        vehicleType: "Ambulância",
-        passengers: mockRoute.stops.filter(s => s.patient).map(s => ({
-          name: s.patient!,
-          needs: s.specialNeeds || [],
-          urgency: s.urgency || "low"
+        driverName: "Carlos Silva", // Fallback temporário
+        vehicleType: "Ambulância", // Fallback temporário
+        passengers: requests.map(r => ({
+          name: r.patientName,
+          needs: [], // Evoluir para buscar do PatientSchema futuramente
+          urgency: r.urgencyLevel
         })),
-        routeDetails: "Início no Centro, paradas em Lídice e Passa Três."
+        routeDetails: `Total de ${requests.length} missões aprovadas para hoje.`
       });
       setBriefing(result);
+      toast({ title: "Briefing Gerado", description: "Instruções da IA atualizadas." });
     } catch (error) {
       console.error(error);
+      toast({ title: "Erro na IA", description: "Não foi possível gerar o briefing agora.", variant: "destructive" });
     } finally {
       setLoadingAi(false);
     }
@@ -109,11 +143,22 @@ export default function DriverDashboard() {
       setIncidentReporting(false);
       toast({
         title: "Alerta Enviado",
-        description: "A central de Rio Claro - RJ foi notificada.",
+        description: "A central de Rio Claro - RJ foi notificada via Firebase.",
         variant: "destructive"
       });
     }, 1000);
   };
+
+  if (!mounted) return null;
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Sincronizando manifesto de viagem...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -122,7 +167,7 @@ export default function DriverDashboard() {
           <h2 className="text-xl font-bold text-slate-800">Olá, Carlos!</h2>
           <p className="text-xs text-slate-500">Rio Claro, RJ • Sua jornada</p>
         </div>
-        <Badge variant={checklistDone ? "default" : "outline"} className={cn(checklistDone ? "bg-emerald-600" : "bg-amber-50 text-amber-700 border-amber-200")}>
+        <Badge variant={checklistDone ? "default" : "outline"} className={cn(checklistDone ? "bg-emerald-600 text-white" : "bg-amber-50 text-amber-700 border-amber-200")}>
           {checklistDone ? "Em Rota" : "Preparação"}
         </Badge>
       </div>
@@ -133,14 +178,14 @@ export default function DriverDashboard() {
             <CardTitle className="text-sm font-bold flex items-center gap-2 text-amber-700 uppercase">
               <ClipboardCheck className="h-4 w-4" /> Checklist de Segurança
             </CardTitle>
-            <CardDescription className="text-amber-600">Verifique os freios antes de descer a serra.</CardDescription>
+            <CardDescription className="text-amber-600">Verifique os itens básicos antes de iniciar.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {[
-              "Nível de Combustível / Bateria",
-              "Freios (Crucial para região serrana)",
-              "Cintos de Segurança e Travas de Maca",
-              "Kit de Primeiros Socorros"
+              "Combustível / Bateria",
+              "Freios (Região Serrana)",
+              "Travas de Maca / Cintos",
+              "Kit Primeiros Socorros"
             ].map((item, i) => (
               <div key={i} className="flex items-center space-x-2">
                 <Checkbox id={`check-${i}`} />
@@ -148,7 +193,7 @@ export default function DriverDashboard() {
               </div>
             ))}
             <Button className="w-full mt-2 bg-amber-600 hover:bg-amber-700 h-10" onClick={() => setChecklistDone(true)}>
-              Confirmar Segurança e Iniciar
+              Confirmar e Iniciar Itinerário
             </Button>
           </CardContent>
         </Card>
@@ -166,17 +211,17 @@ export default function DriverDashboard() {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Reportar Incidente</DialogTitle>
-                    <DialogDescription>Central de Logística de Rio Claro - RJ.</DialogDescription>
+                    <DialogDescription>Sua localização será enviada para a central.</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleIncidentReport} className="space-y-4 pt-4">
                     <div className="grid gap-2">
                       <label className="text-sm font-bold">Ocorrência</label>
-                      <Textarea placeholder="Descreva o problema..." required />
+                      <Textarea placeholder="Descreva o problema (falha mecânica, trânsito, intercorrência clínica)..." required />
                     </div>
                     <DialogFooter>
-                      <Button type="submit" variant="destructive" disabled={incidentReporting}>
+                      <Button type="submit" variant="destructive" disabled={incidentReporting} className="w-full">
                         {incidentReporting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <AlertTriangle className="h-4 w-4 mr-2" />}
-                        Enviar Alerta Crítico
+                        Enviar Alerta para Rio Claro
                       </Button>
                     </DialogFooter>
                   </form>
@@ -188,8 +233,8 @@ export default function DriverDashboard() {
             <div className="flex items-center gap-3">
               <Ambulance className="h-8 w-8" />
               <div>
-                <p className="font-bold">{mockRoute.vehicle}</p>
-                <p className="text-xs opacity-80">Rota ativa em Rio Claro - RJ</p>
+                <p className="font-bold">Viatura Padrão RJ</p>
+                <p className="text-xs opacity-80">{requests.length} atendimentos autorizados</p>
               </div>
             </div>
           </CardContent>
@@ -198,79 +243,94 @@ export default function DriverDashboard() {
 
       {checklistDone && (
         <>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" /> Briefing da IA
-              </h3>
-              {!briefing && !loadingAi && (
-                <Button variant="ghost" size="sm" onClick={getBriefing} className="text-xs h-7 text-primary">
-                  <BrainCircuit className="h-3 w-3 mr-1" /> Analisar Itinerário
-                </Button>
-              )}
+          {requests.length === 0 ? (
+            <div className="py-12 text-center space-y-4 bg-white rounded-xl border border-dashed">
+              <div className="bg-muted p-4 rounded-full w-fit mx-auto">
+                <Info className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-slate-800">Nenhuma missão agora</h3>
+                <p className="text-xs text-muted-foreground">Aguarde novas autorizações da Secretaria.</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={loadDriverData}>Recarregar</Button>
             </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-slate-700 flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-primary" /> Briefing da IA
+                  </h3>
+                  {!briefing && !loadingAi && (
+                    <Button variant="ghost" size="sm" onClick={getBriefing} className="text-xs h-7 text-primary">
+                      <BrainCircuit className="h-3 w-3 mr-1" /> Analisar Missões
+                    </Button>
+                  )}
+                </div>
 
-            {briefing && (
-              <Card className="border-l-4 border-l-accent bg-white shadow-sm border-none">
-                <CardContent className="pt-4 space-y-3">
-                  <p className="text-sm leading-relaxed text-slate-700">{briefing.summary}</p>
-                  <div className="space-y-2">
-                    {briefing.criticalAlerts.map((alert, i) => (
-                      <div key={i} className="flex items-start gap-2 text-xs text-rose-600 bg-rose-50 p-2 rounded-lg">
-                        <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
-                        {alert}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="font-bold text-slate-700">Itinerário (Mapa Integrado)</h3>
-            <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
-              {mockRoute.stops.map((stop, i) => (
-                <div key={stop.id} className="relative pl-8">
-                  <div className={cn(
-                    "absolute left-1.5 top-1 size-3 rounded-full border-2 border-white shadow-sm",
-                    stop.type === 'PICKUP' ? "bg-primary" : "bg-accent"
-                  )} />
-                  <Card className="border-none shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                    <CardContent className="p-3">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className="text-[9px] h-4 py-0 uppercase">
-                              {stop.type === 'PICKUP' ? 'Coleta' : 'Entrega'}
-                            </Badge>
-                            <span className="text-xs font-bold text-slate-400">{stop.time}</span>
+                {briefing && (
+                  <Card className="border-l-4 border-l-accent bg-white shadow-sm border-none">
+                    <CardContent className="pt-4 space-y-3">
+                      <p className="text-sm leading-relaxed text-slate-700">{briefing.summary}</p>
+                      <div className="space-y-2">
+                        {briefing.criticalAlerts.map((alert, i) => (
+                          <div key={i} className="flex items-start gap-2 text-xs text-rose-600 bg-rose-50 p-2 rounded-lg">
+                            <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
+                            {alert}
                           </div>
-                          <p className="font-bold text-slate-800 text-sm">{stop.name}</p>
-                          {stop.patient && (
-                            <p className="text-xs text-slate-600 mt-1">Paciente: {stop.patient}</p>
-                          )}
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="mt-3 w-full h-8 gap-2 text-xs border-primary/20 text-primary hover:bg-primary/5"
-                            onClick={() => handleOpenMaps(stop.location.lat, stop.location.lng)}
-                          >
-                            <Navigation className="h-3 w-3" /> Abrir no Google Maps
-                          </Button>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-slate-300 mt-1 ml-2" />
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
-                </div>
-              ))}
-            </div>
-          </div>
+                )}
+              </div>
 
-          <Button className="w-full h-12 gap-2 text-base shadow-lg bg-emerald-600 hover:bg-emerald-700">
-            <CheckCircle2 className="h-5 w-5" /> Finalizar Rota e Jornada
-          </Button>
+              <div className="space-y-4">
+                <h3 className="font-bold text-slate-700">Itinerário de Hoje</h3>
+                <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
+                  {stops.map((stop, i) => (
+                    <div key={stop.id} className="relative pl-8">
+                      <div className={cn(
+                        "absolute left-1.5 top-1 size-3 rounded-full border-2 border-white shadow-sm",
+                        stop.type === 'PICKUP' ? "bg-primary" : "bg-accent"
+                      )} />
+                      <Card className="border-none shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                        <CardContent className="p-3">
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="outline" className="text-[9px] h-4 py-0 uppercase">
+                                  {stop.type === 'PICKUP' ? 'Coleta' : 'Entrega'}
+                                </Badge>
+                                <span className="text-xs font-bold text-slate-400">{stop.time}</span>
+                              </div>
+                              <p className="font-bold text-slate-800 text-sm">{stop.name}</p>
+                              <p className="text-xs text-slate-600 mt-1">Paciente: {stop.patient}</p>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="mt-3 w-full h-8 gap-2 text-xs border-primary/20 text-primary hover:bg-primary/5"
+                                onClick={() => handleOpenMaps(stop.address, stop.coords)}
+                              >
+                                <Navigation className="h-3 w-3" /> Ver no Mapa
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Button 
+                className="w-full h-12 gap-2 text-base shadow-lg bg-emerald-600 hover:bg-emerald-700"
+                onClick={() => toast({ title: "Jornada Finalizada", description: "Dados sincronizados com a central." })}
+              >
+                <CheckCircle2 className="h-5 w-5" /> Finalizar Todas as Missões
+              </Button>
+            </>
+          )}
         </>
       )}
     </div>
