@@ -15,6 +15,8 @@ export const MOCK_PATIENTS: Patient[] = [
   { id: "P6", name: "Carlos Drummond", medicalRecordNumber: "111.222.333-44", comorbidities: ["Ortopedia"], needsCompanion: false, createdAt: new Date().toISOString() },
   { id: "P7", name: "Cecília Meireles", medicalRecordNumber: "555.666.777-88", comorbidities: ["Oncologia"], needsCompanion: true, createdAt: new Date().toISOString() },
   { id: "P8", name: "Machado de Assis", medicalRecordNumber: "999.888.777-66", comorbidities: ["Visão Reduzida"], needsCompanion: true, createdAt: new Date().toISOString() },
+  { id: "P9", name: "Clarice Lispector", medicalRecordNumber: "121.212.121-21", comorbidities: ["Pós-parto"], needsCompanion: true, createdAt: new Date().toISOString() },
+  { id: "P10", name: "Guimarães Rosa", medicalRecordNumber: "343.343.343-34", comorbidities: ["Idoso / Fragilidade"], needsCompanion: false, createdAt: new Date().toISOString() },
 ];
 
 export const MOCK_REQUESTS: TransportRequest[] = [
@@ -56,7 +58,7 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     patientAccessCode: "654321"
   },
 
-  // 2. APROVADOS SEM MANIFESTO (Para o Otimizador de Rotas)
+  // 2. APROVADOS SEM MANIFESTO (Aguardando no Otimizador de Rotas)
   { 
     id: "REQ-010", 
     patientId: "P6", 
@@ -99,8 +101,36 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     createdAt: new Date().toISOString(),
     patientAccessCode: "303030"
   },
+  { 
+    id: "REQ-020", 
+    patientId: "P9", 
+    patientName: "Clarice Lispector", 
+    ubsId: "UBS-03", 
+    pickupLocation: "UBS Lídice", 
+    destinationLocation: "Hospital da Mulher", 
+    urgencyLevel: "medium", 
+    status: "APPROVED", 
+    requestedTime: new Date(Date.now() + 25200000).toISOString(), 
+    operatorId: "UBS_MGR",
+    createdAt: new Date().toISOString(),
+    patientAccessCode: "404040"
+  },
+  { 
+    id: "REQ-021", 
+    patientId: "P10", 
+    patientName: "Guimarães Rosa", 
+    ubsId: "UBS-02", 
+    pickupLocation: "UBS Passa Três", 
+    destinationLocation: "Centro de Fisioterapia", 
+    urgencyLevel: "low", 
+    status: "APPROVED", 
+    requestedTime: new Date(Date.now() + 28800000).toISOString(), 
+    operatorId: "UBS_MGR",
+    createdAt: new Date().toISOString(),
+    patientAccessCode: "505050"
+  },
 
-  // 3. PENDENTES (Para o Painel de Comando/Triage)
+  // 3. PENDENTES (Para o Painel de Comando/Triagem)
   { 
     id: "REQ-003", 
     patientId: "P3", 
