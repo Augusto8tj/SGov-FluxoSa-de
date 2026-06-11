@@ -167,7 +167,7 @@ export default function DashboardPage() {
             variant="outline" 
             size="sm" 
             className="gap-2 border-primary/20 bg-card shrink-0 h-9"
-            onClick={handleGenerateReport || handleGenerateBriefing}
+            onClick={handleGenerateBriefing}
             disabled={loadingAi}
           >
             <BrainCircuit className={cn("h-4 w-4 text-primary", loadingAi && "animate-pulse")} />
