@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -13,7 +14,8 @@ import {
   Settings,
   MessageSquare,
   BookOpen,
-  Fingerprint
+  Fingerprint,
+  Route
 } from "lucide-react";
 
 import {
@@ -33,6 +35,7 @@ import { useAuth } from "@/hooks/use-auth";
 const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
   { title: "Agendamentos", icon: ClipboardList, url: "/dashboard/requests" },
+  { title: "Manifestos de Viagem", icon: Route, url: "/dashboard/manifests" },
   { title: "Pacientes", icon: Users, url: "/dashboard/patients" },
   { title: "Veículos", icon: Ambulance, url: "/dashboard/fleet" },
   { title: "Postos (UBS)", icon: Hospital, url: "/dashboard/ubs" },
