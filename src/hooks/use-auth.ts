@@ -7,16 +7,30 @@ import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
 /**
- * @fileOverview Hook customizado para gerenciar o estado de autenticação do Firebase.
+ * @fileOverview Hook customizado para gerenciar o estado de autenticação.
+ * Suporta Firebase Auth real e sessão de demonstração local.
  */
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    // 1. Checa se existe uma sessão de demonstração (Bypass para apresentações)
+    const demoUser = sessionStorage.getItem("sgov_demo_user");
+    if (demoUser) {
+      setUser(JSON.parse(demoUser));
+      setLoading(false);
+      return;
+    }
+
+    // 2. Senão, utiliza o Firebase Auth real
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+      if (fbUser) {
+        setUser(fbUser);
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 
@@ -25,6 +39,7 @@ export function useAuth() {
 
   const logout = async () => {
     try {
+      sessionStorage.removeItem("sgov_demo_user");
       await signOut(auth);
       router.push("/login");
     } catch (error) {

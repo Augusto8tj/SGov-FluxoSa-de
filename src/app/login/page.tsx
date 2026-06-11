@@ -3,15 +3,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { ShieldCheck, Loader2, Ambulance, BrainCircuit, AlertCircle, User, Key, Truck } from "lucide-react";
+import { ShieldCheck, Loader2, Ambulance, BrainCircuit, User, Key, Truck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 
 export default function LoginPage() {
@@ -27,53 +24,48 @@ export default function LoginPage() {
 
     const lowerEmail = email.toLowerCase();
 
-    // 1. Priorizar acesso de demonstração para evitar erros de API Key em ambiente de prototipagem
-    if (lowerEmail.endsWith("@rioclaro.rj.gov.br") && password === "admin123") {
+    // Lógica Hardcoded para Demonstração (Bypass Firebase Auth)
+    const demoUsers = [
+      { email: 'secretario@rioclaro.rj.gov.br', pass: 'admin123', role: 'admin' },
+      { email: 'gerente.ubs@rioclaro.rj.gov.br', pass: 'admin123', role: 'ubs' },
+      { email: 'motorista@rioclaro.rj.gov.br', pass: 'admin123', role: 'driver' }
+    ];
+
+    const foundUser = demoUsers.find(u => u.email === lowerEmail && u.pass === password);
+
+    if (foundUser) {
+      // Salva sessão local para o hook useAuth reconhecer
+      const mockUser = {
+        email: foundUser.email,
+        uid: `demo-${foundUser.role}`,
+        isDemo: true
+      };
+      
+      sessionStorage.setItem("sgov_demo_user", JSON.stringify(mockUser));
+      
       toast({
-        title: "Acesso de Demonstração",
-        description: `Bem-vindo, entrando no modo de teste.`,
+        title: "Acesso de Demonstração Autorizado",
+        description: `Bem-vindo, ${foundUser.email.split('@')[0]}.`,
       });
 
-      if (lowerEmail.includes("motorista")) {
-        router.push("/driver");
-      } else {
-        router.push("/dashboard");
-      }
-      setLoading(false);
+      // Redirecionamento baseado no papel
+      setTimeout(() => {
+        if (foundUser.role === 'driver') {
+          router.push("/driver");
+        } else {
+          router.push("/dashboard");
+        }
+      }, 500);
       return;
     }
 
-    // 2. Tentar autenticação real apenas se não for uma credencial de demonstração padrão
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      
-      toast({
-        title: "Acesso Autorizado",
-        description: `Bem-vindo ao SGov FluxoSaúde.`,
-      });
-
-      if (lowerEmail.includes("motorista")) {
-        router.push("/driver");
-      } else {
-        router.push("/dashboard");
-      }
-    } catch (error: any) {
-      console.error("Erro de login:", error);
-      
-      let message = "Credenciais inválidas. Use os atalhos de demonstração abaixo.";
-      
-      if (error.code === 'auth/invalid-api-key' || error.code === 'auth/network-request-failed') {
-        message = "O Firebase não está configurado. Utilize os botões de demonstração.";
-      }
-
-      toast({
-        title: "Falha na Autenticação",
-        description: message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Se não for demo, tenta avisar que precisa de chaves configuradas
+    toast({
+      title: "Falha na Autenticação",
+      description: "Utilize as credenciais de demonstração para esta apresentação.",
+      variant: "destructive"
+    });
+    setLoading(false);
   };
 
   const fillCredentials = (type: 'admin' | 'ubs' | 'driver') => {
@@ -87,7 +79,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 transition-colors duration-500">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl ring-4 ring-primary/10">
@@ -99,8 +91,8 @@ export default function LoginPage() {
 
         <Card className="border-none shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle className="text-xl">Entrar no Sistema</CardTitle>
-            <CardDescription>Gestão e Operação de Transporte Sanitário</CardDescription>
+            <CardTitle className="text-xl">Acesso Governamental</CardTitle>
+            <CardDescription>Apresentação: Gestão de Transporte Sanitário</CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
@@ -140,7 +132,7 @@ export default function LoginPage() {
                     <Separator className="w-full" />
                   </div>
                   <div className="relative flex justify-center text-[10px] uppercase font-bold">
-                    <span className="bg-white dark:bg-slate-900 px-2 text-muted-foreground">Atalhos de Demonstração</span>
+                    <span className="bg-white dark:bg-slate-900 px-2 text-muted-foreground">Perfis de Apresentação</span>
                   </div>
                 </div>
                 
@@ -170,7 +162,7 @@ export default function LoginPage() {
                     className="text-[10px] h-9 px-1 font-bold border-amber-500/20 hover:bg-amber-500/5"
                     onClick={() => fillCredentials('driver')}
                   >
-                    <Truck className="h-3 w-3 mr-1" /> MOTORISTA
+                    MOTORISTA
                   </Button>
                 </div>
               </div>
@@ -178,7 +170,7 @@ export default function LoginPage() {
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20" disabled={loading}>
                 {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <ShieldCheck className="h-5 w-5 mr-2" />}
-                Autenticar Acesso
+                Entrar no Sistema
               </Button>
               <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-black">
                 <BrainCircuit className="h-3.5 w-3.5 text-primary" /> IA & Segurança Rio Claro
@@ -186,10 +178,6 @@ export default function LoginPage() {
             </CardFooter>
           </form>
         </Card>
-
-        <p className="text-center text-[10px] text-muted-foreground font-medium">
-          © 2026 - Secretaria Municipal de Ordem Pública - PMRC
-        </p>
       </div>
     </div>
   );
