@@ -1,3 +1,4 @@
+
 "use client";
 
 import { UbsSidebar } from "@/components/ubs/ubs-sidebar";
