@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -11,16 +10,26 @@ import {
   Navigation,
   CheckCircle2,
   Send,
-  AlertTriangle
+  AlertTriangle,
+  UserCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { generateOptimizedRoutes, GenerateOptimizedRoutesOutput } from "@/ai/flows/generate-optimized-routes";
 import { requestService } from "@/services/request-service";
 import { vehicleService } from "@/services/vehicle-service";
-import { TransportRequest, Vehicle } from "@/lib/types";
+import { driverService } from "@/services/driver-service";
+import { TransportRequest, Vehicle, Driver } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export default function RoutesPage() {
@@ -31,22 +40,27 @@ export default function RoutesPage() {
   
   const [requests, setRequests] = useState<TransportRequest[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [result, setResult] = useState<GenerateOptimizedRoutesOutput | null>(null);
+  
+  // Estado para armazenar o motorista selecionado para cada assignment (index da rota -> driverId)
+  const [selectedDrivers, setSelectedDrivers] = useState<Record<number, string>>({});
   
   const { toast } = useToast();
 
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [reqs, vehs] = await Promise.all([
+      const [reqs, vehs, drvs] = await Promise.all([
         requestService.getRequests(),
-        vehicleService.getVehicles()
+        vehicleService.getVehicles(),
+        driverService.getAvailableDrivers()
       ]);
       
-      // Filtra apenas pedidos aprovados que ainda não possuem manifesto
       const pendingManifest = reqs.filter(r => r.status === 'APPROVED' && !r.manifestId);
       setRequests(pendingManifest);
       setVehicles(vehs.filter(v => v.status === 'AVAILABLE'));
+      setDrivers(drvs);
     } catch {
       toast({ title: "Erro de Carga", description: "Não foi possível carregar dados reais.", variant: "destructive" });
     } finally {
@@ -67,7 +81,6 @@ export default function RoutesPage() {
 
     setOptimizing(true);
     try {
-      // Prepara dados para o fluxo
       const appointments = requests.map(r => ({
         id: r.id,
         patientId: r.patientName,
@@ -75,21 +88,17 @@ export default function RoutesPage() {
         destination: r.destinationLocation
       }));
 
-      const drivers = [
-        { id: "D1", name: "Carlos Silva", available: true },
-        { id: "D2", name: "Marcos Pereira", available: true },
-        { id: "D3", name: "Ana Cláudia", available: true },
-      ];
-
       const data = await generateOptimizedRoutes({
         appointments,
         vehicles: vehicles.map(v => ({ id: v.id, type: v.type, capacity: v.capacity, available: true })),
-        drivers,
+        drivers: drivers.map(d => ({ id: d.id, name: d.name, available: true })),
         ubs: [],
         enableAiAssistance: true
       });
       
       setResult(data);
+      // Resetar seleções de motorista ao gerar nova rota
+      setSelectedDrivers({});
       toast({ 
         title: "Otimização Concluída", 
         description: "Rotas geradas para a malha viária de Rio Claro." 
@@ -107,25 +116,47 @@ export default function RoutesPage() {
 
   const handleCommitManifestos = async () => {
     if (!result) return;
+
+    // Verificar se todos os motoristas foram selecionados
+    const missingDriver = result.assignments.some((_, idx) => !selectedDrivers[idx]);
+    if (missingDriver) {
+      toast({ title: "Atenção", description: "Por favor, selecione um motorista para cada rota.", variant: "destructive" });
+      return;
+    }
+
     setCommitting(true);
     try {
-      // Enriquecer atribuições com nomes legíveis para o Firestore
-      const assignments = result.assignments.map(a => ({
-        ...a,
-        vehicleType: vehicles.find(v => v.id === a.vehicleId)?.type || "Viatura Municipal",
-        driverName: "Plantão Logística" // Simulando busca de motorista
-      }));
+      const assignments = result.assignments.map((a, idx) => {
+        const driverId = selectedDrivers[idx];
+        const driver = drivers.find(d => d.id === driverId);
+        const vehicle = vehicles.find(v => v.id === a.vehicleId);
+
+        return {
+          ...a,
+          vehicleType: vehicle?.type || "Viatura Municipal",
+          driverId: driverId,
+          driverName: driver?.name || "Motorista Municipal"
+        };
+      });
 
       await requestService.createManifestBatch(assignments);
       
       toast({ title: "Manifestos Criados", description: "Os motoristas foram notificados via aplicativo." });
       setResult(null);
+      setSelectedDrivers({});
       loadData();
     } catch (error: any) {
       toast({ title: "Erro na Gravação", description: error.message, variant: "destructive" });
     } finally {
       setCommitting(false);
     }
+  };
+
+  const updateDriverSelection = (assignmentIdx: number, driverId: string) => {
+    setSelectedDrivers(prev => ({
+      ...prev,
+      [assignmentIdx]: driverId
+    }));
   };
 
   if (!mounted) return null;
@@ -167,6 +198,12 @@ export default function RoutesPage() {
                 <Ambulance className="h-4 w-4" /> Viaturas Livres
               </span>
               <Badge variant="secondary">{vehicles.length}</Badge>
+            </div>
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground flex items-center gap-2">
+                <UserCheck className="h-4 w-4" /> Motoristas Ativos
+              </span>
+              <Badge variant="secondary">{drivers.length}</Badge>
             </div>
           </CardContent>
           <CardFooter className="pt-2 border-t mt-2">
@@ -238,8 +275,26 @@ export default function RoutesPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 pt-4">
+                      {/* Seleção de Motorista */}
+                      <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
+                        <Label className="text-[10px] font-black uppercase text-primary">Escalar Condutor</Label>
+                        <Select 
+                          value={selectedDrivers[idx] || ""} 
+                          onValueChange={(val) => updateDriverSelection(idx, val)}
+                        >
+                          <SelectTrigger className="h-10 bg-white rounded-lg border-none shadow-sm">
+                            <SelectValue placeholder="Selecione o motorista..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {drivers.map(d => (
+                              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       <div className="relative pl-6 space-y-4 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-muted">
-                        {assignment.route.map((appId, i) => {
+                        {assignment.route.map((appId) => {
                           const req = requests.find(r => r.id === appId);
                           return (
                             <div key={appId} className="relative">
@@ -258,7 +313,7 @@ export default function RoutesPage() {
                     <CardFooter className="bg-muted/10 py-3 border-t">
                       <div className="text-[10px] text-muted-foreground font-bold uppercase flex items-center gap-2">
                         <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                        Planejamento Técnico Validado
+                        Aguardando Atribuição Manual
                       </div>
                     </CardFooter>
                   </Card>
@@ -275,7 +330,7 @@ export default function RoutesPage() {
         </div>
         <div>
           <p className="text-xs font-black uppercase text-amber-700">Atenção ao Confirmar</p>
-          <p className="text-[11px] text-amber-600 leading-tight">Ao clicar em "Gerar e Enviar", as solicitações serão atualizadas no banco de dados e os motoristas receberão a missão em seus dispositivos.</p>
+          <p className="text-[11px] text-amber-600 leading-tight">Ao clicar em "Gerar e Enviar", as solicitações serão atualizadas no banco de dados e os motoristas selecionados receberão a missão em seus dispositivos.</p>
         </div>
       </div>
     </div>
