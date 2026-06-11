@@ -25,7 +25,8 @@ import {
   Droplets,
   Mail,
   Phone,
-  Clock
+  Clock,
+  Heart
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -237,7 +238,6 @@ export default function SettingsPage() {
           </TabsList>
         </div>
 
-        {/* Laboratório de IA Tab Content Omitted for Brevity as it was not changed */}
         <TabsContent value="ia-lab" className="space-y-4 sm:space-y-6 outline-none">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <Card className="border-none shadow-sm h-full flex flex-col rounded-2xl overflow-hidden">
@@ -445,7 +445,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* Other Tabs Content Omitted for brevity as they are unchanged */}
         <TabsContent value="drivers" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 border-b bg-muted/5">
@@ -568,9 +567,150 @@ export default function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="profiles" className="space-y-4 sm:space-y-6 outline-none">
-          <Card className="border-none shadow-sm bg-primary/5 rounded-2xl overflow-hidden">
-            <CardHeader className="border-b bg-primary/10 p-4 sm:p-6"><CardTitle>Segurança</CardTitle></CardHeader>
-            <CardContent className="space-y-4 pt-6"><Button className="w-full h-12" variant="outline">Salvar Políticas</Button></CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Perfil: Secretário */}
+            <Card className="border-none shadow-sm rounded-2xl overflow-hidden bg-card">
+              <CardHeader className="bg-primary/10 p-4 border-b">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary p-2 rounded-xl text-white shadow-lg shadow-primary/20">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Secretário de Saúde</CardTitle>
+                    <CardDescription className="text-[10px] uppercase font-bold tracking-widest text-primary">Gestão Estratégica</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed italic">
+                  "Responsável pela malha viária municipal e inteligência de dados."
+                </p>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Capacidades:</p>
+                  <ul className="text-[11px] space-y-1.5 text-slate-600 font-medium">
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Aprovação de Pedidos em Massa</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> IA: Insights Estratégicos Nvidia</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Gestão de Frota e Telemetria</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Administração de Unidades (UBS)</li>
+                  </ul>
+                </div>
+                <div className="flex flex-wrap gap-1 pt-2">
+                  <Badge variant="outline" className="text-[8px] font-black border-primary/20 text-primary">FULL_ACCESS</Badge>
+                  <Badge variant="outline" className="text-[8px] font-black border-primary/20 text-primary">AI_MGR</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Perfil: Gerente UBS */}
+            <Card className="border-none shadow-sm rounded-2xl overflow-hidden bg-card">
+              <CardHeader className="bg-emerald-50 p-4 border-b">
+                <div className="flex items-center gap-3">
+                  <div className="bg-emerald-600 p-2 rounded-xl text-white shadow-lg shadow-emerald-100">
+                    <Hospital className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Gerente de UBS</CardTitle>
+                    <CardDescription className="text-[10px] uppercase font-bold tracking-widest text-emerald-600">Gestão Local</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed italic">
+                  "Interface entre a demanda da comunidade e a logística municipal."
+                </p>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Capacidades:</p>
+                  <ul className="text-[11px] space-y-1.5 text-slate-600 font-medium">
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Solicitação de Transporte Sanitário</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> IA: Classificação de Urgência</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Gestão de Base de Cidadãos</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Acompanhamento de Manifestos</li>
+                  </ul>
+                </div>
+                <div className="flex flex-wrap gap-1 pt-2">
+                  <Badge variant="outline" className="text-[8px] font-black border-emerald-200 text-emerald-700">LOCAL_MGR</Badge>
+                  <Badge variant="outline" className="text-[8px] font-black border-emerald-200 text-emerald-700">PATIENT_DB</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Perfil: Condutor */}
+            <Card className="border-none shadow-sm rounded-2xl overflow-hidden bg-card">
+              <CardHeader className="bg-amber-50 p-4 border-b">
+                <div className="flex items-center gap-3">
+                  <div className="bg-amber-600 p-2 rounded-xl text-white shadow-lg shadow-amber-100">
+                    <Ambulance className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Condutor Sanitário</CardTitle>
+                    <CardDescription className="text-[10px] uppercase font-bold tracking-widest text-amber-600">Execução de Campo</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed italic">
+                  "Garante a segurança e o suporte aos pacientes durante o trajeto."
+                </p>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Capacidades:</p>
+                  <ul className="text-[11px] space-y-1.5 text-slate-600 font-medium">
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Visualização de Itinerários</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> IA: Briefing Seguro de Paciente</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Envio de Relatórios e Ocorrências</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Checklist de Segurança Veicular</li>
+                  </ul>
+                </div>
+                <div className="flex flex-wrap gap-1 pt-2">
+                  <Badge variant="outline" className="text-[8px] font-black border-amber-200 text-amber-700">DRIVER_APP</Badge>
+                  <Badge variant="outline" className="text-[8px] font-black border-amber-200 text-amber-700">FIELD_REPORTS</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Perfil: Cidadão */}
+            <Card className="border-none shadow-sm rounded-2xl overflow-hidden bg-card">
+              <CardHeader className="bg-rose-50 p-4 border-b">
+                <div className="flex items-center gap-3">
+                  <div className="bg-rose-600 p-2 rounded-xl text-white shadow-lg shadow-rose-100">
+                    <Heart className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Cidadão (Público)</CardTitle>
+                    <CardDescription className="text-[10px] uppercase font-bold tracking-widest text-rose-600">Consulta de Serviço</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 space-y-4">
+                <p className="text-xs text-muted-foreground leading-relaxed italic">
+                  "Portal público para transparência e acompanhamento do cidadão."
+                </p>
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter">Capacidades:</p>
+                  <ul className="text-[11px] space-y-1.5 text-slate-600 font-medium">
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Consulta de Viagem via Código</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Visualização Protegida (Pseudonimizado)</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Identificação de Viatura e Condutor</li>
+                    <li className="flex items-center gap-2"><Check className="h-3 w-3 text-emerald-500" /> Orientações de Segurança de Rota</li>
+                  </ul>
+                </div>
+                <div className="flex flex-wrap gap-1 pt-2">
+                  <Badge variant="outline" className="text-[8px] font-black border-rose-200 text-rose-700">PUBLIC_PORTAL</Badge>
+                  <Badge variant="outline" className="text-[8px] font-black border-rose-200 text-rose-700">ANONYMOUS</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="border-dashed border-2 bg-muted/5 mt-6">
+            <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
+              <ShieldCheck className="h-10 w-10 text-primary opacity-20" />
+              <div className="max-w-md">
+                <p className="font-bold text-sm uppercase tracking-tighter">Segurança & RBAC</p>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  O SGov FluxoSaúde opera sob rígidas políticas de Controle de Acesso Baseado em Funções (RBAC). A transição de dados entre perfis sensíveis é protegida por camadas de pseudonimização.
+                </p>
+              </div>
+            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
