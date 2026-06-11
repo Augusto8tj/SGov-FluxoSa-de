@@ -5,14 +5,12 @@ import { useState, useEffect } from "react";
 import { 
   Plus, 
   Search, 
-  ClipboardList, 
   MoreVertical, 
   BrainCircuit, 
   Loader2, 
-  ArrowRight,
   Edit,
   Trash2,
-  Eye
+  Filter
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,7 +49,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -91,37 +88,24 @@ export default function RequestsPage() {
       setRequests(fetchedRequests);
       setPatients(fetchedPatients);
     } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-      toast({ title: "Erro de Conexão", description: "Não foi possível carregar os dados do servidor.", variant: "destructive" });
+      toast({ title: "Erro", description: "Falha ao carregar dados.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setEditingRequest(null);
-    setPatientId("");
-    setPatientNotes("");
-    setDestination("");
-    setUrgency("low");
-    setScheduledTime("");
-  };
-
   const handleAiUrgency = async () => {
     if (!patientNotes || !destination) {
-      toast({ title: "Dados incompletos", description: "Preencha destino e notas para a análise.", variant: "destructive" });
+      toast({ title: "Incompleto", description: "Preencha destino e notas.", variant: "destructive" });
       return;
     }
     setIsClassifying(true);
     try {
       const result = await classifyUrgency({ patientNotes, destination });
       setUrgency(result.suggestedUrgency);
-      toast({ 
-        title: "Triagem Concluída", 
-        description: `IA sugere: ${result.suggestedUrgency.toUpperCase()}.` 
-      });
+      toast({ title: "IA: Análise Concluída", description: `Urgência sugerida: ${result.suggestedUrgency.toUpperCase()}.` });
     } catch (error) {
-      toast({ variant: "destructive", title: "IA Indisponível", description: "Falha na análise inteligente." });
+      toast({ variant: "destructive", title: "IA Indisponível" });
     } finally {
       setIsClassifying(false);
     }
@@ -129,14 +113,14 @@ export default function RequestsPage() {
 
   const handleSave = async () => {
     if (!patientId || !destination) {
-      toast({ title: "Erro", description: "Paciente e Destino são obrigatórios.", variant: "destructive" });
+      toast({ title: "Erro", description: "Campos obrigatórios vazios.", variant: "destructive" });
       return;
     }
 
     const patient = patients.find(p => p.id === patientId);
     const requestData = {
       patientId,
-      patientName: patient?.name || "Paciente Desconhecido",
+      patientName: patient?.name || "Desconhecido",
       ubsId: "UBS-01",
       pickupLocation: "UBS Central",
       destinationLocation: destination,
@@ -149,48 +133,36 @@ export default function RequestsPage() {
     try {
       if (editingRequest) {
         await requestService.updateRequest(editingRequest.id, requestData);
-        toast({ title: "Sucesso", description: "Agendamento atualizado." });
       } else {
         await requestService.addRequest(requestData as any);
-        toast({ title: "Sucesso", description: "Agendamento criado com sucesso." });
       }
       setIsDialogOpen(false);
-      resetForm();
       loadData();
+      toast({ title: "Sucesso", description: "Dados sincronizados com o banco." });
     } catch (error) {
-      toast({ title: "Erro ao salvar", description: "Não foi possível sincronizar com o banco de dados.", variant: "destructive" });
+      toast({ title: "Erro ao salvar", variant: "destructive" });
     }
   };
 
   const handleDelete = async (id: string) => {
     try {
       await requestService.deleteRequest(id);
-      toast({ title: "Removido", description: "Solicitação cancelada." });
       loadData();
+      toast({ title: "Removido", description: "Solicitação cancelada." });
     } catch (error) {
-      toast({ title: "Erro", description: "Não foi possível remover o registro.", variant: "destructive" });
+      toast({ title: "Erro ao remover", variant: "destructive" });
     }
   };
 
-  const handleEdit = (req: TransportRequest) => {
-    setEditingRequest(req);
-    setPatientId(req.patientId);
-    setDestination(req.destinationLocation);
-    setUrgency(req.urgencyLevel);
-    setScheduledTime(req.requestedTime.includes('T') ? req.requestedTime : req.requestedTime.replace(' ', 'T'));
-    setIsDialogOpen(true);
-  };
-
   const filteredRequests = requests.filter(req => 
-    req.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.id.toLowerCase().includes(searchTerm.toLowerCase())
+    req.patientName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getUrgencyBadge = (level: string) => {
     switch (level) {
-      case 'critical': return <Badge className="bg-rose-600 text-white">Crítico</Badge>;
+      case 'critical': return <Badge className="bg-destructive text-destructive-foreground">Crítico</Badge>;
       case 'high': return <Badge variant="destructive">Alta</Badge>;
-      case 'medium': return <Badge variant="default">Média</Badge>;
+      case 'medium': return <Badge className="bg-primary text-primary-foreground">Média</Badge>;
       default: return <Badge variant="secondary">Baixa</Badge>;
     }
   };
@@ -202,52 +174,49 @@ export default function RequestsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Agendamentos</h2>
-          <p className="text-sm text-muted-foreground">Gestão de transporte sincronizada com o banco de dados.</p>
+          <p className="text-sm text-muted-foreground">Gestão de transporte sanitário.</p>
         </div>
         
-        <Button onClick={() => { resetForm(); setIsDialogOpen(true); }} className="gap-2 shadow-md">
+        <Button onClick={() => { setEditingRequest(null); setIsDialogOpen(true); }} className="gap-2 shadow-md w-full sm:w-auto">
           <Plus className="h-4 w-4" /> Novo Pedido
         </Button>
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[500px] w-[95vw] rounded-xl">
             <DialogHeader>
               <DialogTitle>{editingRequest ? "Editar Pedido" : "Solicitar Transporte"}</DialogTitle>
-              <DialogDescription>Preencha os dados para processamento administrativo.</DialogDescription>
+              <DialogDescription>Dados sincronizados em tempo real.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="grid gap-2">
                 <Label>Cidadão</Label>
                 <Select value={patientId} onValueChange={setPatientId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o paciente" />
+                  <SelectTrigger className="h-11">
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
-                    {patients.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
-                    {patients.length === 0 && <SelectItem value="none" disabled>Nenhum paciente cadastrado</SelectItem>}
+                    {patients.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
                 <Label>Destino</Label>
-                <Input placeholder="Hospital, Clínica ou UPA" value={destination} onChange={(e) => setDestination(e.target.value)} />
+                <Input placeholder="Local de atendimento" className="h-11" value={destination} onChange={(e) => setDestination(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <Label>Notas Clínicas</Label>
-                  <Button variant="ghost" size="sm" className="h-6 text-[10px] text-primary" onClick={handleAiUrgency} disabled={isClassifying}>
-                    {isClassifying ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3" />} IA
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] text-primary font-bold" onClick={handleAiUrgency} disabled={isClassifying}>
+                    {isClassifying ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <BrainCircuit className="h-3 w-3 mr-1" />} USAR IA
                   </Button>
                 </div>
-                <Textarea placeholder="Condição do paciente..." value={patientNotes} onChange={(e) => setPatientNotes(e.target.value)} />
+                <Textarea placeholder="Descreva a condição..." className="min-h-[100px]" value={patientNotes} onChange={(e) => setPatientNotes(e.target.value)} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>Urgência</Label>
                   <Select value={urgency} onValueChange={setUrgency}>
-                    <SelectTrigger><SelectValue placeholder="Nível" /></SelectTrigger>
+                    <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">Baixa</SelectItem>
                       <SelectItem value="medium">Média</SelectItem>
@@ -257,71 +226,71 @@ export default function RequestsPage() {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label>Horário</Label>
-                  <Input type="datetime-local" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} />
+                  <Label>Data/Hora</Label>
+                  <Input type="datetime-local" className="h-11" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} />
                 </div>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSave}>Salvar no Banco</Button>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">Cancelar</Button>
+              <Button onClick={handleSave} className="w-full sm:w-auto">Salvar Registro</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar por paciente ou protocolo..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar por paciente..." className="pl-10 h-11 bg-card border-none shadow-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+        </div>
+        <Button variant="outline" size="icon" className="h-11 w-11 shrink-0"><Filter className="h-4 w-4" /></Button>
       </div>
 
-      <Card className="border-none shadow-sm overflow-hidden">
+      <Card className="border-none shadow-sm overflow-hidden bg-card">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-2">
             <Loader2 className="h-8 w-8 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground">Sincronizando com Firebase...</p>
+            <p className="text-sm text-muted-foreground">Sincronizando...</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader className="bg-muted/50">
-              <TableRow>
-                <TableHead>Paciente</TableHead>
-                <TableHead>Destino</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRequests.map((req) => (
-                <TableRow key={req.id}>
-                  <TableCell className="font-medium">{req.patientName}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="truncate max-w-[150px]">{req.destinationLocation}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getUrgencyBadge(req.urgencyLevel)}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => handleEdit(req)}><Edit className="h-4 w-4 mr-2" /> Editar</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-rose-600" onSelect={() => handleDelete(req.id)}><Trash2 className="h-4 w-4 mr-2" /> Excluir</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredRequests.length === 0 && (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/30">
                 <TableRow>
-                  <TableCell colSpan={4} className="h-32 text-center text-muted-foreground">Nenhum registro encontrado.</TableCell>
+                  <TableHead className="min-w-[150px]">Paciente</TableHead>
+                  <TableHead className="min-w-[120px]">Destino</TableHead>
+                  <TableHead>Urgência</TableHead>
+                  <TableHead className="text-right">Ação</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredRequests.map((req) => (
+                  <TableRow key={req.id} className="hover:bg-muted/10">
+                    <TableCell className="font-medium">{req.patientName}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground truncate max-w-[120px]">{req.destinationLocation}</TableCell>
+                    <TableCell>{getUrgencyBadge(req.urgencyLevel)}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => { setEditingRequest(req); setPatientId(req.patientId); setDestination(req.destinationLocation); setUrgency(req.urgencyLevel); setIsDialogOpen(true); }}>
+                            <Edit className="h-4 w-4 mr-2" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(req.id)}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </Card>
     </div>

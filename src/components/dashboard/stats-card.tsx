@@ -17,7 +17,7 @@ interface StatsCardProps {
 
 export function StatsCard({ title, value, description, icon: Icon, trend, className }: StatsCardProps) {
   return (
-    <Card className={cn("overflow-hidden border-none shadow-sm bg-white p-3 sm:p-4", className)}>
+    <Card className={cn("overflow-hidden border-none shadow-sm bg-card p-3 sm:p-4 transition-all duration-300", className)}>
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider truncate mr-2">
           {title}
@@ -27,7 +27,7 @@ export function StatsCard({ title, value, description, icon: Icon, trend, classN
         </div>
       </div>
       <div className="flex flex-col">
-        <span className="text-lg sm:text-2xl font-bold truncate">{value}</span>
+        <span className="text-lg sm:text-2xl font-bold truncate text-foreground">{value}</span>
         {description && (
           <div className="flex items-center mt-1">
             <span className="text-[9px] sm:text-[10px] text-muted-foreground truncate leading-none">
@@ -36,7 +36,7 @@ export function StatsCard({ title, value, description, icon: Icon, trend, classN
             {trend && (
               <span className={cn(
                 "ml-1 text-[9px] sm:text-[10px] font-bold leading-none shrink-0",
-                trend.isPositive ? "text-emerald-500" : "text-rose-500"
+                trend.isPositive ? "text-primary" : "text-destructive"
               )}>
                 {trend.isPositive ? "↑" : "↓"}{trend.value}%
               </span>
