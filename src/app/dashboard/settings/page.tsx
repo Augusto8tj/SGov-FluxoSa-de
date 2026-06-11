@@ -58,8 +58,12 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const [units, setUnits] = useState(initialUnits);
   const [drivers, setDrivers] = useState(initialDrivers);
+  
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
   const [newUnit, setNewUnit] = useState({ name: "", address: "" });
+
+  const [isDriverDialogOpen, setIsDriverDialogOpen] = useState(false);
+  const [newDriver, setNewDriver] = useState({ name: "", license: "" });
 
   useEffect(() => {
     setMounted(true);
@@ -89,6 +93,25 @@ export default function SettingsPage() {
     setIsUnitDialogOpen(false);
     setNewUnit({ name: "", address: "" });
     toast({ title: "Unidade Cadastrada", description: `${unit.name} foi adicionada ao sistema.` });
+  };
+
+  const handleAddDriver = () => {
+    if (!newDriver.name || !newDriver.license) {
+      toast({ title: "Erro", description: "Preencha todos os campos do motorista.", variant: "destructive" });
+      return;
+    }
+
+    const driver = {
+      id: `D${drivers.length + 1}`,
+      name: newDriver.name,
+      license: newDriver.license,
+      status: "Disponível"
+    };
+
+    setDrivers(prev => [...prev, driver]);
+    setIsDriverDialogOpen(false);
+    setNewDriver({ name: "", license: "" });
+    toast({ title: "Motorista Cadastrado", description: `${driver.name} foi adicionado ao sistema.` });
   };
 
   if (!mounted) {
@@ -190,7 +213,41 @@ export default function SettingsPage() {
                 <CardTitle>Corpo de Motoristas</CardTitle>
                 <CardDescription>Gestão de condutores e habilitações.</CardDescription>
               </div>
-              <Button onClick={() => handleSave("Motoristas")}>Novo Motorista</Button>
+              <Dialog open={isDriverDialogOpen} onOpenChange={setIsDriverDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Plus className="h-4 w-4" /> Novo Motorista</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Novo Motorista</DialogTitle>
+                    <DialogDescription>Cadastre um novo condutor para a frota municipal.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="driver-name">Nome Completo</Label>
+                      <Input 
+                        id="driver-name" 
+                        placeholder="Ex: Carlos Alberto Silva" 
+                        value={newDriver.name}
+                        onChange={(e) => setNewDriver(prev => ({ ...prev, name: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="driver-license">CNH / Categoria / Vencimento</Label>
+                      <Input 
+                        id="driver-license" 
+                        placeholder="Cat. D - 00/00/0000" 
+                        value={newDriver.license}
+                        onChange={(e) => setNewDriver(prev => ({ ...prev, license: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="ghost" onClick={() => setIsDriverDialogOpen(false)}>Cancelar</Button>
+                    <Button onClick={handleAddDriver}>Salvar Motorista</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
               <Table>
