@@ -90,7 +90,7 @@ export default function RequestsPage() {
   const [scheduledTime, setScheduledTime] = useState("");
   
   const [editingRequest, setEditingRequest] = useState<TransportRequest | null>(null);
-  const [viewingRequest, setViewingRequest] = useState<TransportRequest | null>(null);
+  const [viewingRequestId, setViewingRequestId] = useState<string | null>(null);
   const [isClassifying, setIsClassifying] = useState(false);
   
   const { toast } = useToast();
@@ -115,6 +115,9 @@ export default function RequestsPage() {
     setMounted(true);
     loadData();
   }, [loadData]);
+
+  // Recupera o pedido atual para visualização do painel técnico
+  const viewingRequest = requests.find(r => r.id === viewingRequestId);
 
   const handleAiUrgency = async () => {
     if (!patientNotes || !destination) {
@@ -195,6 +198,11 @@ export default function RequestsPage() {
     } catch (error: any) {
       toast({ title: "Erro", description: "Não foi possível remover.", variant: "destructive" });
     }
+  };
+
+  const openTechnicalPanel = (req: TransportRequest) => {
+    setViewingRequestId(req.id);
+    setIsViewDialogOpen(true);
   };
 
   const filteredRequests = requests.filter(req => 
@@ -333,7 +341,7 @@ export default function RequestsPage() {
         {/* Painel Técnico: Dialog Visualização de Detalhes */}
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
           <DialogContent className="sm:max-w-[550px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl bg-slate-50">
-            {viewingRequest && (
+            {viewingRequest ? (
               <div className="flex flex-col h-full">
                 <div className="bg-primary p-6 text-primary-foreground relative overflow-hidden">
                   <div className="absolute -right-6 -top-6 opacity-10">
@@ -404,7 +412,7 @@ export default function RequestsPage() {
                     </div>
                   </div>
 
-                  {/* Dados do Manifesto / Logística - O Painel Técnico que o usuário quer ver */}
+                  {/* Dados do Manifesto / Logística */}
                   <div className="space-y-3 animate-in slide-in-from-bottom-2">
                     <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2 px-1">
                       <ShieldCheck className="h-4 w-4" /> Logística do Manifesto
@@ -466,6 +474,11 @@ export default function RequestsPage() {
                     }}>Aprovar e Atribuir</Button>
                   )}
                 </div>
+              </div>
+            ) : (
+              <div className="p-20 text-center flex flex-col items-center gap-4">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">Carregando Ficha Técnica...</p>
               </div>
             )}
           </DialogContent>
@@ -529,7 +542,7 @@ export default function RequestsPage() {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-primary hover:bg-primary/10 rounded-full"
-                          onClick={() => { setViewingRequest(req); setIsViewDialogOpen(true); }}
+                          onClick={() => openTechnicalPanel(req)}
                           title="Ver Painel Técnico"
                         >
                           <Eye className="h-4 w-4" />
@@ -541,7 +554,7 @@ export default function RequestsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
-                            <DropdownMenuItem onClick={() => { setViewingRequest(req); setIsViewDialogOpen(true); }} className="gap-2 cursor-pointer">
+                            <DropdownMenuItem onClick={() => openTechnicalPanel(req)} className="gap-2 cursor-pointer">
                               <Activity className="h-4 w-4" /> Abrir Ficha Técnica
                             </DropdownMenuItem>
                             
