@@ -12,7 +12,10 @@ import {
   ShieldAlert,
   Filter,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Edit,
+  Trash2,
+  History
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +43,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/lib/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const mockPatients: Patient[] = [
   {
@@ -77,10 +88,11 @@ const mockPatients: Patient[] = [
 
 export default function PatientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [patients, setPatients] = useState(mockPatients);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const filteredPatients = mockPatients.filter(p => 
+  const filteredPatients = patients.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.medicalRecordNumber.includes(searchTerm)
   );
@@ -92,6 +104,15 @@ export default function PatientsPage() {
       description: "O registro foi salvo com sucesso no banco de dados municipal.",
     });
     setIsDialogOpen(false);
+  };
+
+  const handleDeletePatient = (id: string) => {
+    setPatients(prev => prev.filter(p => p.id !== id));
+    toast({
+      title: "Registro Excluído",
+      description: "Os dados do cidadão foram removidos do cadastro central.",
+      variant: "destructive"
+    });
   };
 
   return (
@@ -221,12 +242,32 @@ export default function PatientsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={() => toast({ title: "Ficha do Paciente", description: `Acessando prontuário de ${patient.name}` })}>
                           <FileText className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações do Paciente</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => toast({ title: "Histórico", description: `Abrindo histórico de viagens de ${patient.name}` })}>
+                              <History className="h-4 w-4 mr-2" /> Ver Histórico
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
+                              <Edit className="h-4 w-4 mr-2" /> Editar Cadastro
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              className="text-rose-600"
+                              onClick={() => handleDeletePatient(patient.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Excluir Registro
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -251,7 +292,7 @@ export default function PatientsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">1.284</p>
+            <p className="text-2xl font-bold">{patients.length + 1280}</p>
             <p className="text-[10px] text-muted-foreground mt-1">Cidadãos ativos no sistema.</p>
           </CardContent>
         </Card>

@@ -13,7 +13,10 @@ import {
   ArrowRight, 
   BrainCircuit, 
   Loader2, 
-  Calendar 
+  Calendar,
+  Edit,
+  Trash2,
+  Eye
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,6 +53,14 @@ import { TransportRequest, TransportStatus } from "@/lib/types";
 import { classifyUrgency } from "@/ai/flows/classify-urgency-flow";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const mockRequests: TransportRequest[] = [
   {
@@ -82,6 +93,7 @@ const mockRequests: TransportRequest[] = [
 
 export default function RequestsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [requests, setRequests] = useState(mockRequests);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [patientNotes, setPatientNotes] = useState("");
   const [destination, setDestination] = useState("");
@@ -114,7 +126,16 @@ export default function RequestsPage() {
     }
   };
 
-  const filteredRequests = mockRequests.filter(req => 
+  const handleDelete = (id: string) => {
+    setRequests(prev => prev.filter(r => r.id !== id));
+    toast({
+      title: "Solicitação Removida",
+      description: `O agendamento ${id} foi cancelado com sucesso.`,
+      variant: "destructive"
+    });
+  };
+
+  const filteredRequests = requests.filter(req => 
     req.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     req.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -216,7 +237,10 @@ export default function RequestsPage() {
             </div>
             <DialogFooter className="flex-row gap-2 sm:gap-0">
               <Button variant="ghost" className="flex-1 sm:flex-none h-9 text-sm" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-              <Button className="flex-1 sm:flex-none h-9 text-sm" onClick={() => setIsDialogOpen(false)}>Enviar</Button>
+              <Button className="flex-1 sm:flex-none h-9 text-sm" onClick={() => {
+                toast({ title: "Agendamento Criado", description: "O pedido foi encaminhado para análise da secretaria." });
+                setIsDialogOpen(false);
+              }}>Enviar</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -282,9 +306,33 @@ export default function RequestsPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right py-3 px-4">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => toast({ title: "Visualizar", description: `Abrindo detalhes de ${req.patientName}` })}>
+                          <Eye className="h-4 w-4 mr-2" /> Ver Detalhes
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setPatientNotes("Reavaliar transporte para: " + req.patientName);
+                          setDestination(req.destinationLocation);
+                          setIsDialogOpen(true);
+                        }}>
+                          <Edit className="h-4 w-4 mr-2" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-rose-600"
+                          onClick={() => handleDelete(req.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Cancelar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -308,7 +356,7 @@ export default function RequestsPage() {
             <ClipboardList className="h-4 w-4 shrink-0" />
             <span className="text-[10px] uppercase font-bold tracking-wider">Pendentes</span>
           </div>
-          <p className="text-xl font-bold">12</p>
+          <p className="text-xl font-bold">{filteredRequests.length}</p>
           <p className="text-[9px] text-muted-foreground">Aguardando secretaria.</p>
         </Card>
 
