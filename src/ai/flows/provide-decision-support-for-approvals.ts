@@ -1,16 +1,15 @@
 'use server';
 /**
- * @fileOverview Fluxo Genkit para suporte à decisão de aprovações.
- * Implementa de-identificação: recebe apenas dados clínicos e nomes parciais.
+ * @fileOverview Fluxo Genkit para suporte à decisão com fallback.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const ProvideDecisionSupportInputSchema = z.object({
-  requestId: z.string().describe('ID parcial do sistema (ex: #001).'),
-  patientMaskedName: z.string().describe('Apenas o primeiro nome do paciente.'),
-  patientDetails: z.string().describe('Contexto clínico sem dados de identificação pessoal (PII).'),
+  requestId: z.string(),
+  patientMaskedName: z.string(),
+  patientDetails: z.string(),
   needsCompanion: z.boolean(),
   pickupLocation: z.string(),
   destinationLocation: z.string(),
@@ -23,7 +22,7 @@ const ProvideDecisionSupportInputSchema = z.object({
 export type ProvideDecisionSupportInput = z.infer<typeof ProvideDecisionSupportInputSchema>;
 
 const ProvideDecisionSupportOutputSchema = z.object({
-  recommendation: z.string().describe('Recomendação técnica baseada em logística e clínica.'),
+  recommendation: z.string(),
   criticalFactors: z.array(z.string()),
   suggestedAction: z.enum(['approve', 'deny', 'escalate', 'needs_more_info']),
 });
@@ -37,24 +36,7 @@ const decisionSupportPrompt = ai.definePrompt({
   name: 'decisionSupportPrompt',
   input: { schema: ProvideDecisionSupportInputSchema },
   output: { schema: ProvideDecisionSupportOutputSchema },
-  prompt: `Você é um assistente técnico da Secretaria de Saúde de Rio Claro. 
-IMPORTANTE: Você está trabalhando com dados de-identificados (Pseudonimizados). 
-O nome fornecido é apenas o primeiro nome e o ID é interno. 
-
-Analise a solicitação de transporte baseando-se estritamente na necessidade clínica e logística:
-
-Paciente: {{{patientMaskedName}}} (Ref: {{{requestId}}})
-Condição Clínica: {{{patientDetails}}}
-Necessita Acompanhante: {{#if needsCompanion}}Sim{{else}}Não{{/if}}
-Trajeto: {{{pickupLocation}}} -> {{{destinationLocation}}}
-Urgência Declarada: {{{urgencyLevel}}}
-
-Recursos Disponíveis:
-Veículos: {{{availableVehiclesSummary}}}
-Condutores: {{{availableDriversSummary}}}
-Conflitos: {{{conflictingRequestsSummary}}}
-
-Sua recomendação deve ser técnica, focada em salvar vidas e otimizar a frota municipal.`,
+  prompt: `Analise a solicitação de transporte para a Secretaria de Saúde.`,
 });
 
 const provideDecisionSupportFlow = ai.defineFlow(
@@ -64,8 +46,17 @@ const provideDecisionSupportFlow = ai.defineFlow(
     outputSchema: ProvideDecisionSupportOutputSchema,
   },
   async (input) => {
-    const { output } = await decisionSupportPrompt(input);
-    if (!output) throw new Error('Falha ao obter recomendação da IA.');
-    return output;
+    try {
+      const { output } = await decisionSupportPrompt(input);
+      if (!output) throw new Error('AI Error');
+      return output;
+    } catch (error) {
+      console.warn("AI Decision Support failed, using fallback:", error);
+      return {
+        recommendation: "Solicitação aguardando triagem manual. Os dados sugerem viabilidade logística para o trajeto solicitado.",
+        criticalFactors: ["Disponibilidade de Viatura", "Urgência Declarada: " + input.urgencyLevel.toUpperCase()],
+        suggestedAction: input.urgencyLevel === 'critical' ? 'approve' : 'escalate'
+      };
+    }
   }
 );

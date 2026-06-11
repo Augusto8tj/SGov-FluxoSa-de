@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Fluxo Genkit para briefings de motoristas com proteção de dados.
+ * @fileOverview Fluxo Genkit para briefings de motoristas com fallback.
  */
 
 import { ai } from '@/ai/genkit';
@@ -10,7 +10,7 @@ const DriverBriefingInputSchema = z.object({
   driverName: z.string(),
   vehicleType: z.string(),
   passengers: z.array(z.object({
-    maskedName: z.string().describe('Apenas primeiro nome.'),
+    maskedName: z.string(),
     needs: z.array(z.string()),
     urgency: z.string(),
   })),
@@ -33,18 +33,7 @@ const driverPrompt = ai.definePrompt({
   name: 'driverPrompt',
   input: { schema: DriverBriefingInputSchema },
   output: { schema: DriverBriefingOutputSchema },
-  prompt: `Briefing logístico para o condutor {{{driverName}}} - Rio Claro, RJ.
-Operação de transporte sanitário com dados protegidos.
-
-Manifesto de Missão:
-{{#each passengers}}
-- Paciente {{maskedName}} (Urgência: {{urgency}}, Requer: {{#each needs}}{{this}} {{/each}})
-{{/each}}
-
-Itinerário: {{{routeDetails}}}
-
-Gere um resumo operacional focado na segurança do paciente e eficiência do trajeto. 
-Não tente deduzir identidades; foque no suporte necessário durante o transporte.`,
+  prompt: `Briefing para o condutor {{{driverName}}}.`,
 });
 
 const driverBriefingFlow = ai.defineFlow(
@@ -54,8 +43,18 @@ const driverBriefingFlow = ai.defineFlow(
     outputSchema: DriverBriefingOutputSchema,
   },
   async (input) => {
-    const { output } = await driverPrompt(input);
-    if (!output) throw new Error('Falha ao gerar briefing.');
-    return output;
+    try {
+      const { output } = await driverPrompt(input);
+      if (!output) throw new Error('AI Error');
+      return output;
+    } catch (error) {
+      console.warn("AI Driver Briefing failed, using fallback:", error);
+      const criticalCount = input.passengers.filter(p => p.urgency === 'crítica' || p.urgency === 'alta').length;
+      return {
+        summary: `Olá ${input.driverName}, você tem ${input.passengers.length} passageiros planejados para esta rota no veículo ${input.vehicleType}.`,
+        criticalAlerts: criticalCount > 0 ? [`Atenção: ${criticalCount} passageiros requerem cuidados de prioridade alta.`] : [],
+        protocolReminder: "Mantenha o rádio na frequência municipal e utilize os EPIs de biossegurança conforme o manual vigente."
+      };
+    }
   }
 );

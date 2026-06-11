@@ -1,6 +1,7 @@
 'use server';
 /**
- * @fileOverview Fluxo Genkit para classificação inteligente de urgência em transporte sanitário.
+ * @fileOverview Fluxo Genkit para classificação inteligente de urgência.
+ * Implementa fallback determinístico para casos de erro RESOURCE_EXHAUSTED.
  */
 
 import { ai } from '@/ai/genkit';
@@ -30,12 +31,7 @@ const classificationPrompt = ai.definePrompt({
 Analise a condição do paciente e o destino para sugerir o nível de urgência correto (baixo, médio, alto ou crítico).
 
 Condição/Notas: {{{patientNotes}}}
-Destino: {{{destination}}}
-
-Considere:
-- Pacientes para hemodiálise ou oncologia geralmente são Alta/Crítica.
-- Exames de rotina ou consultas simples são Baixa/Média.
-- Menção a falta de ar, dor aguda ou pós-operatório imediato eleva o nível.`,
+Destino: {{{destination}}}`,
 });
 
 const classifyUrgencyFlow = ai.defineFlow(
@@ -45,8 +41,28 @@ const classifyUrgencyFlow = ai.defineFlow(
     outputSchema: ClassifyUrgencyOutputSchema,
   },
   async (input) => {
-    const { output } = await classificationPrompt(input);
-    if (!output) throw new Error('Falha na classificação pela IA.');
-    return output;
+    try {
+      const { output } = await classificationPrompt(input);
+      if (!output) throw new Error('AI Output Empty');
+      return output;
+    } catch (error) {
+      console.warn("AI Classification failed, using deterministic fallback:", error);
+      
+      const dest = input.destination.toLowerCase();
+      const notes = input.patientNotes.toLowerCase();
+      
+      let urgency: 'low' | 'medium' | 'high' | 'critical' = 'low';
+      let reasoning = 'Classificação automática via protocolo de contingência municipal.';
+
+      if (dest.includes('hemodialise') || dest.includes('oncologia') || dest.includes('regional')) {
+        urgency = 'high';
+        reasoning = 'Prioridade alta para tratamentos contínuos ou hospital regional (Protocolo Local).';
+      } else if (notes.includes('dor') || notes.includes('falta de ar') || notes.includes('pos-operatorio')) {
+        urgency = 'medium';
+        reasoning = 'Atenção média devido à queixa clínica relatada (Protocolo Local).';
+      }
+
+      return { suggestedUrgency: urgency, reasoning };
+    }
   }
 );

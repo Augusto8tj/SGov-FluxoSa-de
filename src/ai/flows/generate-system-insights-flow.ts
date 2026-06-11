@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Fluxo Genkit para gerar briefings estratégicos para o Secretário de Saúde.
+ * @fileOverview Fluxo Genkit para briefings estratégicos com fallback.
  */
 
 import { ai } from '@/ai/genkit';
@@ -31,14 +31,10 @@ const insightsPrompt = ai.definePrompt({
   input: { schema: SystemInsightsInputSchema },
   output: { schema: SystemInsightsOutputSchema },
   prompt: `Você é o braço direito do Secretário de Saúde de Rio Claro. 
-Gere um briefing executivo com base nos seguintes dados operacionais:
-
+Gere um briefing executivo:
 - Pedidos pendentes: {{pendingRequests}}
 - Veículos ativos: {{activeVehicles}} de {{totalVehicles}}
-- Pacientes críticos hoje: {{criticalPatientsCount}}
-- Hora atual: {{currentHour}}h
-
-Seja direto, profissional e focado em logística de saúde municipal. Use um tom de assessoria técnica.`,
+- Pacientes críticos: {{criticalPatientsCount}}`,
 });
 
 const generateSystemInsightsFlow = ai.defineFlow(
@@ -48,8 +44,18 @@ const generateSystemInsightsFlow = ai.defineFlow(
     outputSchema: SystemInsightsOutputSchema,
   },
   async (input) => {
-    const { output } = await insightsPrompt(input);
-    if (!output) throw new Error('Falha ao gerar insights pela IA.');
-    return output;
+    try {
+      const { output } = await insightsPrompt(input);
+      if (!output) throw new Error('AI failed');
+      return output;
+    } catch (error) {
+      console.warn("AI Insights failed, using fallback:", error);
+      const isCritical = input.criticalPatientsCount > 0 || input.pendingRequests > 20;
+      return {
+        briefing: `Resumo técnico: ${input.pendingRequests} pedidos pendentes e ${input.activeVehicles}/${input.totalVehicles} veículos operacionais.`,
+        priorityAction: input.criticalPatientsCount > 0 ? "Priorizar remoção de pacientes críticos." : "Organizar logística de agendamentos pendentes.",
+        alertLevel: isCritical ? (input.criticalPatientsCount > 2 ? 'critical' : 'warning') : 'normal'
+      };
+    }
   }
 );

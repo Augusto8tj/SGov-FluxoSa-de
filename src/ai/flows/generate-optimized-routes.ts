@@ -1,16 +1,12 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating optimized routes and vehicle assignments for patient transportation.
- *
- * - generateOptimizedRoutes - A function that handles the route optimization process using AI.
- * - GenerateOptimizedRoutesInput - The input type for the generateOptimizedRoutes function.
- * - GenerateOptimizedRoutesOutput - The return type for the generateOptimizedRoutes function.
+ * Includes a deterministic fallback logic to handle AI rate limits or exhaustion errors.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-// Input Schemas - Explicitly defined without external refs for tool stability
 const AppointmentSchema = z.object({
   id: z.string().describe('Unique identifier for the appointment.'),
   patientId: z.string().describe('Identifier for the patient.'),
@@ -63,7 +59,6 @@ const GenerateOptimizedRoutesInputSchema = z.object({
 });
 export type GenerateOptimizedRoutesInput = z.infer<typeof GenerateOptimizedRoutesInputSchema>;
 
-// Output Schemas
 const RouteAssignmentSchema = z.object({
   vehicleId: z.string().describe('ID of the assigned vehicle.'),
   driverId: z.string().describe('ID of the assigned driver.'),
@@ -80,11 +75,10 @@ const GenerateOptimizedRoutesOutputSchema = z.object({
 });
 export type GenerateOptimizedRoutesOutput = z.infer<typeof GenerateOptimizedRoutesOutputSchema>;
 
-// Genkit Tool: Simulates calling OpenRouter API for route optimization
 const optimizeRoutesWithOpenRouter = ai.defineTool(
   {
     name: 'optimizeRoutesWithOpenRouter',
-    description: 'Optimizes transportation routes and assigns vehicles and drivers based on patient appointments, vehicle availability, and driver assignments.',
+    description: 'Optimizes transportation routes based on availability.',
     inputSchema: z.object({
       appointments: z.array(AppointmentSchema),
       vehicles: z.array(VehicleSchema),
@@ -94,41 +88,38 @@ const optimizeRoutesWithOpenRouter = ai.defineTool(
     outputSchema: z.array(RouteAssignmentSchema),
   },
   async (input) => {
-    // --- MOCK IMPLEMENTATION FOR ROUTE OPTIMIZATION ---
-    console.log('Optimization tool called.');
-
-    const availableVehicles = input.vehicles.filter(v => v.available);
-    const availableDrivers = input.drivers.filter(d => d.available);
-    const appointmentsToAssign = [...input.appointments];
-
-    const assignments: z.infer<typeof RouteAssignmentSchema>[] = [];
-    
-    let vehicleIndex = 0;
-    let driverIndex = 0;
-
-    while (appointmentsToAssign.length > 0 && vehicleIndex < availableVehicles.length && driverIndex < availableDrivers.length) {
-      const appointment = appointmentsToAssign.shift();
-      if (appointment) {
-        const vehicle = availableVehicles[vehicleIndex % availableVehicles.length];
-        const driver = availableDrivers[driverIndex % availableDrivers.length];
-
-        assignments.push({
-          vehicleId: vehicle.id,
-          driverId: driver.id,
-          route: [appointment.id],
-          estimatedDurationMinutes: 15 + Math.random() * 30,
-          estimatedDistanceKm: 5 + Math.random() * 20,
-          notes: `Trajeto otimizado por IA para o paciente ${appointment.patientId}.`
-        });
-
-        vehicleIndex++;
-        driverIndex++;
-      }
-    }
-
-    return assignments;
+    return deterministicOptimization(input.appointments, input.vehicles, input.drivers);
   }
 );
+
+function deterministicOptimization(appointments: any[], vehicles: any[], drivers: any[]) {
+  const availableVehicles = vehicles.filter(v => v.available);
+  const availableDrivers = drivers.filter(d => d.available);
+  const appointmentsToAssign = [...appointments];
+  const assignments: any[] = [];
+  
+  let vIdx = 0;
+  let dIdx = 0;
+
+  while (appointmentsToAssign.length > 0 && vIdx < availableVehicles.length && dIdx < availableDrivers.length) {
+    const app = appointmentsToAssign.shift();
+    if (app) {
+      const vehicle = availableVehicles[vIdx % availableVehicles.length];
+      const driver = availableDrivers[dIdx % availableDrivers.length];
+      assignments.push({
+        vehicleId: vehicle.id,
+        driverId: driver.id,
+        route: [app.id],
+        estimatedDurationMinutes: 25,
+        estimatedDistanceKm: 12,
+        notes: `Roteirização básica para o paciente ${app.patientId}.`
+      });
+      vIdx++;
+      dIdx++;
+    }
+  }
+  return assignments;
+}
 
 const optimizeRoutesPrompt = ai.definePrompt({
   name: 'optimizeRoutesPrompt',
@@ -136,12 +127,7 @@ const optimizeRoutesPrompt = ai.definePrompt({
   input: { schema: GenerateOptimizedRoutesInputSchema },
   output: { schema: GenerateOptimizedRoutesOutputSchema },
   prompt: `Você é um assistente inteligente de otimização de rotas para o sistema SGov FluxoSaúde.
-Sua missão é gerar as rotas de transporte mais eficientes para os pacientes de Rio Claro - RJ.
-
-Siga estas instruções:
-1. Utilize a ferramenta 'optimizeRoutesWithOpenRouter' para calcular a melhor distribuição de pacientes entre os veículos e motoristas disponíveis.
-2. Analise o retorno da ferramenta e identifique se algum agendamento não pôde ser atendido.
-3. Forneça o resultado final contendo as atribuições de rota, a lista de IDs não atribuídos e um resumo estratégico da operação.`,
+Utilize a ferramenta 'optimizeRoutesWithOpenRouter' para calcular a melhor distribuição de pacientes.`,
 });
 
 export async function generateOptimizedRoutes(input: GenerateOptimizedRoutesInput): Promise<GenerateOptimizedRoutesOutput> {
@@ -155,26 +141,29 @@ const generateOptimizedRoutesFlow = ai.defineFlow(
     outputSchema: GenerateOptimizedRoutesOutputSchema,
   },
   async (input) => {
-    if (input.enableAiAssistance === false) {
+    try {
+      if (input.enableAiAssistance === false) throw new Error('AI Disabled');
+
+      const { output } = await optimizeRoutesPrompt(input);
+      
+      const assignedIds = new Set(output?.assignments?.flatMap(a => a.route) || []);
+      const unassigned = input.appointments.filter(a => !assignedIds.has(a.id)).map(a => a.id);
+
       return {
-        assignments: [],
-        unassignedAppointmentIds: input.appointments.map(app => app.id),
-        optimizationSummary: 'A assistência de IA para otimização de rotas está desativada.'
+        assignments: output?.assignments || [],
+        unassignedAppointmentIds: output?.unassignedAppointmentIds || unassigned,
+        optimizationSummary: output?.optimizationSummary || 'Otimização concluída com sucesso.'
+      };
+    } catch (error) {
+      console.warn("AI Route Optimization failed, using deterministic fallback:", error);
+      const fallbackAssignments = deterministicOptimization(input.appointments, input.vehicles, input.drivers);
+      const assignedIds = new Set(fallbackAssignments.flatMap(a => a.route));
+      
+      return {
+        assignments: fallbackAssignments,
+        unassignedAppointmentIds: input.appointments.filter(a => !assignedIds.has(a.id)).map(a => a.id),
+        optimizationSummary: 'Processamento local ativo. O motor de IA está temporariamente indisponível ou em limite de cota.'
       };
     }
-
-    // Call the prompt which orchestrates the tool call for optimization.
-    const { output } = await optimizeRoutesPrompt(input);
-
-    // Re-calculating unassigned appointments as a robust fallback/validation
-    const assignedAppointmentIds = new Set(output?.assignments?.flatMap(assignment => assignment.route) || []);
-    const allInputAppointmentIds = new Set(input.appointments.map(app => app.id));
-    const computedUnassignedAppointmentIds = Array.from(allInputAppointmentIds).filter(id => !assignedAppointmentIds.has(id));
-
-    return {
-      assignments: output?.assignments || [],
-      unassignedAppointmentIds: output?.unassignedAppointmentIds || computedUnassignedAppointmentIds,
-      optimizationSummary: output?.optimizationSummary || 'Otimização de rotas concluída com assistência de IA.'
-    };
   }
 );

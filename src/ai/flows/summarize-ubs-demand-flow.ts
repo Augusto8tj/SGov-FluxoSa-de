@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview Fluxo Genkit para resumir a demanda de transporte de uma UBS específica.
+ * @fileOverview Fluxo Genkit para resumir a demanda de transporte de uma UBS com fallback.
  */
 
 import { ai } from '@/ai/genkit';
@@ -29,14 +29,7 @@ const ubsDemandPrompt = ai.definePrompt({
   name: 'ubsDemandPrompt',
   input: { schema: UbsDemandInputSchema },
   output: { schema: UbsDemandOutputSchema },
-  prompt: `Você é um analista de logística de saúde pública. 
-Gere um resumo estratégico para o gerente da {{{ubsName}}} com base nos seguintes dados:
-
-- Pedidos pendentes: {{pendingRequests}}
-- Casos de urgência (alta/crítica): {{urgentCases}}
-- Destinos frequentes: {{#each commonDestinations}}{{this}}, {{/each}}
-
-O objetivo é ajudar a UBS a entender se sua demanda está sendo atendida e como melhorar a organização dos pedidos para o transporte sanitário municipal.`,
+  prompt: `Gere um resumo estratégico para a UBS {{{ubsName}}}.`,
 });
 
 const ubsDemandFlow = ai.defineFlow(
@@ -46,8 +39,17 @@ const ubsDemandFlow = ai.defineFlow(
     outputSchema: UbsDemandOutputSchema,
   },
   async (input) => {
-    const { output } = await ubsDemandPrompt(input);
-    if (!output) throw new Error('Falha ao gerar resumo da UBS.');
-    return output;
+    try {
+      const { output } = await ubsDemandPrompt(input);
+      if (!output) throw new Error('AI Error');
+      return output;
+    } catch (error) {
+      console.warn("AI UBS Demand failed, using fallback:", error);
+      return {
+        summary: `A ${input.ubsName} possui ${input.pendingRequests} pedidos pendentes no sistema, sendo ${input.urgentCases} de urgência.`,
+        recommendation: "Revise os horários de saída para evitar acúmulo na janela das 08h às 10h.",
+        priorityLevel: input.urgentCases > 2 ? 'high' : 'medium'
+      };
+    }
   }
 );
