@@ -62,17 +62,26 @@ const initialDrivers = [
   { id: "D2", name: "Marcos Pereira", license: "Cat. D - 15/02/2025", phone: "(19) 98765-4321", status: "Disponível" },
 ];
 
+const initialVehicles = [
+  { id: "V1", plate: "ABC-1234", type: "Ambulância", capacity: 2, status: "Operacional" },
+  { id: "V2", plate: "XYZ-5678", type: "Van", capacity: 12, status: "Operacional" },
+];
+
 export default function SettingsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [units, setUnits] = useState(initialUnits);
   const [drivers, setDrivers] = useState(initialDrivers);
+  const [vehicles, setVehicles] = useState(initialVehicles);
   
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
   const [newUnit, setNewUnit] = useState({ id: "", name: "", address: "" });
 
   const [isDriverDialogOpen, setIsDriverDialogOpen] = useState(false);
   const [newDriver, setNewDriver] = useState({ id: "", name: "", license: "", phone: "" });
+
+  const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
+  const [newVehicle, setNewVehicle] = useState({ id: "", plate: "", type: "Ambulância", capacity: 1 });
 
   useEffect(() => {
     setMounted(true);
@@ -142,6 +151,36 @@ export default function SettingsPage() {
   const handleEditDriver = (driver: any) => {
     setNewDriver({ id: driver.id, name: driver.name, license: driver.license, phone: driver.phone });
     setIsDriverDialogOpen(true);
+  };
+
+  const handleAddVehicle = () => {
+    if (!newVehicle.plate || !newVehicle.capacity) {
+      toast({ title: "Erro", description: "Preencha os campos obrigatórios do veículo.", variant: "destructive" });
+      return;
+    }
+
+    if (newVehicle.id) {
+      setVehicles(prev => prev.map(v => v.id === newVehicle.id ? { ...v, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type, capacity: Number(newVehicle.capacity) } : v));
+      toast({ title: "Veículo Atualizado", description: `Dados do veículo ${newVehicle.plate.toUpperCase()} atualizados.` });
+    } else {
+      const vehicle = {
+        id: `V${vehicles.length + 1}`,
+        plate: newVehicle.plate.toUpperCase(),
+        type: newVehicle.type,
+        capacity: Number(newVehicle.capacity),
+        status: "Operacional"
+      };
+      setVehicles(prev => [...prev, vehicle]);
+      toast({ title: "Veículo Cadastrado", description: `Veículo ${vehicle.plate} adicionado à frota.` });
+    }
+
+    setIsVehicleDialogOpen(false);
+    setNewVehicle({ id: "", plate: "", type: "Ambulância", capacity: 1 });
+  };
+
+  const handleEditVehicle = (vehicle: any) => {
+    setNewVehicle({ id: vehicle.id, plate: vehicle.plate, type: vehicle.type, capacity: vehicle.capacity });
+    setIsVehicleDialogOpen(true);
   };
 
   if (!mounted) {
@@ -367,7 +406,64 @@ export default function SettingsPage() {
                 <CardTitle>Configuração da Frota</CardTitle>
                 <CardDescription>Cadastro técnico de veículos municipais.</CardDescription>
               </div>
-              <Button onClick={() => handleSave("Frota")}>Cadastrar Veículo</Button>
+              <Dialog open={isVehicleDialogOpen} onOpenChange={setIsVehicleDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2" onClick={() => setNewVehicle({ id: "", plate: "", type: "Ambulância", capacity: 1 })}>
+                    <Plus className="h-4 w-4" /> Cadastrar Veículo
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{newVehicle.id ? "Editar Veículo" : "Novo Veículo"}</DialogTitle>
+                    <DialogDescription>
+                      {newVehicle.id ? "Atualize as informações do veículo." : "Adicione um novo veículo para o transporte sanitário."}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="v-plate">Placa</Label>
+                      <Input 
+                        id="v-plate" 
+                        placeholder="AAA-0000" 
+                        value={newVehicle.plate}
+                        onChange={(e) => setNewVehicle(prev => ({ ...prev, plate: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label>Tipo</Label>
+                        <Select 
+                          value={newVehicle.type} 
+                          onValueChange={(val) => setNewVehicle(prev => ({ ...prev, type: val as any }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Ambulância">Ambulância</SelectItem>
+                            <SelectItem value="Van">Van</SelectItem>
+                            <SelectItem value="Sedan">Sedan</SelectItem>
+                            <SelectItem value="Acessível">Acessível</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="v-cap">Capacidade</Label>
+                        <Input 
+                          id="v-cap" 
+                          type="number" 
+                          value={newVehicle.capacity}
+                          onChange={(e) => setNewVehicle(prev => ({ ...prev, capacity: Number(e.target.value) }))}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="ghost" onClick={() => setIsVehicleDialogOpen(false)}>Cancelar</Button>
+                    <Button onClick={handleAddVehicle}>{newVehicle.id ? "Salvar Alterações" : "Salvar Veículo"}</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent>
               <Table>
@@ -376,42 +472,37 @@ export default function SettingsPage() {
                     <TableHead>Placa</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Capacidade</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-mono">ABC-1234</TableCell>
-                    <TableCell>Ambulância</TableCell>
-                    <TableCell>2 Pacientes</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
-                          <DropdownMenuItem>Manutenção</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-mono">XYZ-5678</TableCell>
-                    <TableCell>Van de Passageiros</TableCell>
-                    <TableCell>12 Pacientes</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
-                          <DropdownMenuItem>Manutenção</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                  {vehicles.map((vehicle) => (
+                    <TableRow key={vehicle.id}>
+                      <TableCell className="font-mono">{vehicle.plate}</TableCell>
+                      <TableCell>{vehicle.type}</TableCell>
+                      <TableCell>{vehicle.capacity} {vehicle.capacity === 1 ? 'Paciente' : 'Pacientes'}</TableCell>
+                      <TableCell><Badge className="bg-emerald-100 text-emerald-700">{vehicle.status}</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditVehicle(vehicle); }}>
+                              <Edit className="h-4 w-4 mr-2" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive" onSelect={() => {
+                              setVehicles(prev => prev.filter(v => v.id !== vehicle.id));
+                              toast({ title: "Veículo Removido", description: "O veículo foi excluído da frota.", variant: "destructive" });
+                            }}>
+                              <Trash2 className="h-4 w-4 mr-2" /> Remover
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
