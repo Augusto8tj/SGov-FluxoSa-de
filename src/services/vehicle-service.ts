@@ -30,7 +30,7 @@ export const vehicleService = {
       } as Vehicle));
     } catch (error) {
       console.error("Error in vehicleService.getVehicles:", error);
-      throw new Error("Falha ao carregar frota de veículos.");
+      throw new Error("Falha na sincronização da frota.");
     }
   },
 
@@ -39,14 +39,16 @@ export const vehicleService = {
    */
   async addVehicle(vehicle: Omit<Vehicle, "id">): Promise<string> {
     try {
+      const now = new Date().toISOString();
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...vehicle,
-        createdAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now
       });
       return docRef.id;
     } catch (error) {
       console.error("Error in vehicleService.addVehicle:", error);
-      throw new Error("Falha ao cadastrar novo veículo.");
+      throw new Error("Erro ao registrar veículo no banco de dados.");
     }
   },
 
@@ -62,7 +64,7 @@ export const vehicleService = {
       });
     } catch (error) {
       console.error("Error in vehicleService.updateVehicle:", error);
-      throw new Error("Falha ao atualizar dados do veículo.");
+      throw new Error("Erro ao atualizar informações do veículo.");
     }
   },
 
@@ -75,7 +77,7 @@ export const vehicleService = {
       await deleteDoc(docRef);
     } catch (error) {
       console.error("Error in vehicleService.deleteVehicle:", error);
-      throw new Error("Falha ao remover veículo.");
+      throw new Error("Erro ao remover veículo da frota.");
     }
   }
 };

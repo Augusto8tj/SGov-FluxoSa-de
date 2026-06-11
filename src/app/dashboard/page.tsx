@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -11,7 +10,8 @@ import {
   BrainCircuit,
   Zap,
   ArrowRight,
-  Loader2
+  Loader2,
+  Inbox
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -81,46 +81,40 @@ export default function DashboardPage() {
       setVehicles(vehData);
     } catch (err) {
       console.error("Erro ao carregar dashboard:", err);
-      setError("Não foi possível carregar os dados operacionais.");
+      setError("Não foi possível sincronizar os dados operacionais com o Firebase.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Cálculos de KPIs
   const kpis = useMemo(() => {
     const pending = requests.filter(r => r.status === 'PENDING').length;
     const critical = requests.filter(r => r.urgencyLevel === 'critical').length;
     const activeVehicles = vehicles.filter(v => v.status === 'AVAILABLE').length;
     const totalVehicles = vehicles.length;
-    
-    // Contagem de UBS únicas baseada nos pedidos
     const ubsSet = new Set(requests.map(r => r.ubsId || 'UBS Central'));
-    const ubsCount = ubsSet.size || 1;
+    const ubsCount = ubsSet.size || 0;
 
     return { pending, critical, activeVehicles, totalVehicles, ubsCount };
   }, [requests, vehicles]);
 
-  // Dados do Gráfico (Agrupado por UBS)
   const chartData = useMemo(() => {
+    if (requests.length === 0) return [];
+
     const groups: Record<string, number> = {};
     requests.forEach(req => {
       const ubsName = req.pickupLocation || 'Outros';
       groups[ubsName] = (groups[ubsName] || 0) + 1;
     });
 
-    const data = Object.entries(groups).map(([name, count]) => ({
-      name: name.replace('UBS ', '').split(' ')[0], // Nome curto
-      fullName: name,
-      count
-    }));
-
-    // Fallback se não houver dados
-    if (data.length === 0) {
-      return [{ name: "Sem Dados", count: 0 }];
-    }
-
-    return data.sort((a, b) => b.count - a.count).slice(0, 5);
+    return Object.entries(groups)
+      .map(([name, count]) => ({
+        name: name.replace('UBS ', '').split(' ')[0],
+        fullName: name,
+        count
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
   }, [requests]);
 
   const handleGenerateBriefing = async () => {
@@ -142,8 +136,8 @@ export default function DashboardPage() {
       console.error("Erro ao gerar briefing", error);
       toast({
         variant: "destructive",
-        title: "IA Temporariamente Indisponível",
-        description: "O modelo de IA está com alta demanda.",
+        title: "IA Indisponível",
+        description: "O modelo de linguagem está com alta demanda. Tente novamente em instantes.",
       });
     } finally {
       setLoadingAi(false);
@@ -166,10 +160,10 @@ export default function DashboardPage() {
       <div className="p-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Erro Operacional</AlertTitle>
+          <AlertTitle>Erro na Camada de Dados</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
-        <Button onClick={loadDashboardData} className="mt-4">Tentar Novamente</Button>
+        <Button onClick={loadDashboardData} className="mt-4">Tentar Reconexão</Button>
       </div>
     );
   }
@@ -260,16 +254,6 @@ export default function DashboardPage() {
         />
       </div>
 
-      {!isWithinWindow && requests.length > 0 && (
-        <Alert className="bg-amber-50 border-amber-200">
-          <AlertCircle className="h-4 w-4 text-amber-600" />
-          <AlertTitle className="text-amber-800 font-semibold text-xs sm:text-sm">Janela Encerrada</AlertTitle>
-          <AlertDescription className="text-amber-700 text-[10px] sm:text-xs">
-            Novos pedidos só entre 08:00 e 13:00. O sistema está processando a demanda atual.
-          </AlertDescription>
-        </Alert>
-      )}
-
       <div className="grid gap-4 sm:gap-6 md:grid-cols-7">
         <Card className="md:col-span-4 border-none shadow-sm overflow-hidden">
           <CardHeader className="p-4 sm:p-6">
@@ -277,40 +261,47 @@ export default function DashboardPage() {
             <CardDescription className="text-xs">Volume de solicitações por unidade de origem.</CardDescription>
           </CardHeader>
           <CardContent className="h-[200px] sm:h-[300px] p-2 sm:p-6">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fill: "#888" }}
-                />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#888" }} />
-                <Tooltip 
-                  cursor={{ fill: '#f5f5f5' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px' }}
-                />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 0 ? "hsl(var(--primary))" : "hsl(var(--accent))"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: "#888" }}
+                  />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#888" }} />
+                  <Tooltip 
+                    cursor={{ fill: '#f5f5f5' }}
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', fontSize: '10px' }}
+                  />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === 0 ? "hsl(var(--primary))" : "hsl(var(--accent))"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-2">
+                <Inbox className="h-10 w-10 opacity-20" />
+                <p className="text-xs font-medium">Nenhum dado de transporte para exibir no gráfico.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card className="md:col-span-3 border-none shadow-sm">
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-base sm:text-lg">Atividades Recentes</CardTitle>
-            <CardDescription className="text-xs">Últimos eventos do sistema.</CardDescription>
+            <CardDescription className="text-xs">Últimos eventos registrados no Firestore.</CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6">
             <div className="space-y-4">
               {requests.length > 0 ? (
                 requests.slice(0, 5).map((item, i) => (
-                  <div key={i} className="flex items-start gap-3">
+                  <div key={item.id} className="flex items-start gap-3">
                     <div className={cn(
                       "mt-1.5 size-1.5 rounded-full shrink-0",
                       item.status === 'APPROVED' ? "bg-emerald-500" : 
@@ -327,13 +318,14 @@ export default function DashboardPage() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8 text-muted-foreground text-xs">
-                  Nenhuma atividade registrada hoje.
+                <div className="text-center py-12 text-muted-foreground space-y-2">
+                  <Inbox className="h-8 w-8 mx-auto opacity-20" />
+                  <p className="text-xs font-medium">Nenhuma atividade registrada.</p>
                 </div>
               )}
             </div>
             <Button variant="outline" className="w-full mt-6 text-[10px] font-bold uppercase tracking-wider h-8" onClick={() => loadDashboardData()}>
-              Sincronizar Agora
+              Sincronizar Manualmente
             </Button>
           </CardContent>
         </Card>

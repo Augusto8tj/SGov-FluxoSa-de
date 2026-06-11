@@ -1,4 +1,18 @@
-export type UserRole = 'OPERATOR' | 'DRIVER' | 'ADMIN' | 'SECRETARY';
+/**
+ * @fileOverview Definições de tipos globais para o sistema SGov FluxoSaúde.
+ * Inclui entidades de domínio, perfis de acesso e estados operacionais.
+ */
+
+export type UserRole = 'UBS_MANAGER' | 'DRIVER' | 'ADMIN' | 'SECRETARY';
+
+export interface UserProfile {
+  uid: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  unitId?: string; // ID da UBS (relevante apenas para UBS_MANAGER)
+  createdAt: string;
+}
 
 export interface Patient {
   id: string;
@@ -8,6 +22,7 @@ export interface Patient {
   needsCompanion: boolean;
   notes?: string;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface UBS {
@@ -24,6 +39,8 @@ export interface Vehicle {
   capacity: number;
   available: boolean;
   status?: 'AVAILABLE' | 'MAINTENANCE' | 'IN_USE';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Driver {
@@ -33,6 +50,8 @@ export interface Driver {
   phone?: string;
   available: boolean;
   status?: 'AVAILABLE' | 'ON_ROUTE' | 'OFF_DUTY';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type TransportStatus = 'PENDING' | 'APPROVED' | 'DENIED' | 'COMPLETED' | 'CANCELLED';
@@ -47,10 +66,11 @@ export interface TransportRequest {
   requestedTime: string;
   urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
   status: TransportStatus;
-  operatorId: string;
+  operatorId: string; // ID do usuário que criou/gerencia o pedido
   createdAt: string;
+  updatedAt?: string;
   
-  // Campos operacionais adicionados para escala e roteirização
+  // Campos operacionais para escala e roteirização
   driverId?: string;
   vehicleId?: string;
   assignedAt?: string;
@@ -58,7 +78,9 @@ export interface TransportRequest {
   pickupLocationCoords?: { lat: number; lng: number };
   destinationLocationCoords?: { lat: number; lng: number };
   
-  // Suporte à IA
+  // Suporte à IA (Preservando compatibilidade com fluxos Genkit)
   aiRecommendation?: string;
   aiSuggestedAction?: 'approve' | 'deny' | 'escalate' | 'needs_more_info';
+  
+  // TODO: Implementar trilha de auditoria para mudanças de status
 }

@@ -18,7 +18,7 @@ const COLLECTION_NAME = "patients";
  */
 export const patientService = {
   /**
-   * Lista todos os pacientes em ordem alfabética.
+   * Lista todos os pacientes em ordem alfabética por nome.
    */
   async getPatients(): Promise<Patient[]> {
     try {
@@ -30,7 +30,7 @@ export const patientService = {
       } as Patient));
     } catch (error) {
       console.error("Error in patientService.getPatients:", error);
-      throw new Error("Falha ao buscar lista de pacientes.");
+      throw new Error("Não foi possível carregar a lista de pacientes.");
     }
   },
 
@@ -39,14 +39,16 @@ export const patientService = {
    */
   async addPatient(patient: Omit<Patient, "id">): Promise<string> {
     try {
+      const now = new Date().toISOString();
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...patient,
-        createdAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now
       });
       return docRef.id;
     } catch (error) {
       console.error("Error in patientService.addPatient:", error);
-      throw new Error("Falha ao cadastrar paciente.");
+      throw new Error("Erro ao realizar cadastro do cidadão.");
     }
   },
 
@@ -62,12 +64,13 @@ export const patientService = {
       });
     } catch (error) {
       console.error("Error in patientService.updatePatient:", error);
-      throw new Error("Falha ao atualizar dados do paciente.");
+      throw new Error("Erro ao atualizar dados cadastrais.");
     }
   },
 
   /**
    * Remove permanentemente um paciente.
+   * TODO: Implementar Soft Delete para manter histórico de viagens.
    */
   async deletePatient(id: string): Promise<void> {
     try {
@@ -75,7 +78,7 @@ export const patientService = {
       await deleteDoc(docRef);
     } catch (error) {
       console.error("Error in patientService.deletePatient:", error);
-      throw new Error("Falha ao remover paciente.");
+      throw new Error("Erro ao remover registro do paciente.");
     }
   }
 };
