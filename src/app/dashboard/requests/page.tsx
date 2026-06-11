@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -10,7 +9,6 @@ import {
   Loader2, 
   Edit,
   Trash2,
-  Filter,
   Calendar as CalendarIcon,
   MapPin,
   Clock,
@@ -21,7 +19,9 @@ import {
   Check,
   X,
   FileText,
-  User
+  User,
+  Ambulance,
+  Navigation
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -133,7 +133,16 @@ export default function RequestsPage() {
 
   const handleStatusUpdate = async (id: string, status: TransportStatus) => {
     try {
-      await requestService.updateRequest(id, { status });
+      // Simulação de atribuição automática para demonstração de manifesto
+      const updateData: Partial<TransportRequest> = { status };
+      if (status === 'APPROVED') {
+        updateData.driverId = "Carlos Silva (D1)";
+        updateData.vehicleId = "Ambulância (V1)";
+        updateData.assignedAt = new Date().toISOString();
+        updateData.manifestId = `MAN-${id.split('-').pop()}`;
+      }
+
+      await requestService.updateRequest(id, updateData);
       toast({ title: "Status Atualizado", description: `Pedido definido como ${status}.` });
       loadData();
     } catch (error: any) {
@@ -343,7 +352,7 @@ export default function RequestsPage() {
                   </div>
                 </div>
                 
-                <div className="p-6 space-y-6 bg-white">
+                <div className="p-6 space-y-6 bg-white max-h-[60vh] overflow-y-auto no-scrollbar">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Data e Horário</p>
@@ -377,6 +386,38 @@ export default function RequestsPage() {
                     </div>
                   </div>
 
+                  {/* Dados do Manifesto / Logística */}
+                  {(viewingRequest.status === 'APPROVED' || viewingRequest.status === 'COMPLETED') && (
+                    <div className="space-y-3 animate-in slide-in-from-bottom-2">
+                      <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
+                        <Navigation className="h-3.5 w-3.5" /> Logística de Atendimento
+                      </h4>
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600">
+                              <Ambulance className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black text-emerald-700 uppercase tracking-tighter">Viatura Atribuída</p>
+                              <p className="text-sm font-bold text-emerald-900">{viewingRequest.vehicleId || "Aguardando Vaga"}</p>
+                            </div>
+                          </div>
+                          <Badge className="bg-emerald-600 text-white text-[9px] uppercase">{viewingRequest.manifestId}</Badge>
+                        </div>
+                        <div className="flex items-center gap-3 border-t border-emerald-200/50 pt-3">
+                          <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600">
+                            <User className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-emerald-700 uppercase tracking-tighter">Condutor Responsável</p>
+                            <p className="text-sm font-bold text-emerald-900">{viewingRequest.driverId || "Pendente"}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mb-2">Unidade Solicitante</p>
                     <p className="text-xs font-bold text-slate-600">{viewingRequest.ubsId} - Sistema Municipal</p>
@@ -386,7 +427,7 @@ export default function RequestsPage() {
                 <div className="p-4 bg-slate-50 border-t flex gap-2">
                   <Button variant="outline" className="flex-1 rounded-xl h-12 font-bold text-xs uppercase" onClick={() => setIsViewDialogOpen(false)}>Fechar</Button>
                   {viewingRequest.status === 'PENDING' && (
-                    <Button className="flex-1 rounded-xl h-12 font-bold text-xs uppercase bg-emerald-600 hover:bg-emerald-700" onClick={() => {
+                    <Button className="flex-1 rounded-xl h-12 font-bold text-xs uppercase bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200" onClick={() => {
                       handleStatusUpdate(viewingRequest.id, 'APPROVED');
                       setIsViewDialogOpen(false);
                     }}>Aprovar Pedido</Button>
@@ -452,7 +493,9 @@ export default function RequestsPage() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-primary/10 transition-colors">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56 rounded-xl shadow-xl">
                           <DropdownMenuItem onClick={() => { setViewingRequest(req); setIsViewDialogOpen(true); }} className="gap-2 cursor-pointer">
