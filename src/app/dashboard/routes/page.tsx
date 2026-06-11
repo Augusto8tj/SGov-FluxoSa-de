@@ -18,9 +18,9 @@ import { generateOptimizedRoutes, GenerateOptimizedRoutesOutput } from "@/ai/flo
 
 // Coordenadas reais de Rio Claro - RJ (Centro, Lídice, Passa Três)
 const mockAppointments = [
-  { id: "A1", patientId: "P1", pickupLocation: { lat: -22.7214, lng: -44.1322 }, destinationUbsId: "UBS1", scheduledTime: "08:00", companionCount: 1, specialNeeds: ["wheelchair"] },
+  { id: "A1", patientId: "P1", pickupLocation: { lat: -22.7214, lng: -44.1322 }, destinationUbsId: "UBS1", scheduledTime: "08:00", companionCount: 1, specialNeeds: ["cadeirante"] },
   { id: "A2", patientId: "P2", pickupLocation: { lat: -22.7931, lng: -44.0244 }, destinationUbsId: "UBS1", scheduledTime: "08:30" }, // Passa Três
-  { id: "A3", patientId: "P3", pickupLocation: { lat: -22.8455, lng: -44.2312 }, destinationUbsId: "UBS2", scheduledTime: "09:00", specialNeeds: ["oxygen"] }, // Lídice
+  { id: "A3", patientId: "P3", pickupLocation: { lat: -22.8455, lng: -44.2312 }, destinationUbsId: "UBS2", scheduledTime: "09:00", specialNeeds: ["oxigênio"] }, // Lídice
 ];
 
 const mockVehicles = [

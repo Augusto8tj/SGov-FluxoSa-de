@@ -26,7 +26,8 @@ export const aiService = {
     }
 
     try {
-      const fullPrompt = `${prompt}\n\nIMPORTANTE: Sua resposta deve ser APENAS um objeto JSON válido seguindo esta estrutura: ${schemaDescription}. Não inclua explicações ou markdown fora do JSON.`;
+      // Adicionada instrução explícita para Português do Brasil
+      const fullPrompt = `${prompt}\n\nIMPORTANTE: Sua resposta deve ser escrita obrigatoriamente em Português do Brasil (pt-BR). Sua resposta deve ser APENAS um objeto JSON válido seguindo esta estrutura: ${schemaDescription}. Não inclua explicações ou markdown fora do JSON.`;
 
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
