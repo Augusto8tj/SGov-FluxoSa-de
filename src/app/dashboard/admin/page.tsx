@@ -10,12 +10,11 @@ import {
   History, 
   Zap,
   Filter,
-  MoreVertical,
   Check,
   X,
   AlertTriangle
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -28,12 +27,6 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 import { provideDecisionSupportForApprovals, ProvideDecisionSupportOutput } from "@/ai/flows/provide-decision-support-for-approvals";
 import { useToast } from "@/hooks/use-toast";
 
@@ -68,6 +61,7 @@ export default function AdminPage() {
         conflictingRequestsSummary: "Nenhum conflito crítico detectado"
       });
       setAnalysis(prev => ({ ...prev, [req.id]: result }));
+      toast({ title: "Análise concluída", description: `Recomendação gerada para ${req.patient}.` });
     } catch (error) {
       toast({ title: "Erro na análise", description: "Não foi possível obter suporte da IA agora.", variant: "destructive" });
     } finally {
@@ -132,7 +126,7 @@ export default function AdminPage() {
                     <TableCell>{req.ubs}</TableCell>
                     <TableCell>
                       <Badge variant={req.priority === 'high' ? 'destructive' : req.priority === 'medium' ? 'default' : 'secondary'}>
-                        {req.priority}
+                        {req.priority === 'high' ? 'ALTA' : req.priority === 'medium' ? 'MÉDIA' : 'BAIXA'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -196,7 +190,7 @@ export default function AdminPage() {
                           result.suggestedAction === 'approve' ? 'bg-emerald-100 text-emerald-700' :
                           result.suggestedAction === 'deny' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
                         }>
-                          {result.suggestedAction.toUpperCase()}
+                          {result.suggestedAction === 'approve' ? 'APROVAR' : result.suggestedAction === 'deny' ? 'RECUSAR' : 'ESCALAR'}
                         </Badge>
                       </div>
                       <p className="text-sm text-foreground mb-3 font-medium">{result.recommendation}</p>

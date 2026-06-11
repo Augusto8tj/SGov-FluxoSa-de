@@ -13,7 +13,7 @@ import {
   Route as RouteIcon,
   Navigation
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +26,7 @@ const mockAppointments = [
 ];
 
 const mockVehicles = [
-  { id: "V1", type: "Ambulance", capacity: 2, currentLocation: { lat: -22.411, lng: -47.561 }, available: true },
+  { id: "V1", type: "Ambulância", capacity: 2, currentLocation: { lat: -22.411, lng: -47.561 }, available: true },
   { id: "V2", type: "Van", capacity: 8, currentLocation: { lat: -22.415, lng: -47.565 }, available: true },
 ];
 
@@ -54,7 +54,7 @@ export default function RoutesPage() {
         enableAiAssistance: true
       });
       setResult(data);
-      toast({ title: "Otimização Concluída", description: data.optimizationSummary });
+      toast({ title: "Otimização Concluída", description: data.optimizationSummary || "Rotas geradas com sucesso." });
     } catch (error) {
       toast({ title: "Erro na Otimização", description: "Ocorreu um problema ao processar as rotas.", variant: "destructive" });
     } finally {
@@ -107,9 +107,6 @@ export default function RoutesPage() {
               </span>
               <Badge variant="secondary">{mockDrivers.length}</Badge>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-4 italic uppercase">
-              Dados extraídos do Firestore em tempo real.
-            </p>
           </CardContent>
         </Card>
 
@@ -127,9 +124,9 @@ export default function RoutesPage() {
           )}
 
           {optimizing && (
-            <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <div className="flex flex-col items-center justify-center py-20 space-y-4 text-center">
               <Loader2 className="h-12 w-12 text-primary animate-spin" />
-              <div className="text-center">
+              <div>
                 <p className="text-lg font-semibold animate-pulse">Calculando Rotas...</p>
                 <p className="text-sm text-muted-foreground">Acessando API OpenRouter para otimização geoespacial.</p>
               </div>
