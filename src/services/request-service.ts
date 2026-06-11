@@ -1,3 +1,4 @@
+
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -11,37 +12,37 @@ import {
   Timestamp 
 } from "firebase/firestore";
 import { TransportRequest } from "@/lib/types";
+import { MOCK_REQUESTS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "requests";
 
 /**
  * @fileOverview Serviço de gestão de solicitações de transporte no Firestore.
- * Gerencia o ciclo de vida dos pedidos, desde a criação até a finalização/cancelamento.
+ * Suporta fallback para dados de demonstração quando o banco está vazio.
  */
 export const requestService = {
   /**
-   * Busca todas as solicitações, das mais recentes para as mais antigas.
-   * @returns Lista de TransportRequest.
+   * Busca todas as solicitações. Retorna mocks se o banco estiver vazio.
    */
   async getRequests(): Promise<TransportRequest[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        return MOCK_REQUESTS;
+      }
+
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as TransportRequest));
     } catch (error) {
-      console.error("Error in requestService.getRequests:", error);
-      throw new Error("Falha ao carregar solicitações de transporte do servidor.");
+      console.warn("Firestore error, falling back to mocks:", error);
+      return MOCK_REQUESTS;
     }
   },
 
-  /**
-   * Cria um novo pedido de transporte.
-   * @param request Dados da solicitação sem o ID.
-   * @returns ID do documento criado.
-   */
   async addRequest(request: Omit<TransportRequest, "id">): Promise<string> {
     try {
       const now = Timestamp.now().toDate().toISOString();
@@ -52,16 +53,11 @@ export const requestService = {
       });
       return docRef.id;
     } catch (error) {
-      console.error("Error in requestService.addRequest:", error);
-      throw new Error("Falha ao criar nova solicitação de transporte.");
+      console.error("Error adding request:", error);
+      throw new Error("Falha ao criar nova solicitação.");
     }
   },
 
-  /**
-   * Atualiza o status ou dados operacionais de um pedido.
-   * @param id ID do pedido.
-   * @param data Campos a serem atualizados.
-   */
   async updateRequest(id: string, data: Partial<TransportRequest>): Promise<void> {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
@@ -70,22 +66,18 @@ export const requestService = {
         updatedAt: new Date().toISOString()
       });
     } catch (error) {
-      console.error("Error in requestService.updateRequest:", error);
+      console.error("Error updating request:", error);
       throw new Error(`Falha ao atualizar solicitação ${id}.`);
     }
   },
 
-  /**
-   * Remove ou cancela uma solicitação.
-   * @param id ID do pedido.
-   */
   async deleteRequest(id: string): Promise<void> {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
       await deleteDoc(docRef);
     } catch (error) {
-      console.error("Error in requestService.deleteRequest:", error);
-      throw new Error("Falha ao remover ou cancelar solicitação.");
+      console.error("Error deleting request:", error);
+      throw new Error("Falha ao remover solicitação.");
     }
   }
 };

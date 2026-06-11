@@ -1,3 +1,4 @@
+
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -10,33 +11,33 @@ import {
   orderBy 
 } from "firebase/firestore";
 import { Patient } from "@/lib/types";
+import { MOCK_PATIENTS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "patients";
 
 /**
- * @fileOverview Serviço de gerenciamento de pacientes (Cidadãos) no Firestore.
+ * @fileOverview Serviço de gerenciamento de pacientes com suporte a dados mock.
  */
 export const patientService = {
-  /**
-   * Lista todos os pacientes em ordem alfabética por nome.
-   */
   async getPatients(): Promise<Patient[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("name", "asc"));
       const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        return MOCK_PATIENTS;
+      }
+
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Patient));
     } catch (error) {
-      console.error("Error in patientService.getPatients:", error);
-      throw new Error("Não foi possível carregar a lista de pacientes.");
+      console.warn("Firestore error, falling back to mocks:", error);
+      return MOCK_PATIENTS;
     }
   },
 
-  /**
-   * Cadastra um novo paciente.
-   */
   async addPatient(patient: Omit<Patient, "id">): Promise<string> {
     try {
       const now = new Date().toISOString();
@@ -52,9 +53,6 @@ export const patientService = {
     }
   },
 
-  /**
-   * Atualiza informações cadastrais do paciente.
-   */
   async updatePatient(id: string, data: Partial<Patient>): Promise<void> {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
@@ -68,10 +66,6 @@ export const patientService = {
     }
   },
 
-  /**
-   * Remove permanentemente um paciente.
-   * TODO: Implementar Soft Delete para manter histórico de viagens.
-   */
   async deletePatient(id: string): Promise<void> {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
