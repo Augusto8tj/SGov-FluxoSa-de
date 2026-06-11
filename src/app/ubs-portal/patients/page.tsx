@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -11,11 +10,15 @@ import {
   Trash2,
   History,
   FileText,
-  Loader2
+  Loader2,
+  Activity,
+  ShieldAlert,
+  CalendarDays
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { 
   Table, 
   TableBody, 
@@ -45,15 +48,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Patient } from "@/lib/types";
 import { patientService } from "@/services/patient-service";
+import { Separator } from "@/components/ui/separator";
 
 export default function UbsPatientsPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   
+  // Dialog States
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+  const [viewingPatient, setViewingPatient] = useState<Patient | null>(null);
+  
+  // Form State
   const [formName, setFormName] = useState("");
   const [formCns, setFormCns] = useState("");
   const [formNeedsCompanion, setFormNeedsCompanion] = useState(false);
@@ -93,6 +102,11 @@ export default function UbsPatientsPage() {
       setFormNotes("");
     }
     setIsDialogOpen(true);
+  };
+
+  const handleOpenView = (patient: Patient) => {
+    setViewingPatient(patient);
+    setIsViewDialogOpen(true);
   };
 
   const handleSave = async () => {
@@ -142,6 +156,7 @@ export default function UbsPatientsPage() {
           <UserPlus className="h-4 w-4" /> Novo Cidadão
         </Button>
 
+        {/* Cadastro/Edição Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[500px] w-[95vw] rounded-2xl overflow-y-auto max-h-[90vh]">
             <DialogHeader>
@@ -174,6 +189,107 @@ export default function UbsPatientsPage() {
                 {editingPatient ? "Atualizar" : "Salvar Cidadão"}
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Visualização de Prontuário Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="sm:max-w-[600px] w-[95vw] rounded-3xl overflow-hidden p-0 border-none shadow-2xl">
+            {viewingPatient && (
+              <div className="flex flex-col h-full">
+                <div className="bg-primary p-6 text-primary-foreground">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-white/20 p-2.5 rounded-2xl">
+                      <FileText className="h-7 w-7" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black tracking-tight leading-none uppercase">Prontuário Digital</h3>
+                      <p className="text-[10px] uppercase font-bold opacity-80 mt-1 tracking-widest">Secretaria de Saúde &bull; Rio Claro</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-2xl font-black">{viewingPatient.name}</p>
+                    <p className="text-xs font-bold opacity-90 flex items-center gap-1">
+                      <Activity className="h-3 w-3" /> {viewingPatient.medicalRecordNumber}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-6 bg-white overflow-y-auto max-h-[60vh] no-scrollbar">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Card className="p-4 border-none bg-slate-50 flex flex-col gap-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Situação Cadastral</p>
+                      <div className="flex items-center gap-2">
+                        <div className="size-2 rounded-full bg-emerald-500" />
+                        <span className="text-xs font-bold text-slate-700 uppercase">Ativo no Sistema</span>
+                      </div>
+                    </Card>
+                    <Card className="p-4 border-none bg-slate-50 flex flex-col gap-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Acompanhante</p>
+                      <div className="flex items-center gap-2">
+                        {viewingPatient.needsCompanion ? (
+                          <>
+                            <ShieldAlert className="size-4 text-amber-500" />
+                            <span className="text-xs font-bold text-slate-700 uppercase">Obrigatório</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="size-4 text-emerald-500" />
+                            <span className="text-xs font-bold text-slate-700 uppercase">Não Requer</span>
+                          </>
+                        )}
+                      </div>
+                    </Card>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-primary" /> Condições Clínicas
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {viewingPatient.comorbidities.map((c, i) => (
+                        <Badge key={i} className="bg-primary/10 text-primary border-none text-[10px] px-3 py-1 font-bold uppercase rounded-lg">
+                          {c}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-primary" /> Observações Médicas
+                    </h4>
+                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 italic text-sm text-slate-600 leading-relaxed">
+                      {viewingPatient.notes || "Nenhuma observação clínica registrada para este paciente."}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <CalendarDays className="h-4 w-4 text-primary" /> Histórico Recente
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                        <span className="text-xs font-bold text-slate-700 uppercase">Último Transporte</span>
+                        <span className="text-[10px] font-black text-slate-400">12/05/2024</span>
+                      </div>
+                      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                        <span className="text-xs font-bold text-slate-700 uppercase">Destino</span>
+                        <span className="text-[10px] font-black text-slate-400">Hospital Municipal</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 bg-slate-50 border-t flex gap-2">
+                  <Button className="flex-1 rounded-2xl h-12 font-black uppercase text-xs tracking-widest" onClick={() => setIsViewDialogOpen(false)}>
+                    Fechar Prontuário
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
@@ -224,11 +340,12 @@ export default function UbsPatientsPage() {
                           <DropdownMenuItem onClick={() => handleOpenDialog(p)} className="gap-2 cursor-pointer">
                             <Edit className="h-4 w-4" /> Editar Cadastro
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer">
+                          <DropdownMenuItem onClick={() => handleOpenView(p)} className="gap-2 cursor-pointer">
                             <FileText className="h-4 w-4" /> Ver Prontuário
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="gap-2 cursor-pointer">
-                            <History className="h-4 w-4" /> Histórico de Transporte
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+                            <Trash2 className="h-4 w-4" /> Remover Registro
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
