@@ -11,7 +11,8 @@ import {
   ChevronRight,
   Activity,
   ArrowUpRight,
-  MoreVertical
+  MoreVertical,
+  Navigation
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,10 +39,11 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { UBS } from "@/lib/types";
 
+// Coordenadas reais aproximadas de Rio Claro - RJ
 const initialUBS: UBS[] = [
-  { id: "UBS-01", name: "UBS Central - Rio Claro", address: "Av. 29, 123 - Centro", location: { lat: -22.41, lng: -47.56 } },
-  { id: "UBS-02", name: "UBS Rio Claro Sul", address: "Rua 14, 456 - Jd. Novo", location: { lat: -22.42, lng: -47.55 } },
-  { id: "UBS-03", name: "UBS Norte / Jd. Panorama", address: "Av. Brasil, 789 - Panorama", location: { lat: -22.40, lng: -47.57 } },
+  { id: "UBS-01", name: "UBS Central - Rio Claro", address: "Av. 29, 123 - Centro", location: { lat: -22.7214, lng: -44.1322 } },
+  { id: "UBS-02", name: "UBS Rio Claro Sul / Passa Três", address: "Distrito de Passa Três", location: { lat: -22.7931, lng: -44.0244 } },
+  { id: "UBS-03", name: "UBS Lídice", address: "Distrito de Lídice", location: { lat: -22.8455, lng: -44.2312 } },
 ];
 
 export default function UBSPage() {
@@ -66,13 +68,22 @@ export default function UBSPage() {
       id: `UBS-0${units.length + 1}`,
       name: newUnit.name,
       address: newUnit.address,
-      location: { lat: -22.41, lng: -47.56 } // Mock location
+      location: { lat: -22.72, lng: -44.13 } // Mock location default para Rio Claro RJ
     };
 
     setUnits(prev => [...prev, unit]);
     setIsDialogOpen(false);
     setNewUnit({ name: "", address: "" });
     toast({ title: "Unidade Cadastrada", description: `A ${unit.name} foi adicionada ao sistema.` });
+  };
+
+  const handleOpenMaps = (ubs: UBS) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${ubs.location.lat},${ubs.location.lng}`;
+    window.open(url, '_blank');
+    toast({
+      title: "Abrindo Mapa",
+      description: `Direcionando para a localização de ${ubs.name}.`,
+    });
   };
 
   return (
@@ -92,7 +103,7 @@ export default function UBSPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Cadastrar Nova UBS</DialogTitle>
-              <DialogDescription>Adicione um ponto de coleta ao sistema de Rio Claro.</DialogDescription>
+              <DialogDescription>Adicione um ponto de coleta ao sistema de Rio Claro - RJ.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -126,7 +137,7 @@ export default function UBSPage() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Buscar unidade por nome ou bairro..." 
+              placeholder="Buscar unidade por nome ou distrito..." 
               className="pl-10 h-11"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -141,7 +152,7 @@ export default function UBSPage() {
                     <TableHead>Unidade</TableHead>
                     <TableHead>Endereço</TableHead>
                     <TableHead>Demanda Hoje</TableHead>
-                    <TableHead className="text-right">Mapa</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -171,8 +182,13 @@ export default function UBSPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" className="text-primary gap-1">
-                            Ver <ArrowUpRight className="h-3 w-3" />
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-primary gap-1"
+                            onClick={() => handleOpenMaps(ubs)}
+                          >
+                            Ver Mapa <ArrowUpRight className="h-3 w-3" />
                           </Button>
                         </TableCell>
                       </TableRow>
