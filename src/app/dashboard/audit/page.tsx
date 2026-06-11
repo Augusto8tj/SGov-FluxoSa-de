@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const MOCK_AUDIT_LOGS = [
   { id: "LOG-001", user: "secretario@rioclaro.rj.gov.br", action: "Aprovação em Massa", resource: "Solicitações", ip: "187.12.34.56", status: "SUCCESS", time: new Date().toISOString() },
