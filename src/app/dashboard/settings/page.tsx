@@ -191,7 +191,7 @@ export default function SettingsPage() {
                     <TableHead>CNH / Vencimento</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
-                  </TableHeader>
+                  </TableRow>
                 </TableHeader>
                 <TableBody>
                   {drivers.map((driver) => (
