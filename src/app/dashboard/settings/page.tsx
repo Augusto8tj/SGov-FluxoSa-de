@@ -10,7 +10,6 @@ import {
   ShieldCheck, 
   Plus, 
   Edit,
-  Key,
   BrainCircuit, 
   Zap, 
   Loader2, 
@@ -58,14 +57,18 @@ import { UserRole } from "@/lib/types";
 
 const AI_MODELS = [
   { id: "google/gemini-2.0-flash-lite-preview-02-05:free", name: "Gemini 2.0 Flash Lite (Free)" },
-  { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku" },
+  { id: "google/gemini-2.0-flash-exp", name: "Gemini 2.0 Flash Exp" },
+  { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Estável)" },
+  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nvidia Nemotron Nano 9B (Free)" },
   { id: "nvidia/llama-nemotron-rerank-vl-1b-v2:free", name: "Llama Nemotron Rerank (Free)" },
   { id: "nex-agi/nex-n2-pro:free", name: "Nex AGI Pro (Free)" },
   { id: "sourceful/riverflow-v2.5-pro", name: "Riverflow v2.5 Pro" },
-  { id: "nvidia/nemotron-3.5-content-safety:free", name: "Nvidia Safety Classifier" },
+  { id: "nvidia/nemotron-3.5-content-safety:free", name: "Nvidia Safety Classifier (Filtro)" },
   { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)" },
-  { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B" },
-  { id: "openrouter/free", name: "OpenRouter Free" },
+  { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku" },
+  { id: "openrouter/free", name: "OpenRouter Free Router" },
+  { id: "google/gemma-4-26b-a4b:free", name: "Gemma 4 26B (Free)" },
+  { id: "openai/gpt-oss-120b:free", name: "GPT OSS 120B (Free)" },
 ];
 
 const initialUnits = [
