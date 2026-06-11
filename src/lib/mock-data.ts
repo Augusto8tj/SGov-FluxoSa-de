@@ -31,7 +31,7 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     vehicleId: "Ambulância (V1)",
     driverId: "Carlos Alberto Silva",
     assignedAt: new Date().toISOString(),
-    patientAccessCode: "123456"
+    patientAccessCode: "123456" // CÓDIGO DE TESTE 1
   },
   { 
     id: "REQ-002", 
@@ -49,7 +49,7 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     vehicleId: "Van (V2)",
     driverId: "Marcos Pereira",
     assignedAt: new Date().toISOString(),
-    patientAccessCode: "654321"
+    patientAccessCode: "654321" // CÓDIGO DE TESTE 2
   },
   { 
     id: "REQ-003", 
@@ -63,7 +63,7 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     requestedTime: new Date(Date.now() + 7200000).toISOString(), 
     operatorId: "UBS_MGR",
     createdAt: new Date().toISOString(),
-    patientAccessCode: "112233"
+    patientAccessCode: "112233" // CÓDIGO DE TESTE 3 (PENDENTE)
   },
   { 
     id: "REQ-004", 
