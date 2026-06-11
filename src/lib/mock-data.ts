@@ -24,9 +24,13 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     destinationLocation: "Hospital Municipal Rio Claro", 
     urgencyLevel: "critical", 
     status: "APPROVED", 
-    requestedTime: "2024-05-20T08:00:00Z", 
+    requestedTime: new Date().toISOString(), 
     operatorId: "ADMIN",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    manifestId: "MF-2024-001",
+    vehicleId: "Ambulância (V1)",
+    driverId: "Carlos Alberto Silva",
+    assignedAt: new Date().toISOString()
   },
   { 
     id: "REQ-002", 
@@ -37,9 +41,13 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     destinationLocation: "Centro de Hemodiálise", 
     urgencyLevel: "high", 
     status: "APPROVED", 
-    requestedTime: "2024-05-20T09:30:00Z", 
+    requestedTime: new Date(Date.now() + 3600000).toISOString(), 
     operatorId: "UBS_MGR",
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    manifestId: "MF-2024-002",
+    vehicleId: "Van (V2)",
+    driverId: "Marcos Pereira",
+    assignedAt: new Date().toISOString()
   },
   { 
     id: "REQ-003", 
@@ -50,10 +58,27 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     destinationLocation: "Hospital Regional", 
     urgencyLevel: "medium", 
     status: "PENDING", 
-    requestedTime: "2024-05-20T11:00:00Z", 
+    requestedTime: new Date(Date.now() + 7200000).toISOString(), 
     operatorId: "UBS_MGR",
     createdAt: new Date().toISOString()
   },
+  { 
+    id: "REQ-004", 
+    patientId: "P4", 
+    patientName: "Ana Oliveira", 
+    ubsId: "UBS-01", 
+    pickupLocation: "UBS Central", 
+    destinationLocation: "Clínica de Especialidades", 
+    urgencyLevel: "low", 
+    status: "APPROVED", 
+    requestedTime: new Date(Date.now() + 10800000).toISOString(), 
+    operatorId: "ADMIN",
+    createdAt: new Date().toISOString(),
+    manifestId: "MF-2024-004",
+    vehicleId: "Sedan (V3)",
+    driverId: "Ana Cláudia",
+    assignedAt: new Date().toISOString()
+  }
 ];
 
 export const MOCK_VEHICLES: Vehicle[] = [
