@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -105,6 +106,15 @@ export default function UbsRequestsPage() {
     loadData();
   }, [loadData]);
 
+  const resetForm = () => {
+    setPatientId("");
+    setDestination("");
+    setPatientNotes("");
+    setUrgency("low");
+    setScheduledTime(new Date().toISOString().slice(0, 16));
+    setEditingRequest(null);
+  };
+
   const handleAiUrgency = async () => {
     if (!patientNotes || !destination) {
       toast({ title: "Incompleto", description: "Preencha destino e notas para a IA analisar.", variant: "destructive" });
@@ -143,6 +153,7 @@ export default function UbsRequestsPage() {
       urgencyLevel: urgency as any,
       status: editingRequest?.status || "PENDING",
       operatorId: "UBS_MGR",
+      aiRecommendation: patientNotes, // Salva as notas clínicas
     };
 
     try {
@@ -152,6 +163,7 @@ export default function UbsRequestsPage() {
         await requestService.addRequest(requestData as any);
       }
       setIsDialogOpen(false);
+      resetForm();
       loadData();
       toast({ title: "Solicitação Enviada", description: "O pedido foi encaminhado para a Secretaria de Saúde." });
     } catch {
@@ -217,18 +229,17 @@ export default function UbsRequestsPage() {
                 toast({ title: "Sistema Fechado", description: "Agendamentos permitidos apenas entre 08h e 13h.", variant: "destructive" });
                 return;
               }
-              setEditingRequest(null);
-              setPatientId("");
-              setDestination("");
-              setPatientNotes("");
-              setScheduledTime(new Date().toISOString().slice(0, 16));
+              resetForm();
               setIsDialogOpen(true);
             }}
           >
             <Plus className="h-4 w-4" /> Nova Solicitação
           </Button>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
             <DialogContent className="sm:max-w-[550px] w-[95vw] rounded-2xl overflow-y-auto max-h-[90vh]">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
@@ -268,6 +279,7 @@ export default function UbsRequestsPage() {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="notes">Notas Clínicas</Label>
                     <Button 
+                      type="button"
                       variant="ghost" 
                       size="sm" 
                       className="h-7 text-[10px] text-primary font-bold gap-1" 
@@ -313,7 +325,7 @@ export default function UbsRequestsPage() {
               <DialogFooter className="gap-2 sm:gap-0">
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl">Cancelar</Button>
                 <Button onClick={handleSave} className="rounded-xl bg-primary shadow-lg shadow-primary/20">
-                  Confirmar Pedido
+                  {editingRequest ? "Salvar" : "Confirmar Pedido"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -398,6 +410,7 @@ export default function UbsRequestsPage() {
                               setDestination(req.destinationLocation);
                               setUrgency(req.urgencyLevel);
                               setScheduledTime(req.requestedTime.slice(0, 16));
+                              setPatientNotes(req.aiRecommendation || "");
                               setIsDialogOpen(true);
                             }}>
                               <Edit className="h-4 w-4 mr-2" /> Editar

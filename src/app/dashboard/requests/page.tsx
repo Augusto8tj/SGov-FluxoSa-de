@@ -118,6 +118,15 @@ export default function RequestsPage() {
     loadData();
   }, [loadData]);
 
+  const resetForm = () => {
+    setPatientId("");
+    setDestination("");
+    setPatientNotes("");
+    setUrgency("low");
+    setScheduledTime(new Date().toISOString().slice(0, 16));
+    setEditingRequest(null);
+  };
+
   const handleAiUrgency = async () => {
     if (!patientNotes || !destination) {
       toast({ title: "Incompleto", description: "Preencha destino e notas para a IA analisar.", variant: "destructive" });
@@ -173,6 +182,7 @@ export default function RequestsPage() {
       urgencyLevel: urgency as any,
       status: editingRequest?.status || "PENDING",
       operatorId: "ADMIN",
+      aiRecommendation: patientNotes, // Salva as notas clínicas aqui
     };
 
     try {
@@ -182,6 +192,7 @@ export default function RequestsPage() {
         await requestService.addRequest(requestData as any);
       }
       setIsDialogOpen(false);
+      resetForm();
       loadData();
       toast({ title: "Sucesso", description: "Solicitação processada com sucesso." });
     } catch (error: any) {
@@ -239,18 +250,17 @@ export default function RequestsPage() {
         </div>
         
         <Button onClick={() => { 
-          setEditingRequest(null); 
-          setPatientId("");
-          setDestination("");
-          setPatientNotes("");
-          setScheduledTime(new Date().toISOString().slice(0, 16));
+          resetForm();
           setIsDialogOpen(true); 
         }} className="gap-2 shadow-md w-full sm:w-auto h-11">
           <Plus className="h-4 w-4" /> Novo Pedido
         </Button>
 
         {/* Dialog Novo/Edição */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
           <DialogContent className="sm:max-w-[550px] w-[95vw] rounded-xl overflow-y-auto max-h-[90vh]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -290,6 +300,7 @@ export default function RequestsPage() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="notes">Notas Clínicas</Label>
                   <Button 
+                    type="button"
                     variant="ghost" 
                     size="sm" 
                     className="h-7 text-[10px] text-primary font-bold gap-1" 
@@ -449,6 +460,7 @@ export default function RequestsPage() {
                                 setDestination(req.destinationLocation); 
                                 setUrgency(req.urgencyLevel); 
                                 setScheduledTime(req.requestedTime.slice(0, 16));
+                                setPatientNotes(req.aiRecommendation || "");
                                 setIsDialogOpen(true); 
                               }} className="gap-2 cursor-pointer">
                                 <Edit className="h-4 w-4" /> Editar Dados
