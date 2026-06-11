@@ -2,13 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { 
-  ClipboardCheck, 
   Users, 
   Ambulance, 
   Clock, 
   AlertCircle,
-  CheckCircle2,
-  TrendingUp,
   MapPin
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
@@ -38,18 +35,17 @@ const chartData = [
 
 export default function DashboardPage() {
   const [isWithinWindow, setIsWithinWindow] = useState(false);
-  const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    const update = () => {
+    // Determine the initial status only after hydration to avoid SSR mismatch
+    const checkTime = () => {
       const now = new Date();
-      setCurrentTime(now);
       const hour = now.getHours();
       setIsWithinWindow(hour >= 8 && hour < 13);
     };
     
-    update();
-    const timer = setInterval(update, 1000);
+    checkTime();
+    const timer = setInterval(checkTime, 60000); // Update every minute
     return () => clearInterval(timer);
   }, []);
 
