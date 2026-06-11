@@ -69,10 +69,10 @@ export default function SettingsPage() {
   const [drivers, setDrivers] = useState(initialDrivers);
   
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
-  const [newUnit, setNewUnit] = useState({ name: "", address: "" });
+  const [newUnit, setNewUnit] = useState({ id: "", name: "", address: "" });
 
   const [isDriverDialogOpen, setIsDriverDialogOpen] = useState(false);
-  const [newDriver, setNewDriver] = useState({ name: "", license: "", phone: "" });
+  const [newDriver, setNewDriver] = useState({ id: "", name: "", license: "", phone: "" });
 
   useEffect(() => {
     setMounted(true);
@@ -91,17 +91,29 @@ export default function SettingsPage() {
       return;
     }
 
-    const unit = {
-      id: `UBS-0${units.length + 1}`,
-      name: newUnit.name,
-      address: newUnit.address,
-      status: "Ativo"
-    };
+    if (newUnit.id) {
+      // Editar
+      setUnits(prev => prev.map(u => u.id === newUnit.id ? { ...u, name: newUnit.name, address: newUnit.address } : u));
+      toast({ title: "Unidade Atualizada", description: `${newUnit.name} foi atualizada com sucesso.` });
+    } else {
+      // Adicionar
+      const unit = {
+        id: `UBS-0${units.length + 1}`,
+        name: newUnit.name,
+        address: newUnit.address,
+        status: "Ativo"
+      };
+      setUnits(prev => [...prev, unit]);
+      toast({ title: "Unidade Cadastrada", description: `${unit.name} foi adicionada ao sistema.` });
+    }
 
-    setUnits(prev => [...prev, unit]);
     setIsUnitDialogOpen(false);
-    setNewUnit({ name: "", address: "" });
-    toast({ title: "Unidade Cadastrada", description: `${unit.name} foi adicionada ao sistema.` });
+    setNewUnit({ id: "", name: "", address: "" });
+  };
+
+  const handleEditUnit = (unit: any) => {
+    setNewUnit({ id: unit.id, name: unit.name, address: unit.address });
+    setIsUnitDialogOpen(true);
   };
 
   const handleAddDriver = () => {
@@ -110,18 +122,30 @@ export default function SettingsPage() {
       return;
     }
 
-    const driver = {
-      id: `D${drivers.length + 1}`,
-      name: newDriver.name,
-      license: newDriver.license,
-      phone: newDriver.phone,
-      status: "Disponível"
-    };
+    if (newDriver.id) {
+      // Editar
+      setDrivers(prev => prev.map(d => d.id === newDriver.id ? { ...d, name: newDriver.name, license: newDriver.license, phone: newDriver.phone } : d));
+      toast({ title: "Motorista Atualizado", description: `${newDriver.name} foi atualizado com sucesso.` });
+    } else {
+      // Adicionar
+      const driver = {
+        id: `D${drivers.length + 1}`,
+        name: newDriver.name,
+        license: newDriver.license,
+        phone: newDriver.phone,
+        status: "Disponível"
+      };
+      setDrivers(prev => [...prev, driver]);
+      toast({ title: "Motorista Cadastrado", description: `${driver.name} foi adicionado ao sistema.` });
+    }
 
-    setDrivers(prev => [...prev, driver]);
     setIsDriverDialogOpen(false);
-    setNewDriver({ name: "", license: "", phone: "" });
-    toast({ title: "Motorista Cadastrado", description: `${driver.name} foi adicionado ao sistema.` });
+    setNewDriver({ id: "", name: "", license: "", phone: "" });
+  };
+
+  const handleEditDriver = (driver: any) => {
+    setNewDriver({ id: driver.id, name: driver.name, license: driver.license, phone: driver.phone });
+    setIsDriverDialogOpen(true);
   };
 
   if (!mounted) {
@@ -153,14 +177,19 @@ export default function SettingsPage() {
                 <CardTitle>Unidades de Saúde (UBS)</CardTitle>
                 <CardDescription>Cadastre e gerencie as UBS do município.</CardDescription>
               </div>
-              <Dialog open={isUnitDialogOpen} onOpenChange={setIsUnitDialogOpen}>
+              <Dialog open={isUnitDialogOpen} onOpenChange={(open) => {
+                setIsUnitDialogOpen(open);
+                if (!open) setNewUnit({ id: "", name: "", address: "" });
+              }}>
                 <DialogTrigger asChild>
                   <Button className="gap-2"><Plus className="h-4 w-4" /> Adicionar UBS</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Nova Unidade de Saúde</DialogTitle>
-                    <DialogDescription>Cadastre um novo ponto de atendimento em Rio Claro - RJ.</DialogDescription>
+                    <DialogTitle>{newUnit.id ? "Editar Unidade" : "Nova Unidade de Saúde"}</DialogTitle>
+                    <DialogDescription>
+                      {newUnit.id ? "Atualize os dados do ponto de atendimento." : "Cadastre um novo ponto de atendimento em Rio Claro - RJ."}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
@@ -184,7 +213,7 @@ export default function SettingsPage() {
                   </div>
                   <DialogFooter>
                     <Button variant="ghost" onClick={() => setIsUnitDialogOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleAddUnit}>Salvar Unidade</Button>
+                    <Button onClick={handleAddUnit}>{newUnit.id ? "Salvar Alterações" : "Salvar Unidade"}</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -211,10 +240,13 @@ export default function SettingsPage() {
                             <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => toast({ title: "Editar", description: `Editando unidade ${unit.name}` })}>
+                            <DropdownMenuItem onClick={() => handleEditUnit(unit)}>
                               <Edit className="h-4 w-4 mr-2" /> Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem className="text-destructive" onClick={() => {
+                              setUnits(prev => prev.filter(u => u.id !== unit.id));
+                              toast({ title: "Unidade Removida", description: "A unidade foi excluída do sistema.", variant: "destructive" });
+                            }}>
                               <Trash2 className="h-4 w-4 mr-2" /> Remover
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -235,14 +267,19 @@ export default function SettingsPage() {
                 <CardTitle>Corpo de Motoristas</CardTitle>
                 <CardDescription>Gestão de condutores, habilitações e contatos.</CardDescription>
               </div>
-              <Dialog open={isDriverDialogOpen} onOpenChange={setIsDriverDialogOpen}>
+              <Dialog open={isDriverDialogOpen} onOpenChange={(open) => {
+                setIsDriverDialogOpen(open);
+                if (!open) setNewDriver({ id: "", name: "", license: "", phone: "" });
+              }}>
                 <DialogTrigger asChild>
                   <Button className="gap-2"><Plus className="h-4 w-4" /> Novo Motorista</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Novo Motorista</DialogTitle>
-                    <DialogDescription>Cadastre um novo condutor para a frota municipal.</DialogDescription>
+                    <DialogTitle>{newDriver.id ? "Editar Motorista" : "Novo Motorista"}</DialogTitle>
+                    <DialogDescription>
+                      {newDriver.id ? "Atualize os dados do condutor." : "Cadastre um novo condutor para a frota municipal."}
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
@@ -275,7 +312,7 @@ export default function SettingsPage() {
                   </div>
                   <DialogFooter>
                     <Button variant="ghost" onClick={() => setIsDriverDialogOpen(false)}>Cancelar</Button>
-                    <Button onClick={handleAddDriver}>Salvar Motorista</Button>
+                    <Button onClick={handleAddDriver}>{newDriver.id ? "Salvar Alterações" : "Salvar Motorista"}</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -309,10 +346,13 @@ export default function SettingsPage() {
                             <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => toast({ title: "Editar", description: `Editando motorista ${driver.name}` })}>
+                            <DropdownMenuItem onClick={() => handleEditDriver(driver)}>
                               <Edit className="h-4 w-4 mr-2" /> Editar
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem className="text-destructive" onClick={() => {
+                              setDrivers(prev => prev.filter(d => d.id !== driver.id));
+                              toast({ title: "Motorista Removido", description: "O cadastro foi excluído.", variant: "destructive" });
+                            }}>
                               <Trash2 className="h-4 w-4 mr-2" /> Remover
                             </DropdownMenuItem>
                           </DropdownMenuContent>

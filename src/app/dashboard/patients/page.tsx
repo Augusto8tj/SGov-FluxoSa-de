@@ -90,6 +90,7 @@ export default function PatientsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [patients, setPatients] = useState(mockPatients);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const { toast } = useToast();
 
   const filteredPatients = patients.filter(p => 
@@ -99,11 +100,45 @@ export default function PatientsPage() {
 
   const handleCreatePatient = (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Cidadão Cadastrado",
-      description: "O registro foi salvo com sucesso no banco de dados municipal.",
-    });
+    const formData = new FormData(e.target as HTMLFormElement);
+    const name = formData.get('name') as string;
+    const cns = formData.get('cns') as string;
+    const comorbiditiesStr = formData.get('comorbidities') as string;
+    const notes = formData.get('notes') as string;
+    const needsCompanion = (e.target as any).elements.companion.checked;
+
+    const comorbidities = comorbiditiesStr ? comorbiditiesStr.split(',').map(s => s.trim()) : [];
+
+    if (editingPatient) {
+      setPatients(prev => prev.map(p => p.id === editingPatient.id ? {
+        ...p,
+        name,
+        medicalRecordNumber: cns,
+        comorbidities,
+        needsCompanion,
+        notes
+      } : p));
+      toast({ title: "Cadastro Atualizado", description: "Os dados do cidadão foram atualizados." });
+    } else {
+      const newP: Patient = {
+        id: `P-${Math.floor(Math.random() * 1000)}`,
+        name,
+        medicalRecordNumber: cns,
+        comorbidities,
+        needsCompanion,
+        notes
+      };
+      setPatients(prev => [...prev, newP]);
+      toast({ title: "Cidadão Cadastrado", description: "O registro foi salvo com sucesso." });
+    }
+    
     setIsDialogOpen(false);
+    setEditingPatient(null);
+  };
+
+  const handleEditPatient = (patient: Patient) => {
+    setEditingPatient(patient);
+    setIsDialogOpen(true);
   };
 
   const handleDeletePatient = (id: string) => {
@@ -123,7 +158,10 @@ export default function PatientsPage() {
           <p className="text-muted-foreground">Gestão centralizada de cidadãos usuários do transporte sanitário.</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setEditingPatient(null);
+        }}>
           <DialogTrigger asChild>
             <Button className="gap-2 shadow-md">
               <UserPlus className="h-4 w-4" /> Novo Paciente
@@ -131,7 +169,7 @@ export default function PatientsPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Cadastrar Novo Cidadão</DialogTitle>
+              <DialogTitle>{editingPatient ? "Editar Cadastro" : "Cadastrar Novo Cidadão"}</DialogTitle>
               <DialogDescription>
                 Insira as informações básicas e clínicas para autorização de transporte.
               </DialogDescription>
@@ -140,31 +178,31 @@ export default function PatientsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2 col-span-2">
                   <Label htmlFor="name">Nome Completo</Label>
-                  <Input id="name" placeholder="Ex: Maria Souza" required />
+                  <Input id="name" name="name" placeholder="Ex: Maria Souza" defaultValue={editingPatient?.name} required />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="cns">CNS / Prontuário</Label>
-                  <Input id="cns" placeholder="000.0000.0000" required />
+                  <Input id="cns" name="cns" placeholder="000.0000.0000" defaultValue={editingPatient?.medicalRecordNumber} required />
                 </div>
                 <div className="flex items-center space-x-2 pt-8">
-                  <Checkbox id="companion" />
+                  <Checkbox id="companion" name="companion" defaultChecked={editingPatient?.needsCompanion} />
                   <Label htmlFor="companion" className="text-sm font-normal">Requer Acompanhante</Label>
                 </div>
               </div>
               
               <div className="grid gap-2">
                 <Label htmlFor="comorbidities">Comorbidades / Necessidades Especiais</Label>
-                <Input id="comorbidities" placeholder="Ex: Diabetes, Cadeirante, Oxigênio" />
+                <Input id="comorbidities" name="comorbidities" placeholder="Ex: Diabetes, Cadeirante, Oxigênio" defaultValue={editingPatient?.comorbidities.join(', ')} />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="notes">Observações Gerais</Label>
-                <Textarea id="notes" placeholder="Informações relevantes para o motorista..." />
+                <Textarea id="notes" name="notes" placeholder="Informações relevantes para o motorista..." defaultValue={editingPatient?.notes} />
               </div>
 
               <DialogFooter className="pt-4">
                 <Button type="button" variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                <Button type="submit">Salvar Cadastro</Button>
+                <Button type="submit">{editingPatient ? "Salvar Alterações" : "Salvar Cadastro"}</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -256,7 +294,7 @@ export default function PatientsPage() {
                             <DropdownMenuItem onClick={() => toast({ title: "Histórico", description: `Abrindo histórico de viagens de ${patient.name}` })}>
                               <History className="h-4 w-4 mr-2" /> Ver Histórico
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setIsDialogOpen(true)}>
+                            <DropdownMenuItem onClick={() => handleEditPatient(patient)}>
                               <Edit className="h-4 w-4 mr-2" /> Editar Cadastro
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
@@ -283,44 +321,6 @@ export default function PatientsPage() {
           </Table>
         </CardContent>
       </Card>
-
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border-none shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-              <Users className="h-4 w-4" /> Total de Usuários
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{patients.length + 1280}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Cidadãos ativos no sistema.</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2 text-amber-600">
-              <ShieldAlert className="h-4 w-4" /> Pacientes Críticos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">42</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Requerem atenção especial em rotas.</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm bg-accent/10">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-primary uppercase tracking-wider flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" /> Recadastramento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">98%</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Dados atualizados na última janela.</p>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
