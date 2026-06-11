@@ -2,14 +2,25 @@
 "use client";
 
 import { ThemeSelector } from "@/components/theme-selector";
-import { Ambulance, Heart } from "lucide-react";
+import { Ambulance, Heart, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function PatientLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const isViewing = pathname.includes("/view");
+
+  const handleLogout = () => {
+    sessionStorage.removeItem("patient_access_code");
+    router.push("/patient-portal");
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-body antialiased flex flex-col items-center">
       <header className="w-full max-w-md bg-white dark:bg-slate-900 border-b p-4 flex items-center justify-between sticky top-0 z-50 shadow-sm">
@@ -19,7 +30,20 @@ export default function PatientLayout({
           </div>
           <span className="font-black text-primary tracking-tight uppercase text-sm">Meu Transporte</span>
         </Link>
-        <ThemeSelector />
+        <div className="flex items-center gap-2">
+          <ThemeSelector />
+          {isViewing && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:text-destructive h-9 w-9 rounded-full transition-colors"
+              onClick={handleLogout}
+              title="Encerrar Consulta"
+            >
+              <LogOut className="size-5" />
+            </Button>
+          )}
+        </div>
       </header>
       
       <main className="flex-1 w-full max-w-md p-4 pb-20">
