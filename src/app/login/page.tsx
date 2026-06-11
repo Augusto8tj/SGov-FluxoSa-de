@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Loader2, Ambulance, BrainCircuit, User, Key, Hospital } from "lucide-react";
+import { ShieldCheck, Loader2, Ambulance, BrainCircuit, User, Key, Hospital, BadgeCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -82,7 +83,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-2 relative">
+          <div className="absolute -top-4 right-0">
+             <Badge className="bg-emerald-500 text-white border-none font-black text-[10px] h-6 px-3 shadow-lg animate-bounce">
+               v1.0.0 STABLE
+             </Badge>
+          </div>
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl ring-4 ring-primary/10">
             <Ambulance className="h-8 w-8" />
           </div>
@@ -91,9 +97,11 @@ export default function LoginPage() {
         </div>
 
         <Card className="border-none shadow-2xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl overflow-hidden">
-          <CardHeader className="bg-primary/5 pb-6">
-            <CardTitle className="text-xl">Acesso Identificado</CardTitle>
-            <CardDescription className="text-xs">Selecione seu perfil de acesso para demonstração.</CardDescription>
+          <CardHeader className="bg-primary/5 pb-6 text-center">
+            <CardTitle className="text-xl flex items-center justify-center gap-2">
+              Acesso Identificado <BadgeCheck className="h-5 w-5 text-primary" />
+            </CardTitle>
+            <CardDescription className="text-xs">Versão de Lançamento Municipal 2024.</CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4 pt-6">
