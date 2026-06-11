@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -39,15 +38,18 @@ const chartData = [
 
 export default function DashboardPage() {
   const [isWithinWindow, setIsWithinWindow] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const update = () => {
       const now = new Date();
       setCurrentTime(now);
       const hour = now.getHours();
       setIsWithinWindow(hour >= 8 && hour < 13);
-    }, 1000);
+    };
+    
+    update();
+    const timer = setInterval(update, 1000);
     return () => clearInterval(timer);
   }, []);
 
