@@ -180,6 +180,18 @@ export default function LoginPage() {
                       <p className="text-[9px] font-medium text-muted-foreground">App de Campo & Rotas</p>
                     </div>
                   </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="justify-start gap-3 h-12 font-bold border-rose-500/20 hover:bg-rose-500/5 rounded-xl group transition-all"
+                    onClick={() => router.push('/patient-portal')}
+                  >
+                    <div className="bg-rose-500/10 p-1.5 rounded-lg group-hover:bg-rose-500/20"><Heart className="h-4 w-4 text-rose-600" /></div>
+                    <div className="text-left leading-none">
+                      <p className="text-xs">Portal do Cidadão</p>
+                      <p className="text-[9px] font-medium text-muted-foreground">Consulta Pública de Viagem</p>
+                    </div>
+                  </Button>
                 </div>
               </div>
             </CardContent>
