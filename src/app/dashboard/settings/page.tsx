@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,7 +19,10 @@ import {
   AlertCircle,
   Play,
   Trophy,
-  BarChart3
+  BarChart3,
+  Fuel,
+  Calendar,
+  Droplets
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,7 +52,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { runModelTest, ModelTesterOutput } from "@/ai/flows/model-tester-flow";
 import { cn } from "@/lib/utils";
-import { UserRole } from "@/lib/types";
+import { UserRole, Vehicle } from "@/lib/types";
 
 const AI_MODELS = [
   { id: "google/gemini-2.0-flash-exp", name: "Gemini 2.0 Flash Exp" },
@@ -107,7 +111,19 @@ export default function SettingsPage() {
   const [isDriverDialogOpen, setIsDriverDialogOpen] = useState(false);
   const [newDriver, setNewDriver] = useState({ id: "", name: "", license: "", phone: "" });
   const [isVehicleDialogOpen, setIsVehicleDialogOpen] = useState(false);
-  const [newVehicle, setNewVehicle] = useState({ id: "", plate: "", type: "Ambulância" as any, capacity: 1 });
+  const [newVehicle, setNewVehicle] = useState<Partial<Vehicle>>({ 
+    id: "", 
+    licensePlate: "", 
+    type: "Ambulância", 
+    capacity: 1,
+    status: "AVAILABLE",
+    odometer: 0,
+    fuelLevel: 100,
+    lastMaintenance: "",
+    nextMaintenance: "",
+    insuranceExpiry: "",
+    lastSanitization: ""
+  });
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [newUser, setNewUser] = useState({ id: "", name: "", email: "", role: "UBS_MANAGER" as UserRole });
 
@@ -186,14 +202,14 @@ export default function SettingsPage() {
   };
 
   const handleAddVehicle = () => {
-    if (!newVehicle.plate) return;
+    if (!newVehicle.licensePlate) return;
     if (newVehicle.id) {
-      setVehicles(prev => prev.map(v => v.id === newVehicle.id ? { ...v, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type, capacity: newVehicle.capacity } : v));
+      setVehicles(prev => prev.map(v => v.id === newVehicle.id ? { ...v, plate: newVehicle.licensePlate!.toUpperCase(), type: newVehicle.type as any, capacity: newVehicle.capacity as any } : v));
     } else {
-      setVehicles(prev => [...prev, { id: `V${vehicles.length + 1}`, plate: newVehicle.plate.toUpperCase(), type: newVehicle.type, capacity: newVehicle.capacity, status: "Operacional" }]);
+      setVehicles(prev => [...prev, { id: `V${vehicles.length + 1}`, plate: newVehicle.licensePlate!.toUpperCase(), type: newVehicle.type as any, capacity: newVehicle.capacity as any, status: "Operacional" }]);
     }
     setIsVehicleDialogOpen(false);
-    setNewVehicle({ id: "", plate: "", type: "Ambulância", capacity: 1 });
+    setNewVehicle({ id: "", licensePlate: "", type: "Ambulância", capacity: 1, status: "AVAILABLE" });
     toast({ title: "Frota Atualizada", description: "O veículo foi registrado na malha municipal." });
   };
 
@@ -542,40 +558,82 @@ export default function SettingsPage() {
               
               <Dialog open={isVehicleDialogOpen} onOpenChange={setIsVehicleDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="w-full sm:w-auto gap-2 h-11 rounded-xl shadow-md" onClick={() => setNewVehicle({ id: "", plate: "", type: "Ambulância", capacity: 1 })}>
+                  <Button className="w-full sm:w-auto gap-2 h-11 rounded-xl shadow-md" onClick={() => setNewVehicle({ id: "", licensePlate: "", type: "Ambulância", capacity: 1, status: "AVAILABLE" })}>
                     <Plus className="h-4 w-4" /> Novo Veículo
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px] w-[95vw] rounded-2xl">
+                <DialogContent className="sm:max-w-[600px] w-[95vw] rounded-2xl overflow-y-auto max-h-[90vh]">
                   <DialogHeader>
                     <DialogTitle>{newVehicle.id ? "Editar Veículo" : "Novo Veículo"}</DialogTitle>
-                    <DialogDescription className="text-xs">Registre um novo veículo na frota sanitária.</DialogDescription>
+                    <DialogDescription className="text-xs">Registre um novo veículo na frota sanitária com dados técnicos.</DialogDescription>
                   </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="v-plate">Placa</Label>
-                      <Input id="v-plate" className="h-12 rounded-xl" placeholder="AAA-0000" value={newVehicle.plate} onChange={(e) => setNewVehicle(prev => ({ ...prev, plate: e.target.value }))} />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
-                        <Label>Tipo</Label>
-                        <Select value={newVehicle.type} onValueChange={(val) => setNewVehicle(prev => ({ ...prev, type: val as any }))}>
-                          <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Ambulância">Ambulância</SelectItem>
-                            <SelectItem value="Van">Van</SelectItem>
-                            <SelectItem value="Sedan">Sedan</SelectItem>
-                            <SelectItem value="Acessível">Acessível</SelectItem>
-                          </SelectContent>
-                        </Select>
+                  <div className="grid gap-6 py-4">
+                    <div className="space-y-4">
+                      <h4 className="text-[10px] font-black uppercase text-primary tracking-widest px-1">Dados de Identificação</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="v-plate">Placa</Label>
+                          <Input id="v-plate" className="h-12 rounded-xl" placeholder="AAA-0000" value={newVehicle.licensePlate} onChange={(e) => setNewVehicle(prev => ({ ...prev, licensePlate: e.target.value }))} />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Tipo</Label>
+                          <Select value={newVehicle.type} onValueChange={(val) => setNewVehicle(prev => ({ ...prev, type: val as any }))}>
+                            <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Ambulância">Ambulância</SelectItem>
+                              <SelectItem value="Van">Van</SelectItem>
+                              <SelectItem value="Sedan">Sedan</SelectItem>
+                              <SelectItem value="Acessível">Acessível</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="v-cap">Vagas</Label>
-                        <Input id="v-cap" type="number" className="h-12 rounded-xl" value={newVehicle.capacity} onChange={(e) => setNewVehicle(prev => ({ ...prev, capacity: parseInt(e.target.value) }))} />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="v-cap">Vagas</Label>
+                          <Input id="v-cap" type="number" className="h-12 rounded-xl" value={newVehicle.capacity} onChange={(e) => setNewVehicle(prev => ({ ...prev, capacity: parseInt(e.target.value) }))} />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label>Status Inicial</Label>
+                          <Select value={newVehicle.status} onValueChange={(val) => setNewVehicle(prev => ({ ...prev, status: val as any }))}>
+                            <SelectTrigger className="h-12 rounded-xl"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="AVAILABLE">Disponível</SelectItem>
+                              <SelectItem value="MAINTENANCE">Manutenção</SelectItem>
+                              <SelectItem value="IN_USE">Em Rota</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 pt-2 border-t">
+                      <h4 className="text-[10px] font-black uppercase text-amber-600 tracking-widest px-1 flex items-center gap-2">
+                        <Gauge className="h-3 w-3" /> Telemetria & Manutenção
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label className="flex items-center gap-2"><Gauge className="h-3.5 w-3.5" /> Odômetro (KM)</Label>
+                          <Input type="number" className="h-12 rounded-xl" value={newVehicle.odometer} onChange={(e) => setNewVehicle(prev => ({ ...prev, odometer: parseInt(e.target.value) }))} />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="flex items-center gap-2"><Fuel className="h-3.5 w-3.5" /> Combustível (%)</Label>
+                          <Input type="number" max="100" min="0" className="h-12 rounded-xl" value={newVehicle.fuelLevel} onChange={(e) => setNewVehicle(prev => ({ ...prev, fuelLevel: parseInt(e.target.value) }))} />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label className="flex items-center gap-2"><Calendar className="h-3.5 w-3.5" /> Próxima Revisão</Label>
+                          <Input type="date" className="h-12 rounded-xl" value={newVehicle.nextMaintenance} onChange={(e) => setNewVehicle(prev => ({ ...prev, nextMaintenance: e.target.value }))} />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="flex items-center gap-2"><Droplets className="h-3.5 w-3.5" /> Última Sanitização</Label>
+                          <Input type="date" className="h-12 rounded-xl" value={newVehicle.lastSanitization} onChange={(e) => setNewVehicle(prev => ({ ...prev, lastSanitization: e.target.value }))} />
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <DialogFooter className="gap-2 sm:gap-0">
+                  <DialogFooter className="gap-2 sm:gap-0 border-t pt-4">
                     <Button variant="ghost" onClick={() => setIsVehicleDialogOpen(false)} className="w-full sm:w-auto rounded-xl">Cancelar</Button>
                     <Button onClick={handleAddVehicle} className="w-full sm:w-auto rounded-xl shadow-lg">Salvar Veículo</Button>
                   </DialogFooter>
@@ -600,7 +658,16 @@ export default function SettingsPage() {
                         <TableCell className="text-sm font-medium">{v.type}</TableCell>
                         <TableCell className="hidden sm:table-cell"><Badge variant="outline" className="text-[10px] rounded-full px-2">{v.status}</Badge></TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={() => { setNewVehicle(v); setIsVehicleDialogOpen(true); }}><Edit className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={() => { 
+                            setNewVehicle({
+                              id: v.id,
+                              licensePlate: v.plate,
+                              type: v.type as any,
+                              capacity: v.capacity,
+                              status: 'AVAILABLE'
+                            }); 
+                            setIsVehicleDialogOpen(true); 
+                          }}><Edit className="h-4 w-4" /></Button>
                         </TableCell>
                       </TableRow>
                     ))}
