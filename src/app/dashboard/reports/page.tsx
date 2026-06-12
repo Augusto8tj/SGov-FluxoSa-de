@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -40,8 +39,7 @@ import {
   DialogContent, 
   DialogDescription, 
   DialogHeader, 
-  DialogTitle,
-  DialogFooter
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -383,7 +381,7 @@ export default function ReportsPage() {
           </Card>
 
           <div className="p-4 sm:p-5 bg-blue-50 rounded-[1.5rem] sm:rounded-3xl border border-dashed border-blue-200 mx-1">
-            <h4 className="text-[9px] sm:text-[10px] font-black text-blue-700 uppercase tracking-widest mb-2">Suporte à Decisão</h4>
+            <h4 className="text-[9px] text-[10px] font-black text-blue-700 uppercase tracking-widest mb-2">Suporte à Decisão</h4>
             <p className="text-[10px] sm:text-[11px] text-blue-600 leading-relaxed font-medium">
               A IA agrupa relatos por padrões mecânicos ou logísticos, permitindo visualizar gargalos operacionais antes que virem crises.
             </p>
@@ -403,7 +401,7 @@ export default function ReportsPage() {
                 <div>
                   <DialogTitle className="text-lg sm:text-xl font-black tracking-tight uppercase">Log de Triagem IA</DialogTitle>
                   <DialogDescription className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-widest">
-                    Histórico de Briefings &bull; PMRC
+                    Histórico de Briefings & bull; PMRC
                   </DialogDescription>
                 </div>
               </div>

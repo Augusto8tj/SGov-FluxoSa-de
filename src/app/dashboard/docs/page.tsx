@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -7,17 +6,14 @@ import {
   FileText, 
   Search, 
   Download, 
-  ExternalLink, 
   ShieldCheck,
-  CheckCircle2,
   Clock,
   Filter,
   FileCheck
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { 
   Table, 
   TableBody, 
@@ -132,7 +128,10 @@ export default function DocumentManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_DOCS.map((doc) => (
+              {MOCK_DOCS.filter(d => 
+                d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                d.driver.toLowerCase().includes(searchTerm.toLowerCase())
+              ).map((doc) => (
                 <TableRow key={doc.id} className="hover:bg-muted/10 transition-colors">
                   <TableCell>
                     <div className="flex items-center gap-3">

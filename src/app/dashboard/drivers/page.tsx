@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -9,19 +8,12 @@ import {
   Filter, 
   MoreVertical, 
   CheckCircle2, 
-  Clock, 
   ShieldAlert, 
   Coins, 
-  Fuel, 
-  FileText,
-  BadgeCheck,
-  ChevronRight,
   TrendingUp,
   Award,
-  Loader2,
   Calendar as CalendarIcon,
   ThumbsUp,
-  ThumbsDown,
   X,
   Check,
   Printer,
@@ -53,7 +45,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useRouter } from "next/navigation";
@@ -132,7 +123,7 @@ export default function DriversManagementPage() {
                     <div>
                       <DialogTitle className="text-lg sm:text-xl font-black uppercase tracking-tighter">Escala de Plantão</DialogTitle>
                       <DialogDescription className="text-primary-foreground/70 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-white">
-                        Gestão de Disponibilidade &bull; PMRC
+                        Gestão de Disponibilidade & bull; PMRC
                       </DialogDescription>
                     </div>
                   </div>
@@ -266,7 +257,10 @@ export default function DriversManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {MOCK_DRIVERS_FULL.map((driver) => (
+                  {MOCK_DRIVERS_FULL.filter(d => 
+                    d.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    d.phone.includes(searchTerm)
+                  ).map((driver) => (
                     <TableRow key={driver.id} className="hover:bg-muted/10 transition-colors">
                       <TableCell>
                         <div className="flex items-center gap-3">

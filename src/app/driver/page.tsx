@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,7 +9,6 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Navigation,
-  MessageSquare,
   LogOut,
   Heart,
   Star,
@@ -20,7 +18,6 @@ import {
   Fuel,
   Coins,
   FileText,
-  Plus,
   ShieldAlert,
   Wrench,
   Clock,
@@ -257,7 +254,7 @@ export default function DriverDashboard() {
           </div>
           
           <div className="flex items-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-black pt-6">
-            <Heart className="h-3 w-3 text-rose-500 fill-rose-500" /> PMRC &bull; Saúde & Ordem Pública
+            <Heart className="h-3 w-3 text-rose-500 fill-rose-500" /> PMRC & bull; Saúde & Ordem Pública
           </div>
         </div>
       </div>
@@ -269,7 +266,7 @@ export default function DriverDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Minha Jornada</h2>
-          <p className="text-xs text-slate-500">Rio Claro, RJ &bull; {format(new Date(), "dd 'de' MMMM", { locale: ptBR })}</p>
+          <p className="text-xs text-slate-500">Rio Claro, RJ & bull; {format(new Date(), "dd 'de' MMMM", { locale: ptBR })}</p>
         </div>
         <Badge variant={checklistDone ? "default" : "outline"} className={cn(checklistDone ? "bg-emerald-600 text-white" : "bg-accent/20 text-primary border-primary/20")}>
           {checklistDone ? "EM ROTA" : "PREPARAÇÃO"}
@@ -324,7 +321,7 @@ export default function DriverDashboard() {
                   <div className="bg-white/20 p-3 rounded-xl"><Ambulance className="h-8 w-8" /></div>
                   <div className="flex-1">
                     <p className="font-black text-lg leading-none uppercase tracking-tighter">Viatura Operacional</p>
-                    <p className="text-[10px] opacity-80 mt-1 uppercase font-bold tracking-widest">Início: {startOdometer} km &bull; {missionStops.length} Paradas</p>
+                    <p className="text-[10px] opacity-80 mt-1 uppercase font-bold tracking-widest">Início: {startOdometer} km & bull; {missionStops.length} Paradas</p>
                   </div>
                 </div>
               </CardContent>
@@ -440,7 +437,7 @@ export default function DriverDashboard() {
                       <div className="bg-white/20 p-2 rounded-xl"><Wrench className="h-5 w-5" /></div>
                       <div>
                         <DialogTitle className="text-xl font-black uppercase tracking-tighter">Manutenção V1</DialogTitle>
-                        <DialogDescription className="text-emerald-100 text-[10px] uppercase font-bold tracking-widest">Registros de Oficina &bull; PMRC</DialogDescription>
+                        <DialogDescription className="text-emerald-100 text-[10px] uppercase font-bold tracking-widest">Registros de Oficina & bull; PMRC</DialogDescription>
                       </div>
                     </div>
                   </DialogHeader>

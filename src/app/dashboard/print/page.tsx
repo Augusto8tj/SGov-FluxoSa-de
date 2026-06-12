@@ -1,11 +1,9 @@
-
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
-import { Printer, Download, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Printer, ArrowLeft, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
 
 /**
  * @fileOverview Página de Layout de Impressão (Modo A4).
