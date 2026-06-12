@@ -316,15 +316,15 @@ export default function AdminPage() {
                               <div className="max-w-6xl mx-auto bg-white rounded-[2rem] border border-primary/10 shadow-xl overflow-hidden">
                                 <div className="p-5 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-12">
                                   {/* Recomendação IA */}
-                                  <div className="flex-1 space-y-5">
-                                    <div className="flex items-center gap-3">
-                                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                                  <div className="flex-1 space-y-6">
+                                    <div className="flex items-start gap-4">
+                                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0 mt-1">
                                         <BrainCircuit className="h-7 w-7" />
                                       </div>
-                                      <div>
-                                        <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.2em] leading-none">Parecer Técnico</h4>
+                                      <div className="flex-1 space-y-2">
+                                        <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.2em] leading-tight">Parecer Técnico</h4>
                                         <Badge className={cn(
-                                          "mt-1.5 text-[10px] font-black uppercase h-5 px-3 border-none",
+                                          "text-[10px] font-black uppercase py-1.5 px-3 border-none h-auto whitespace-normal text-left leading-snug",
                                           analysis[req.id]?.suggestedAction === 'approve' ? 'bg-emerald-100 text-emerald-700' :
                                           analysis[req.id]?.suggestedAction === 'deny' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
                                         )}>
@@ -333,8 +333,8 @@ export default function AdminPage() {
                                       </div>
                                     </div>
                                     
-                                    <div className="bg-primary/[0.03] p-6 rounded-[2rem] border border-primary/5 italic relative">
-                                      <div className="absolute top-0 left-8 -translate-y-1/2 bg-white px-3 text-[10px] font-black text-primary uppercase tracking-widest">Recomendação Estratégica</div>
+                                    <div className="bg-primary/[0.03] p-6 rounded-[2rem] border border-primary/5 italic relative mt-8">
+                                      <div className="absolute top-0 left-8 -translate-y-1/2 bg-white px-3 text-[10px] font-black text-primary uppercase tracking-widest whitespace-nowrap">Recomendação Estratégica</div>
                                       <p className="text-sm font-medium text-slate-600 leading-relaxed">
                                         &quot;{analysis[req.id]?.recommendation}&quot;
                                       </p>
@@ -343,7 +343,7 @@ export default function AdminPage() {
 
                                   {/* Variáveis de Escopo */}
                                   <div className="w-full md:w-[350px] space-y-4">
-                                    <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter flex items-center gap-2 px-1">
+                                    <p className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2 px-1">
                                       <Activity className="h-4 w-4 text-primary" /> Variáveis de Escopo Analisadas
                                     </p>
                                     <div className="grid grid-cols-1 gap-2">
