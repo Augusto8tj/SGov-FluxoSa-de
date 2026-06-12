@@ -7,23 +7,32 @@ import { useRouter } from "next/navigation";
 
 /**
  * @fileOverview Hook customizado para gerenciar o estado de autenticação.
- * Suporta Firebase Auth real e sessão de demonstração local.
+ * Otimizado para evitar flashes de "loading" durante a navegação em modo demo.
  */
+
+// Função auxiliar para pegar o usuário inicial sem delay
+const getInitialUser = () => {
+  if (typeof window === "undefined") return null;
+  const demoUser = sessionStorage.getItem("sgov_demo_user");
+  return demoUser ? JSON.parse(demoUser) : null;
+};
+
 export function useAuth() {
-  const [user, setUser] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any | null>(getInitialUser());
+  // Se já temos um usuário demo, começamos com loading: false
+  const [loading, setLoading] = useState(!getInitialUser());
   const router = useRouter();
 
   useEffect(() => {
-    // 1. Checa se existe uma sessão de demonstração (Bypass para apresentações)
+    // Se for usuário demo, o estado inicial já resolveu
     const demoUser = sessionStorage.getItem("sgov_demo_user");
     if (demoUser) {
-      setUser(JSON.parse(demoUser));
+      if (!user) setUser(JSON.parse(demoUser));
       setLoading(false);
       return;
     }
 
-    // 2. Senão, utiliza o Firebase Auth real
+    // Monitoramento do Firebase Auth real
     const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
       if (fbUser) {
         setUser(fbUser);
@@ -34,7 +43,7 @@ export function useAuth() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   const logout = async () => {
     try {

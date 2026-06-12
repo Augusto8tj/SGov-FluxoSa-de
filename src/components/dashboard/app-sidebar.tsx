@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -31,6 +30,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
+import Link from "next/link";
 
 const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
@@ -70,19 +70,19 @@ export function AppSidebar() {
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton tooltip={item.title} asChild>
-                <a href={item.url} className="flex items-center gap-3">
+                <Link href={item.url} className="flex items-center gap-3">
                   <item.icon className="size-5" />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Ajuda/Manual" asChild>
-              <a href="/dashboard/help" className="flex items-center gap-3 text-primary font-semibold">
+              <Link href="/dashboard/help" className="flex items-center gap-3 text-primary font-semibold">
                 <BookOpen className="size-5" />
                 <span>Ajuda/Manual</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -94,10 +94,10 @@ export function AppSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Configurações" asChild>
-              <a href="/dashboard/settings" className="flex items-center gap-3">
+              <Link href="/dashboard/settings" className="flex items-center gap-3">
                 <Settings className="size-5" />
                 <span>Configurações</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
