@@ -18,7 +18,8 @@ import {
   Check,
   History,
   TrendingUp,
-  LayoutList
+  LayoutList,
+  Calendar
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,9 +38,11 @@ import {
   DialogContent, 
   DialogDescription, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { reportService } from "@/services/report-service";
 import { analyzeFieldReports, FieldAnalysisOutput } from "@/ai/flows/analyze-field-reports-flow";
 import { DriverReport } from "@/lib/types";
@@ -47,6 +50,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 export default function ReportsPage() {
   const [mounted, setMounted] = useState(false);
@@ -60,6 +64,7 @@ export default function ReportsPage() {
   const [lastAnalysis, setLastAnalysis] = useState<FieldAnalysisOutput | null>(null);
   const [analysisHistory, setAnalysisHistory] = useState<FieldAnalysisOutput[]>([]);
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(new Set());
+  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
 
   const { toast } = useToast();
 
@@ -328,7 +333,7 @@ export default function ReportsPage() {
             <CardContent className="space-y-4">
               {analysisHistory.length > 0 ? (
                 analysisHistory.map((hist, i) => (
-                  <div key={i} className="p-3 bg-muted/30 rounded-xl space-y-1 group hover:bg-primary/5 transition-colors cursor-pointer">
+                  <div key={i} className="p-3 bg-muted/30 rounded-xl space-y-1 group hover:bg-primary/5 transition-colors cursor-pointer" onClick={() => setIsHistoryDialogOpen(true)}>
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] font-black uppercase text-primary">Análise #{analysisHistory.length - i}</span>
                       <span className="text-[8px] text-muted-foreground font-bold">HOJE</span>
@@ -342,7 +347,11 @@ export default function ReportsPage() {
                   <p className="text-[10px] font-black uppercase tracking-widest">Sem Histórico</p>
                 </div>
               )}
-              <Button variant="outline" className="w-full h-10 rounded-xl border-dashed border-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <Button 
+                variant="outline" 
+                className="w-full h-10 rounded-xl border-dashed border-2 text-[10px] font-black uppercase tracking-widest text-slate-500"
+                onClick={() => setIsHistoryDialogOpen(true)}
+              >
                 Ver Todas Análises
               </Button>
             </CardContent>
@@ -356,6 +365,92 @@ export default function ReportsPage() {
           </div>
         </div>
       </div>
+
+      {/* Dialog de Histórico Completo de Análises */}
+      <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
+        <DialogContent className="sm:max-w-[700px] w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <div className="bg-slate-900 p-6 text-white">
+            <DialogHeader className="space-y-0 text-left">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-primary p-2.5 rounded-2xl">
+                  <History className="h-6 w-6" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-black tracking-tight uppercase">Log de Triagem IA</DialogTitle>
+                  <DialogDescription className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">
+                    Histórico de Briefings Estratégicos &bull; PMRC
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+          </div>
+          
+          <ScrollArea className="max-h-[70vh] bg-slate-50">
+            <div className="p-6 space-y-6">
+              {analysisHistory.length > 0 ? (
+                analysisHistory.map((hist, idx) => (
+                  <div key={idx} className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-primary/10 text-primary border-none text-[10px] font-black uppercase">
+                          Sessão #{analysisHistory.length - idx}
+                        </Badge>
+                        <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                          <Calendar className="h-3 w-3" /> {format(new Date(), "dd/MM/yyyy")}
+                        </span>
+                      </div>
+                      <Badge variant="outline" className={cn(
+                        "text-[9px] font-black uppercase",
+                        hist.priorityLevel === 'critical' ? 'text-rose-600 border-rose-200 bg-rose-50' : 'text-slate-500'
+                      )}>
+                        Prioridade {hist.priorityLevel}
+                      </Badge>
+                    </div>
+                    
+                    <div className="bg-white p-5 rounded-2xl border shadow-sm space-y-4">
+                      <div className="space-y-2">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Resumo Executivo</p>
+                        <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
+                          &quot;{hist.executiveSummary}&quot;
+                        </p>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div className="space-y-3">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Providências Sugeridas</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {hist.recommendedActions.map((act, i) => (
+                            <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
+                              <Check className="h-3 w-3 text-emerald-500" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-[10px] font-bold text-slate-700 truncate">{act.task}</p>
+                                <p className="text-[8px] font-black text-primary uppercase">{act.department}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    {idx < analysisHistory.length - 1 && <Separator className="my-8" />}
+                  </div>
+                ))
+              ) : (
+                <div className="py-20 text-center space-y-4 opacity-30">
+                  <BrainCircuit className="h-16 w-16 mx-auto text-slate-400" />
+                  <p className="text-sm font-black uppercase tracking-widest">Nenhuma análise realizada nesta sessão</p>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+          
+          <div className="p-6 bg-white border-t">
+            <Button className="w-full rounded-2xl h-12 font-black uppercase text-xs tracking-widest shadow-lg" onClick={() => setIsHistoryDialogOpen(false)}>
+              Fechar Histórico
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!selectedReport} onOpenChange={(open) => !open && setSelectedReport(null)}>
         <DialogContent className="sm:max-w-[500px] w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
