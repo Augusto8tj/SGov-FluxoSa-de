@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Loader2, Ambulance, BrainCircuit, User, Key, Hospital, BadgeCheck, Heart } from "lucide-react";
+import { ShieldCheck, Loader2, BrainCircuit, User, Key, Hospital, BadgeCheck, Heart, Ambulance } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -81,8 +82,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 overflow-x-hidden">
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-md mx-auto space-y-8 py-10">
         <div className="text-center space-y-3">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl ring-4 ring-primary/10 transition-transform hover:scale-105">
-            <Ambulance className="h-8 w-8" />
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-xl ring-4 ring-primary/10 transition-transform hover:scale-105 overflow-hidden">
+            <Image 
+              src="/icons/maskable-icon-512x512.png" 
+              alt="Logo FluxoSaúde" 
+              width={64} 
+              height={64} 
+              className="object-contain"
+            />
           </div>
           <div className="space-y-1">
             <h1 className="text-3xl font-black tracking-tight text-primary">SGov FluxoSaúde</h1>
