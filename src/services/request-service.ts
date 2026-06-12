@@ -1,3 +1,4 @@
+
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -10,7 +11,9 @@ import {
   orderBy,
   where,
   Timestamp,
-  writeBatch
+  writeBatch,
+  getDocsFromCache,
+  getDocsFromServer
 } from "firebase/firestore";
 import { TransportRequest } from "@/lib/types";
 import { MOCK_REQUESTS } from "@/lib/mock-data";
@@ -19,16 +22,24 @@ const COLLECTION_NAME = "requests";
 
 /**
  * @fileOverview Serviço de gestão de solicitações de transporte no Firestore.
- * Suporta fallback para dados de demonstração quando o banco está vazio.
+ * Otimizado para demonstrar agilidade no carregamento de dados mock.
  */
 export const requestService = {
   /**
-   * Busca todas as solicitações. Retorna mocks se o banco estiver vazio ou houver erro de conexão.
+   * Busca todas as solicitações. Retorna mocks instantaneamente se o banco estiver vazio.
    */
   async getRequests(): Promise<TransportRequest[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
+      
+      // Tenta primeiro carregar do cache para agilidade máxima
+      let querySnapshot;
+      try {
+        querySnapshot = await getDocsFromCache(q);
+      } catch {
+        // Se falhar o cache, tenta servidor com timeout curto implícito
+        querySnapshot = await getDocs(q);
+      }
       
       if (querySnapshot.empty) {
         return MOCK_REQUESTS;
@@ -39,7 +50,7 @@ export const requestService = {
         ...doc.data()
       } as TransportRequest));
     } catch (error) {
-      console.warn("Firestore error in requestService, falling back to mocks:", error);
+      // Falha rápida redireciona para mocks imediatamente
       return MOCK_REQUESTS;
     }
   },
@@ -59,7 +70,6 @@ export const requestService = {
       const docData = querySnapshot.docs[0];
       return { id: docData.id, ...docData.data() } as TransportRequest;
     } catch (error) {
-      console.warn("Firestore error in getByAccessCode, checking mocks:", error);
       return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
     }
   },

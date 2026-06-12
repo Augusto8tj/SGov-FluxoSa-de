@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -64,7 +65,7 @@ export default function DashboardPage() {
     };
     
     checkTime();
-    setTimeout(() => setLoading(false), 800);
+    setLoading(false); // Carregamento instantâneo para demonstração
   }, []);
 
   const handleGenerateBriefing = async () => {
