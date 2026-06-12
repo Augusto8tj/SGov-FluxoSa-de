@@ -14,7 +14,9 @@ import {
   Clock,
   Building,
   ShieldCheck,
-  MoreVertical
+  MoreVertical,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +47,13 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { UBS } from "@/lib/types";
 import { MOCK_UBS } from "@/lib/mock-data";
@@ -71,29 +80,36 @@ export default function UBSPage() {
     u.managerName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddUnit = () => {
+  const handleSaveUnit = () => {
     if (!newUnit.name || !newUnit.address) {
       toast({ title: "Atenção", description: "Preencha pelo menos o nome e o endereço da UBS.", variant: "destructive" });
       return;
     }
 
-    const unit: UBS = {
-      id: `UBS-0${units.length + 1}`,
-      name: newUnit.name || "",
-      address: newUnit.address || "",
-      managerName: newUnit.managerName,
-      phone: newUnit.phone,
-      email: newUnit.email,
-      operatingHours: newUnit.operatingHours,
-      type: newUnit.type as any,
-      status: 'active',
-      location: { lat: -22.72, lng: -44.13 } // Mock location default para Rio Claro RJ
-    };
+    if (newUnit.id) {
+      // Modo Edição
+      setUnits(prev => prev.map(u => u.id === newUnit.id ? { ...u, ...newUnit } as UBS : u));
+      toast({ title: "Unidade Atualizada", description: `Os dados da ${newUnit.name} foram salvos com sucesso.` });
+    } else {
+      // Modo Novo Cadastro
+      const unit: UBS = {
+        id: `UBS-0${units.length + 1}`,
+        name: newUnit.name || "",
+        address: newUnit.address || "",
+        managerName: newUnit.managerName,
+        phone: newUnit.phone,
+        email: newUnit.email,
+        operatingHours: newUnit.operatingHours,
+        type: newUnit.type as any,
+        status: 'active',
+        location: { lat: -22.72, lng: -44.13 } // Mock location default para Rio Claro RJ
+      };
+      setUnits(prev => [...prev, unit]);
+      toast({ title: "Unidade Cadastrada", description: `A ${unit.name} foi adicionada ao sistema.` });
+    }
 
-    setUnits(prev => [...prev, unit]);
     setIsDialogOpen(false);
     setNewUnit({ name: "", address: "", managerName: "", phone: "", email: "", operatingHours: "07:00 - 17:00", type: "UBS" });
-    toast({ title: "Unidade Cadastrada", description: `A ${unit.name} foi adicionada ao sistema com sucesso.` });
   };
 
   const handleOpenMaps = (ubs: UBS) => {
@@ -113,7 +129,10 @@ export default function UBSPage() {
           <p className="text-muted-foreground">Monitoramento e logística dos pontos de coleta de pacientes.</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setNewUnit({ name: "", address: "", managerName: "", phone: "", email: "", operatingHours: "07:00 - 17:00", type: "UBS" });
+        }}>
           <DialogTrigger asChild>
             <Button className="gap-2 shadow-md h-11 px-6 rounded-xl">
               <Plus className="h-4 w-4" /> Nova Unidade
@@ -121,7 +140,7 @@ export default function UBSPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px] w-[95vw] rounded-2xl overflow-y-auto max-h-[90vh]">
             <DialogHeader>
-              <DialogTitle>Cadastrar Nova Unidade</DialogTitle>
+              <DialogTitle>{newUnit.id ? "Editar Unidade" : "Cadastrar Nova Unidade"}</DialogTitle>
               <DialogDescription>Adicione um ponto de coleta ao sistema de Rio Claro - RJ com dados administrativos.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-4">
@@ -214,7 +233,9 @@ export default function UBSPage() {
             </div>
             <DialogFooter className="gap-2 sm:gap-0 border-t pt-4">
               <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl">Cancelar</Button>
-              <Button onClick={handleAddUnit} className="h-11 rounded-xl shadow-lg bg-primary">Salvar Unidade</Button>
+              <Button onClick={handleSaveUnit} className="h-11 rounded-xl shadow-lg bg-primary">
+                {newUnit.id ? "Atualizar Unidade" : "Salvar Unidade"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -290,7 +311,34 @@ export default function UBSPage() {
                               >
                                 <ArrowUpRight className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="h-4 w-4" /></Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="rounded-xl shadow-xl w-48">
+                                  <DropdownMenuItem 
+                                    className="gap-2 cursor-pointer"
+                                    onClick={() => {
+                                      setNewUnit(ubs);
+                                      setIsDialogOpen(true);
+                                    }}
+                                  >
+                                    <Edit className="h-4 w-4" /> Editar Unidade
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+                                    onClick={() => {
+                                      setUnits(prev => prev.filter(u => u.id !== ubs.id));
+                                      toast({ title: "Removido", description: `A ${ubs.name} foi removida do sistema.` });
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" /> Excluir Registro
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </TableCell>
                         </TableRow>
