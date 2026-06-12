@@ -120,8 +120,8 @@ export default function DriversManagementPage() {
                 <CalendarIcon className="h-4 w-4" /> Escala Mensal
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[700px] w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-              <div className="bg-primary p-5 sm:p-6 text-white">
+            <DialogContent className="sm:max-w-[750px] w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <div className="bg-primary p-5 sm:p-6 text-white shrink-0">
                 <DialogHeader className="text-left space-y-0">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-white/20 p-2 sm:p-2.5 rounded-2xl">
@@ -137,24 +137,28 @@ export default function DriversManagementPage() {
                 </DialogHeader>
               </div>
               
-              <div className="p-4 sm:p-8 flex flex-col md:flex-row gap-8 bg-white max-h-[70vh] overflow-y-auto no-scrollbar">
-                <div className="w-full flex-1 border rounded-[2rem] p-4 shadow-inner bg-slate-50 flex flex-col items-center gap-4">
-                  <div className="text-center">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Selecione uma Data</p>
-                    <p className="text-sm font-bold text-slate-600">
-                      {date ? format(date, "MMMM 'de' yyyy", { locale: ptBR }) : "Carregando..."}
-                    </p>
+              <div className="p-4 sm:p-8 flex flex-col md:flex-row gap-6 sm:gap-8 bg-white max-h-[75vh] overflow-y-auto no-scrollbar">
+                {/* Lado Esquerdo: Calendário */}
+                <div className="w-full flex-1 flex flex-col items-center gap-4">
+                  <div className="w-full border rounded-[2rem] p-4 sm:p-6 shadow-inner bg-slate-50 flex flex-col items-center">
+                    <div className="text-center mb-4">
+                      <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Selecione uma Data</p>
+                      <p className="text-sm font-bold text-slate-600">
+                        {date ? format(date, "MMMM 'de' yyyy", { locale: ptBR }) : "Carregando..."}
+                      </p>
+                    </div>
+                    <Calendar
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      locale={ptBR}
+                      className="rounded-xl border bg-white shadow-sm"
+                    />
                   </div>
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    locale={ptBR}
-                    className="rounded-md border-none"
-                  />
                 </div>
                 
-                <div className="w-full md:w-[280px] space-y-6">
+                {/* Lado Direito: Detalhes da Escala */}
+                <div className="w-full md:w-[300px] space-y-6">
                   <div className="space-y-1">
                     <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
                       <Info className="h-4 w-4 text-primary" /> 
@@ -169,7 +173,7 @@ export default function DriversManagementPage() {
                         <span className="text-xs font-black text-emerald-900">Carlos Alberto</span>
                         <span className="text-[8px] font-bold text-emerald-600 uppercase">Viatura V1 - Ambulância</span>
                       </div>
-                      <Badge className="bg-emerald-600 text-white text-[8px] uppercase border-none h-5 px-2">Titular</Badge>
+                      <Badge className="bg-emerald-600 text-white text-[8px] uppercase border-none h-5 px-2 shrink-0">Titular</Badge>
                     </div>
                     
                     <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-between group hover:bg-blue-100 transition-colors cursor-pointer shadow-sm">
@@ -177,7 +181,7 @@ export default function DriversManagementPage() {
                         <span className="text-xs font-black text-blue-900">Marcos Pereira</span>
                         <span className="text-[8px] font-bold text-blue-600 uppercase">Viatura V2 - Van</span>
                       </div>
-                      <Badge className="bg-blue-600 text-white text-[8px] uppercase border-none h-5 px-2">Apoio</Badge>
+                      <Badge className="bg-blue-600 text-white text-[8px] uppercase border-none h-5 px-2 shrink-0">Apoio</Badge>
                     </div>
                     
                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between opacity-50 grayscale">
@@ -185,7 +189,7 @@ export default function DriversManagementPage() {
                         <span className="text-xs font-bold text-slate-600">Ricardo Oliveira</span>
                         <span className="text-[8px] font-medium text-slate-400 uppercase">Indisponível</span>
                       </div>
-                      <Badge variant="outline" className="text-[8px] uppercase border-slate-300 h-5 px-2">Folga</Badge>
+                      <Badge variant="outline" className="text-[8px] uppercase border-slate-300 h-5 px-2 shrink-0">Folga</Badge>
                     </div>
                   </div>
 
@@ -201,7 +205,7 @@ export default function DriversManagementPage() {
                 </div>
               </div>
               
-              <DialogFooter className="p-4 bg-slate-50 border-t">
+              <DialogFooter className="p-4 bg-slate-50 border-t shrink-0">
                 <Button className="w-full rounded-2xl uppercase text-[10px] font-black tracking-widest h-12 shadow-lg" onClick={() => setIsScheduleOpen(false)}>
                   Confirmar Consulta de Escala
                 </Button>
