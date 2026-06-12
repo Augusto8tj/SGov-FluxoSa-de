@@ -54,6 +54,8 @@ import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const MOCK_FINANCIAL_REQUESTS = [
   { id: "REQ-F1", driver: "Carlos Alberto Silva", type: "DIÁRIA", value: "R$ 150,00", reason: "Viagem Intermunicipal (Rio de Janeiro)", date: "12/06/2024", status: "PENDING" },
@@ -118,8 +120,8 @@ export default function DriversManagementPage() {
                 <CalendarIcon className="h-4 w-4" /> Escala Mensal
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[650px] w-[95vw] rounded-3xl p-0 overflow-y-auto max-h-[90vh] border-none shadow-2xl no-scrollbar">
-              <div className="bg-primary p-5 sm:p-6 text-white sticky top-0 z-10">
+            <DialogContent className="sm:max-w-[700px] w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <div className="bg-primary p-5 sm:p-6 text-white">
                 <DialogHeader className="text-left space-y-0">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-white/20 p-2 sm:p-2.5 rounded-2xl">
@@ -134,43 +136,74 @@ export default function DriversManagementPage() {
                   </div>
                 </DialogHeader>
               </div>
-              <div className="p-4 sm:p-6 flex flex-col md:flex-row gap-6 bg-white">
-                <div className="w-full flex-1 border rounded-2xl p-2 shadow-inner bg-slate-50 flex justify-center items-center">
+              
+              <div className="p-4 sm:p-8 flex flex-col md:flex-row gap-8 bg-white max-h-[70vh] overflow-y-auto no-scrollbar">
+                <div className="w-full flex-1 border rounded-[2rem] p-4 shadow-inner bg-slate-50 flex flex-col items-center gap-4">
+                  <div className="text-center">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Selecione uma Data</p>
+                    <p className="text-sm font-bold text-slate-600">
+                      {date ? format(date, "MMMM 'de' yyyy", { locale: ptBR }) : "Carregando..."}
+                    </p>
+                  </div>
                   <Calendar
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    className="rounded-md"
+                    locale={ptBR}
+                    className="rounded-md border-none"
                   />
                 </div>
-                <div className="w-full md:w-[240px] space-y-4">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <Info className="h-4 w-4 text-primary" /> Condutores no Dia
-                  </h4>
-                  <div className="space-y-2">
-                    <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-between">
-                      <span className="text-xs font-bold text-emerald-800">Carlos Alberto</span>
-                      <Badge className="bg-emerald-600 text-white text-[8px] uppercase border-none">Titular</Badge>
+                
+                <div className="w-full md:w-[280px] space-y-6">
+                  <div className="space-y-1">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                      <Info className="h-4 w-4 text-primary" /> 
+                      Plantão: {date ? format(date, "dd 'de' MMMM", { locale: ptBR }) : "Selecione"}
+                    </h4>
+                    <p className="text-[9px] text-muted-foreground font-medium px-1 italic">Condutores escalados para a malha viária.</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center justify-between group hover:bg-emerald-100 transition-colors cursor-pointer shadow-sm">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black text-emerald-900">Carlos Alberto</span>
+                        <span className="text-[8px] font-bold text-emerald-600 uppercase">Viatura V1 - Ambulância</span>
+                      </div>
+                      <Badge className="bg-emerald-600 text-white text-[8px] uppercase border-none h-5 px-2">Titular</Badge>
                     </div>
-                    <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between">
-                      <span className="text-xs font-bold text-blue-800">Marcos Pereira</span>
-                      <Badge className="bg-blue-600 text-white text-[8px] uppercase border-none">Apoio</Badge>
+                    
+                    <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-between group hover:bg-blue-100 transition-colors cursor-pointer shadow-sm">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black text-blue-900">Marcos Pereira</span>
+                        <span className="text-[8px] font-bold text-blue-600 uppercase">Viatura V2 - Van</span>
+                      </div>
+                      <Badge className="bg-blue-600 text-white text-[8px] uppercase border-none h-5 px-2">Apoio</Badge>
                     </div>
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between opacity-50">
-                      <span className="text-xs font-bold text-slate-600">Ricardo Oliveira</span>
-                      <Badge variant="outline" className="text-[8px] uppercase border-slate-300">Folga</Badge>
+                    
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between opacity-50 grayscale">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-600">Ricardo Oliveira</span>
+                        <span className="text-[8px] font-medium text-slate-400 uppercase">Indisponível</span>
+                      </div>
+                      <Badge variant="outline" className="text-[8px] uppercase border-slate-300 h-5 px-2">Folga</Badge>
                     </div>
                   </div>
-                  <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
-                    <p className="text-[9px] font-bold text-amber-800 leading-tight">
-                      A escala segue o protocolo de descanso obrigatório de 12/36h para viagens intermunicipais.
+
+                  <div className="bg-amber-50 p-4 rounded-2xl border border-dashed border-amber-200">
+                    <div className="flex items-center gap-2 mb-1">
+                      <ShieldAlert className="h-3 w-3 text-amber-600" />
+                      <p className="text-[9px] font-black text-amber-800 uppercase">Protocolo Municipal</p>
+                    </div>
+                    <p className="text-[10px] text-amber-700 leading-relaxed font-medium">
+                      O descanso obrigatório de 12/36h é monitorado automaticamente para viagens intermunicipais.
                     </p>
                   </div>
                 </div>
               </div>
-              <DialogFooter className="p-4 bg-slate-50 border-t sticky bottom-0 z-10">
-                <Button className="w-full rounded-xl uppercase text-[10px] font-black tracking-widest h-12" onClick={() => setIsScheduleOpen(false)}>
-                  Fechar Consulta de Escala
+              
+              <DialogFooter className="p-4 bg-slate-50 border-t">
+                <Button className="w-full rounded-2xl uppercase text-[10px] font-black tracking-widest h-12 shadow-lg" onClick={() => setIsScheduleOpen(false)}>
+                  Confirmar Consulta de Escala
                 </Button>
               </DialogFooter>
             </DialogContent>
