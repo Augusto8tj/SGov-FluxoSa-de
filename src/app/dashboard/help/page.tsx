@@ -12,7 +12,8 @@ import {
   BrainCircuit,
   MapPin,
   CheckCircle2,
-  Lock
+  Lock,
+  Activity
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -63,7 +64,7 @@ export default function AdminHelpPage() {
           <CardContent>
             <p className="text-xs text-slate-600 leading-relaxed">Canal público de consulta para pacientes com privacidade garantida.</p>
           </CardContent>
-        </div>
+        </Card>
       </div>
 
       <h3 className="text-lg font-black uppercase tracking-tighter text-slate-400 mt-8 mb-4 flex items-center gap-2">
