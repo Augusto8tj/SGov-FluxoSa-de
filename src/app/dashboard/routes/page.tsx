@@ -9,7 +9,8 @@ import {
   Navigation,
   Send,
   UserCheck,
-  ClipboardList
+  ClipboardList,
+  AlertCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import { requestService } from "@/services/request-service";
 import { vehicleService } from "@/services/vehicle-service";
 import { driverService } from "@/services/driver-service";
 import { TransportRequest, Vehicle, Driver } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export default function RoutesPage() {
   const [mounted, setMounted] = useState(false);
@@ -75,10 +77,9 @@ export default function RoutesPage() {
     setOptimizing(true);
     setResult(null);
     try {
-      // MAPEAMENTO CRÍTICO: Prepara o contexto para a IA/Fallback
       const appointments = requests.map(r => ({
         id: r.id,
-        patientId: r.patientName, // Usado para contexto humano na IA
+        patientId: r.patientName,
         pickupLocation: r.pickupLocation,
         destination: r.destinationLocation
       }));
@@ -147,6 +148,13 @@ export default function RoutesPage() {
       ...prev,
       [assignmentIdx]: driverId
     }));
+  };
+
+  // Função para verificar se um motorista já está ocupado em outro manifesto deste planejamento
+  const isDriverUnavailable = (driverId: string, currentAssignmentIdx: number) => {
+    return Object.entries(selectedDrivers).some(
+      ([idx, id]) => parseInt(idx) !== currentAssignmentIdx && id === driverId
+    );
   };
 
   if (!mounted) return null;
@@ -260,7 +268,14 @@ export default function RoutesPage() {
                     </CardHeader>
                     <CardContent className="space-y-4 pt-4">
                       <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
-                        <Label className="text-[10px] font-black uppercase text-primary">Condutor Responsável</Label>
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[10px] font-black uppercase text-primary">Condutor Responsável</Label>
+                          {selectedDrivers[idx] && (
+                            <div className="flex items-center gap-1 text-[8px] font-black text-emerald-600 uppercase animate-in fade-in">
+                              <UserCheck className="h-2.5 w-2.5" /> Atribuído
+                            </div>
+                          )}
+                        </div>
                         <Select 
                           value={selectedDrivers[idx] || ""} 
                           onValueChange={(val) => updateDriverSelection(idx, val)}
@@ -268,10 +283,27 @@ export default function RoutesPage() {
                           <SelectTrigger className="h-10 bg-white rounded-lg border-none shadow-sm">
                             <SelectValue placeholder="Selecione o motorista..." />
                           </SelectTrigger>
-                          <SelectContent>
-                            {drivers.map(d => (
-                              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                            ))}
+                          <SelectContent className="rounded-xl shadow-xl">
+                            {drivers.map(d => {
+                              const unavailable = isDriverUnavailable(d.id, idx);
+                              return (
+                                <SelectItem 
+                                  key={d.id} 
+                                  value={d.id} 
+                                  disabled={unavailable}
+                                  className={cn("cursor-pointer", unavailable && "opacity-50")}
+                                >
+                                  <div className="flex items-center justify-between w-full min-w-[200px]">
+                                    <span>{d.name}</span>
+                                    {unavailable && (
+                                      <Badge variant="secondary" className="ml-2 text-[8px] font-black uppercase h-4 px-1.5 bg-rose-50 text-rose-600 border-none">
+                                        <AlertCircle className="h-2.5 w-2.5 mr-1" /> Ocupado
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                       </div>
