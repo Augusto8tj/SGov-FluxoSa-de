@@ -236,11 +236,10 @@ export default function AdminPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-1">
+                          <div className="flex justify-end gap-3">
                             <Button 
                               size="icon" 
-                              variant="ghost" 
-                              className="h-9 w-9 rounded-full text-rose-500 hover:bg-rose-50 hover:text-rose-600" 
+                              className="h-10 w-10 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-md shadow-rose-100 transition-all active:scale-90" 
                               onClick={() => handleAction(req.id, 'DENIED')}
                               title="Negar Pedido"
                             >
@@ -248,8 +247,7 @@ export default function AdminPage() {
                             </Button>
                             <Button 
                               size="icon" 
-                              variant="ghost" 
-                              className="h-9 w-9 rounded-full text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600" 
+                              className="h-10 w-10 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-md shadow-emerald-100 transition-all active:scale-90" 
                               onClick={() => handleAction(req.id, 'APPROVED')}
                               title="Aprovar Pedido"
                             >
