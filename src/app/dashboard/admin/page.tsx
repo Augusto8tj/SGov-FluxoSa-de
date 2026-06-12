@@ -30,7 +30,7 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from "@/components/ui/table";
+} from "@/table";
 import { provideDecisionSupportForApprovals, ProvideDecisionSupportOutput } from "@/ai/flows/provide-decision-support-for-approvals";
 import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/dashboard/stats-card";
@@ -86,11 +86,11 @@ export default function AdminPage() {
       const result = await provideDecisionSupportForApprovals({
         requestId: req.id,
         patientMaskedName: maskedName,
-        patientDetails: req.aiRecommendation || "Condição padrão de transporte sanitário.",
+        patientDetails: req.aiRecommendation || "Condição padrão de transporte sanitário municipal.",
         pickupLocation: req.pickupLocation,
         destinationLocation: req.destinationLocation,
         urgencyLevel: req.urgencyLevel,
-        availableVehiclesSummary: "Frota operacional disponível na Central."
+        availableVehiclesSummary: "Frota operacional disponível com suporte técnico."
       });
       
       setAnalysis(prev => ({ ...prev, [req.id]: result }));
@@ -119,8 +119,8 @@ export default function AdminPage() {
 
       if (action === 'APPROVED') {
         updateData.manifestId = `MF-${id.split('-').pop()}`;
-        updateData.vehicleId = "Ambulância (V1)";
-        updateData.driverId = "Carlos Silva (D1)";
+        updateData.vehicleId = "Viatura Local (Simulada)";
+        updateData.driverId = "Plantão Logística";
         updateData.assignedAt = new Date().toISOString();
       }
 
@@ -175,14 +175,14 @@ export default function AdminPage() {
         <StatsCard title="Pendentes" value={requests.filter(r => r.status === 'PENDING').length} icon={Zap} description="Aguardando Triagem" />
         <StatsCard title="Taxa Aprovação" value="92%" icon={CheckCircle} description="Média Mensal" />
         <StatsCard title="IA Ativa" value="SIM" icon={BrainCircuit} description="Nvidia Nemotron" />
-        <StatsCard title="Alertas" value={requests.filter(r => r.urgencyLevel === 'critical' && r.status === 'PENDING').length} icon={AlertTriangle} description="Críticos" />
+        <StatsCard title="Alertas" value={requests.filter(r => r.urgencyLevel === 'critical' && r.status === 'PENDING').length} icon={AlertTriangle} description="Casos Críticos" />
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden bg-card rounded-2xl sm:rounded-3xl">
         <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/5 p-4 sm:p-6">
           <div>
             <CardTitle className="text-base sm:text-lg">Solicitações Aguardando Decisão</CardTitle>
-            <CardDescription className="text-[10px] sm:text-xs">Triagem técnica para a malha viária municipal (Exibindo {requests.length} registros).</CardDescription>
+            <CardDescription className="text-[10px] sm:text-xs">Triagem técnica para a malha viária municipal (Exibindo {requests.filter(r => r.status === 'PENDING').length} pendências).</CardDescription>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><Filter className="h-4 w-4" /></Button>
         </CardHeader>
@@ -200,7 +200,7 @@ export default function AdminPage() {
                     <TableHead className="font-bold h-10 py-0 pl-6">Paciente / Origem</TableHead>
                     <TableHead className="font-bold h-10 py-0 hidden sm:table-cell">Prioridade</TableHead>
                     <TableHead className="font-bold h-10 py-0 hidden md:table-cell">Suporte IA</TableHead>
-                    <TableHead className="text-right font-bold h-10 py-0 pr-6">Ações de Decisão</TableHead>
+                    <TableHead className="text-right font-bold h-10 py-0 pr-6">Decisão</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -333,7 +333,7 @@ export default function AdminPage() {
                                         <BrainCircuit className="h-7 w-7" />
                                       </div>
                                       <div className="flex-1 space-y-2">
-                                        <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.2em] leading-snug">Parecer Técnico</h4>
+                                        <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.2em] leading-snug">Parecer Técnico IA</h4>
                                         <Badge className={cn(
                                           "text-[10px] font-black uppercase py-1.5 px-3 border-none h-auto whitespace-normal text-left leading-snug",
                                           analysis[req.id]?.suggestedAction === 'approve' ? 'bg-emerald-100 text-emerald-700' :
@@ -370,7 +370,7 @@ export default function AdminPage() {
                                 <div className="bg-slate-50 px-8 py-3.5 flex items-center justify-between border-t">
                                   <div className="flex items-center gap-2">
                                     <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proteção de Dados Ativa &bull; Nvidia Nemotron Nano</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proteção de Dados &bull; Nvidia Nemotron Nano</span>
                                   </div>
                                   <Button variant="ghost" size="sm" onClick={() => toggleExpand(req.id)} className="text-[10px] font-black text-primary uppercase">Fechar Painel</Button>
                                 </div>
@@ -395,7 +395,7 @@ export default function AdminPage() {
         <div className="flex-1 text-center md:text-left space-y-1.5">
           <h4 className="font-black text-lg sm:text-xl text-blue-800 uppercase tracking-tighter">Workflow de Triagem Aumentada</h4>
           <p className="text-[12px] sm:text-sm text-blue-600 leading-snug max-w-3xl font-medium">
-            O Painel de Comando cruza a gravidade relatada pela UBS com a disponibilidade da frota para sugerir a melhor decisão. Utilize a IA para garantir que casos de Hemodiálise, Oncologia e Pós-operatórios tenham a prioridade correta garantida pelo protocolo municipal.
+            O Painel de Comando cruza a gravidade relatada pela UBS com a disponibilidade da frota para sugerir a melhor decisão técnica. Utilize a IA para garantir que casos de Hemodiálise, Oncologia e Pós-operatórios tenham a prioridade correta garantida pelo protocolo municipal de Rio Claro.
           </p>
         </div>
         <ArrowRight className="h-8 w-8 text-blue-300 hidden md:block" />
