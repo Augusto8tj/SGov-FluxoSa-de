@@ -6,7 +6,13 @@ import {
   Rocket,
   History,
   KeyRound,
-  Smartphone
+  Smartphone,
+  ClipboardList,
+  Users,
+  ShieldCheck,
+  BrainCircuit,
+  MessageSquare,
+  AlertTriangle
 } from "lucide-react";
 import { 
   Accordion, 
@@ -15,10 +21,11 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function UbsHelpPage() {
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-10">
+    <div className="space-y-6 max-w-4xl mx-auto pb-20">
       <div className="flex flex-col gap-1">
         <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
           <BookOpen className="h-8 w-8" /> Manual da Unidade (UBS)
@@ -39,46 +46,67 @@ export default function UbsHelpPage() {
         <Badge className="bg-rose-600 text-white border-none font-bold hidden md:block">REGRA CRÍTICA</Badge>
       </div>
 
+      <h3 className="text-lg font-black uppercase tracking-tighter text-slate-400 mt-8 mb-4 flex items-center gap-2">
+        <ClipboardList className="h-5 w-5" /> Guia de Operação Diária
+      </h3>
+
       <Accordion type="single" collapsible className="w-full space-y-4">
-        <AccordionItem value="changelog" className="border-2 border-primary/20 rounded-2xl bg-primary/5 px-4 shadow-sm overflow-hidden">
+        {/* NOVO: CADASTRO DE CIDADÃO */}
+        <AccordionItem value="cadastro" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
-              <div className="bg-primary p-3 rounded-xl text-white shadow-lg shadow-primary/20">
-                <Rocket className="h-6 w-6" />
+              <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600">
+                <Users className="h-6 w-6" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-black text-lg text-primary">Novidades da Versão 1.1.0</p>
-                  <Badge variant="outline" className="text-[10px] font-black border-primary text-primary bg-white">ESTÁVEL</Badge>
-                </div>
-                <p className="text-sm text-primary/70 font-medium">Lançamento oficial do SGov FluxoSaúde</p>
+                <p className="font-bold text-lg">Base de Cidadãos</p>
+                <p className="text-sm text-muted-foreground">Como manter o prontuário digital em dia</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
-            <div className="bg-white p-4 rounded-xl border border-primary/10 shadow-inner">
-              <p className="text-xs font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
-                <History className="h-3 w-3" /> Histórico de Avanços
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-                <div className="flex items-start gap-2 text-[11px]">
-                  <span className="text-primary font-black">•</span>
-                  <p><b>Portal do Cidadão:</b> Pacientes agora consultam viagens via código seguro.</p>
-                </div>
-                <div className="flex items-start gap-2 text-[11px]">
-                  <span className="text-primary font-black">•</span>
-                  <p><b>Manifestos UBS:</b> Acompanhe em tempo real quem buscará o paciente.</p>
-                </div>
-                <div className="flex items-start gap-2 text-[11px]">
-                  <span className="text-primary font-black">•</span>
-                  <p><b>PWA:</b> Instale o portal na tela inicial do seu celular como um App.</p>
-                </div>
-                <div className="flex items-start gap-2 text-[11px]">
-                  <span className="text-primary font-black">•</span>
-                  <p><b>IA Nvidia:</b> Sugestão de urgência baseada no protocolo local Rio Claro.</p>
-                </div>
+            <p className="text-sm">Para solicitar transporte, o paciente deve estar cadastrado na sua UBS no sistema.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-50 rounded-xl border">
+                <p className="font-bold text-xs text-emerald-600 uppercase">CNS é Obrigatório</p>
+                <p className="text-xs">O Cartão Nacional de Saúde deve ser inserido sem pontos ou traços para garantir a unicidade do registro.</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-xl border">
+                <p className="font-bold text-xs text-emerald-600 uppercase">Necessidades Especiais</p>
+                <p className="text-xs">Sempre marque a opção "Requer Acompanhante" ou informe o uso de O2 nas notas, pois isso define o tipo de veículo alocado.</p>
               </div>
             </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* NOVO: SOLICITAÇÃO DE TRANSPORTE */}
+        <AccordionItem value="solicitacao" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
+                <ClipboardList className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-bold text-lg">Solicitando Transporte</p>
+                <p className="text-sm text-muted-foreground">Regras de envio para a Secretaria</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-start gap-3">
+              <BrainCircuit className="h-5 w-5 text-blue-600 mt-1 shrink-0" />
+              <div>
+                <p className="font-bold text-blue-900 text-sm">Use o Sugestor de Urgência (IA)</p>
+                <p className="text-xs text-blue-800 leading-relaxed">
+                  Ao descrever o quadro do paciente, clique no botão <b>"SUGERIR URGÊNCIA (IA)"</b>. O sistema analisará os termos médicos e o destino para indicar a prioridade correta segundo os protocolos municipais.
+                </p>
+              </div>
+            </div>
+            <ul className="text-xs space-y-2 pl-4 list-disc">
+              <li>Novos agendamentos só podem ser feitos se a <b>Janela de Operação</b> estiver aberta (indicador verde no topo).</li>
+              <li>Certifique-se de que o destino esteja correto. O motorista usará essa informação no GPS.</li>
+              <li>Acompanhe o status: <b>Pendente</b> (na Secretaria), <b>Aprovado</b> (em Logística) ou <b>Negado</b>.</li>
+            </ul>
           </AccordionContent>
         </AccordionItem>
 
@@ -129,7 +157,59 @@ export default function UbsHelpPage() {
             </ol>
           </AccordionContent>
         </AccordionItem>
+
+        <AccordionItem value="changelog" className="border-2 border-primary/20 rounded-2xl bg-primary/5 px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-primary p-3 rounded-xl text-white shadow-lg shadow-primary/20">
+                <Rocket className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-lg text-primary">Novidades da Versão 1.1.0</p>
+                  <Badge variant="outline" className="text-[10px] font-black border-primary text-primary bg-white">ESTÁVEL</Badge>
+                </div>
+                <p className="text-sm text-primary/70 font-medium">Lançamento oficial do SGov FluxoSaúde</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="bg-white p-4 rounded-xl border border-primary/10 shadow-inner">
+              <p className="text-xs font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
+                <History className="h-3 w-3" /> Histórico de Avanços
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">&bull;</span>
+                  <p><b>Portal do Cidadão:</b> Pacientes agora consultam viagens via código seguro.</p>
+                </div>
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">&bull;</span>
+                  <p><b>Manifestos UBS:</b> Acompanhe em tempo real quem buscará o paciente.</p>
+                </div>
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">&bull;</span>
+                  <p><b>PWA:</b> Instale o portal na tela inicial do seu celular como um App.</p>
+                </div>
+                <div className="flex items-start gap-2 text-[11px]">
+                  <span className="text-primary font-black">&bull;</span>
+                  <p><b>IA Nvidia:</b> Sugestão de urgência baseada no protocolo local Rio Claro.</p>
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
+
+      <Card className="border-dashed border-2 bg-muted/5 mt-10">
+        <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
+          <AlertTriangle className="h-10 w-10 text-rose-500 opacity-20" />
+          <div>
+            <p className="font-bold">Dúvida Operacional?</p>
+            <p className="text-sm text-muted-foreground">Contate a Central de Regulação Municipal via rádio ou telefone.</p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="text-center py-10">
         <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em]">PMRC - Saúde e Ordem Pública - 2024</p>

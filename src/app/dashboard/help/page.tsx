@@ -7,7 +7,14 @@ import {
   History,
   Heart,
   Fingerprint,
-  HelpCircle
+  HelpCircle,
+  ClipboardList,
+  Ambulance,
+  BrainCircuit,
+  Users,
+  MapPin,
+  CheckCircle2,
+  Lock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { 
@@ -17,10 +24,11 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 export default function AdminHelpPage() {
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-10">
+    <div className="space-y-6 max-w-4xl mx-auto pb-20">
       <div className="flex flex-col gap-1">
         <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
           <BookOpen className="h-8 w-8" /> Manual do Gestor
@@ -61,7 +69,140 @@ export default function AdminHelpPage() {
         </Card>
       </div>
 
+      <h3 className="text-lg font-black uppercase tracking-tighter text-slate-400 mt-8 mb-4 flex items-center gap-2">
+        <ClipboardList className="h-5 w-5" /> Documentação do Sistema
+      </h3>
+
       <Accordion type="single" collapsible className="w-full space-y-4">
+        {/* NOVO: FLUXO OPERACIONAL */}
+        <AccordionItem value="fluxo-geral" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
+                <MapPin className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-bold text-lg">Fluxo Operacional de Dados</p>
+                <p className="text-sm text-muted-foreground">O caminho da solicitação até o paciente</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-6 pb-6 pt-2">
+            <div className="relative space-y-8 before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+              <div className="flex gap-4 relative pl-1">
+                <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold z-10 shrink-0">1</div>
+                <div>
+                  <p className="font-bold text-primary uppercase text-xs">Entrada (UBS)</p>
+                  <p className="text-sm">O Gerente da UBS cadastra o cidadão e cria o pedido de transporte até as 13:00h.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 relative pl-1">
+                <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold z-10 shrink-0">2</div>
+                <div>
+                  <p className="font-bold text-primary uppercase text-xs">Triagem (Secretaria)</p>
+                  <p className="text-sm">O Secretário aprova o pedido no <b>Painel de Comando</b>, podendo usar a IA para classificar a urgência.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 relative pl-1">
+                <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold z-10 shrink-0">3</div>
+                <div>
+                  <p className="font-bold text-primary uppercase text-xs">Otimização (Logística)</p>
+                  <p className="text-sm">A IA agrupa pacientes no <b>Otimizador de Rotas</b>. O Secretário designa o condutor e cria o <b>Manifesto</b>.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 relative pl-1">
+                <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold z-10 shrink-0">4</div>
+                <div>
+                  <p className="font-bold text-primary uppercase text-xs">Execução (Motorista)</p>
+                  <p className="text-sm">O motorista recebe a rota no celular, faz o checklist e inicia o transporte.</p>
+                </div>
+              </div>
+              <div className="flex gap-4 relative pl-1">
+                <div className="size-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold z-10 shrink-0">5</div>
+                <div>
+                  <p className="font-bold text-emerald-600 uppercase text-xs">Transparência (Cidadão)</p>
+                  <p className="text-sm">O paciente usa seu código de 6 dígitos no <b>Portal do Cidadão</b> para ver qual viatura irá buscá-lo.</p>
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* NOVO: GUIA DO SECRETÁRIO */}
+        <AccordionItem value="guia-secretario" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-primary/10 p-3 rounded-xl text-primary">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-bold text-lg">Guia do Secretário / Admin</p>
+                <p className="text-sm text-muted-foreground">Gestão estratégica e aprovações</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-muted/20 rounded-xl space-y-2">
+                <p className="font-bold text-xs uppercase text-primary">Triagem Técnica</p>
+                <p className="text-xs leading-relaxed">Acesse o <b>Painel de Comando</b> para visualizar pedidos pendentes. Use o botão "Analisar com IA" para obter um parecer clínico sem expor nomes reais.</p>
+              </div>
+              <div className="p-4 bg-muted/20 rounded-xl space-y-2">
+                <p className="font-bold text-xs uppercase text-primary">Logística Inteligente</p>
+                <p className="text-xs leading-relaxed">No <b>Otimizador de Rotas</b>, a IA cruzará endereços e veículos. Você deve escolher o motorista para cada grupo antes de oficializar os manifestos.</p>
+              </div>
+              <div className="p-4 bg-muted/20 rounded-xl space-y-2">
+                <p className="font-bold text-xs uppercase text-primary">Auditoria e Segurança</p>
+                <p className="text-xs leading-relaxed">A tela de <b>Auditoria</b> exibe a Cadeia de Custódia. Verifique se o selo de integridade está verde, garantindo que nenhum dado foi alterado indevidamente.</p>
+              </div>
+              <div className="p-4 bg-muted/20 rounded-xl space-y-2">
+                <p className="font-bold text-xs uppercase text-primary">Gestão de Frota</p>
+                <p className="text-xs leading-relaxed">Cadastre veículos em <b>Frota</b> e acompanhe telemetria básica como combustível e odômetro para prever manutenções.</p>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* NOVO: INTELIGÊNCIA ARTIFICIAL */}
+        <AccordionItem value="guia-ia" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-primary/30">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-amber-100 p-3 rounded-xl text-amber-600">
+                <BrainCircuit className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-bold text-lg">IA e Sigilo de Dados</p>
+                  <Badge className="bg-amber-600 text-white text-[10px]">IMPORTANTE</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">Como o Nvidia Nemotron processa as informações</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
+              <Lock className="h-5 w-5 text-amber-600 mt-1 shrink-0" />
+              <div className="space-y-2">
+                <p className="font-bold text-amber-900 text-sm">Protocolo de Pseudonimização</p>
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  Para estar em conformidade com a LGPD, o SGov FluxoSaúde <b>nunca</b> envia nomes de pacientes ou documentos para os servidores de IA. 
+                  <br/><br/>
+                  <b>O que acontece:</b> Antes da análise, o sistema substitui nomes por "Cidadão A" ou apenas o primeiro nome, e envia apenas as notas clínicas e os distritos geográficos. O processamento da IA é puramente técnico-logístico.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2 px-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Funcionalidades de IA Ativas:</p>
+              <ul className="text-xs space-y-2 list-none">
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Classificação de Urgência (UBS/Secretaria)</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Agrupamento de Manifestos (Logística)</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Briefing Seguro para Motoristas (Campo)</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Benchmarking de Modelos (Configurações)</li>
+              </ul>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
         <AccordionItem value="changelog-v1-1" className="border-2 border-primary/20 rounded-2xl bg-primary/5 px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -82,16 +223,16 @@ export default function AdminHelpPage() {
               <div className="space-y-3">
                 <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1">Novas Funcionalidades</p>
                 <ul className="text-xs space-y-2 list-none">
-                  <li className="flex gap-2"><b>• Auditoria do Sistema:</b> Logs detalhados de IP, usuário e recurso.</li>
-                  <li className="flex gap-2"><b>• Relatórios de Campo:</b> Visualização central de ocorrências dos motoristas.</li>
-                  <li className="flex gap-2"><b>• Telemetria de Frota:</b> Controle de combustível e odômetro integrado.</li>
+                  <li className="flex gap-2"><b>&bull; Auditoria do Sistema:</b> Logs detalhados de IP, usuário e recurso.</li>
+                  <li className="flex gap-2"><b>&bull; Relatórios de Campo:</b> Visualização central de ocorrências dos motoristas.</li>
+                  <li className="flex gap-2"><b>&bull; Telemetria de Frota:</b> Controle de combustível e odômetro integrado.</li>
                 </ul>
               </div>
               <div className="space-y-3">
                 <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1">Segurança</p>
                 <ul className="text-xs space-y-2 list-none">
-                  <li className="flex gap-2"><b>• Imutabilidade:</b> Registros de logs protegidos contra edição.</li>
-                  <li className="flex gap-2"><b>• Pseudonimização:</b> Refinamento do mascaramento de nomes na IA.</li>
+                  <li className="flex gap-2"><b>&bull; Imutabilidade:</b> Registros de logs protegidos contra edição.</li>
+                  <li className="flex gap-2"><b>&bull; Pseudonimização:</b> Refinamento do mascaramento de nomes na IA.</li>
                 </ul>
               </div>
             </div>
@@ -111,7 +252,7 @@ export default function AdminHelpPage() {
         </AccordionItem>
       </Accordion>
 
-      <Card className="border-dashed border-2 bg-muted/5">
+      <Card className="border-dashed border-2 bg-muted/5 mt-10">
         <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
           <HelpCircle className="h-10 w-10 text-muted-foreground opacity-30" />
           <div>
@@ -123,3 +264,4 @@ export default function AdminHelpPage() {
     </div>
   );
 }
+
