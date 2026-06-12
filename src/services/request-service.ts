@@ -1,4 +1,3 @@
-
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -125,12 +124,21 @@ export const requestService = {
     }
   },
 
+  /**
+   * Oficializa um lote de manifestos gerados pela IA ouFallback.
+   * Em modo demo, apenas retorna sucesso para a UI.
+   */
   async createManifestBatch(assignments: any[]): Promise<void> {
+    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      return Promise.resolve();
+    }
+
     const batch = writeBatch(db);
     
     assignments.forEach((assign) => {
       const manifestId = `MF-${Date.now().toString().slice(-6)}-${assign.vehicleId}`;
       assign.route.forEach((requestId: string) => {
+        // Ignora IDs de mock para evitar erros no Firestore real se o banco estiver vazio
         if (requestId.startsWith('REQ-')) return;
         
         const docRef = doc(db, COLLECTION_NAME, requestId);
