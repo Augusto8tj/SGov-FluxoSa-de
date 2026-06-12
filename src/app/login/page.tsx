@@ -188,7 +188,7 @@ export default function LoginPage() {
                     <div className="bg-rose-500/10 p-1.5 rounded-lg group-hover:bg-rose-500/20"><Heart className="h-4 w-4 text-rose-600" /></div>
                     <div className="text-left leading-none">
                       <p className="text-xs">Portal do Cidadão</p>
-                      <p className="text-[9px] font-medium text-muted-foreground">Consulta Pública de Viagem</p>
+                      <p className="text-[9px] font-black text-rose-600 uppercase">Cód. Demo: 102030</p>
                     </div>
                   </Button>
                 </div>
