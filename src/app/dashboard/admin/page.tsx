@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   ShieldCheck, 
   BrainCircuit, 
@@ -11,14 +11,12 @@ import {
   Check,
   X,
   AlertTriangle,
-  History,
-  Loader2 as LoaderIcon,
   RefreshCw,
   ChevronDown,
   ChevronUp,
-  AlertCircle,
   Activity,
-  ArrowRight
+  ArrowRight,
+  Loader2 as LoaderIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,8 +37,6 @@ import { StatsCard } from "@/components/dashboard/stats-card";
 import { requestService } from "@/services/request-service";
 import { TransportRequest } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
-import React from "react";
 
 export default function AdminPage() {
   const [mounted, setMounted] = useState(false);
@@ -56,7 +52,7 @@ export default function AdminPage() {
     setLoadingData(true);
     try {
       const all = await requestService.getRequests();
-      // Mostramos apenas o que precisa de decisão (PENDING)
+      // Filtra apenas pendentes para o Painel de Comando
       setRequests(all.filter(r => r.status === 'PENDING'));
     } catch {
       toast({ title: "Erro", description: "Falha ao sincronizar pedidos pendentes.", variant: "destructive" });
@@ -94,12 +90,11 @@ export default function AdminPage() {
         pickupLocation: req.pickupLocation,
         destinationLocation: req.destinationLocation,
         urgencyLevel: req.urgencyLevel,
-        availableVehiclesSummary: "Frota operacional com 4 viaturas ativas."
+        availableVehiclesSummary: "Frota operacional disponível na Central."
       });
       
       setAnalysis(prev => ({ ...prev, [req.id]: result }));
       
-      // Expande automaticamente ao concluir a análise
       const newExpanded = new Set(expandedIds);
       newExpanded.add(req.id);
       setExpandedIds(newExpanded);
@@ -122,26 +117,27 @@ export default function AdminPage() {
         updatedAt: new Date().toISOString() 
       });
       
+      // Remove da lista pendente localmente
       setRequests(prev => prev.filter(r => r.id !== id));
       
       if (action === 'APPROVED') {
-        toast({ title: "Solicitação Aprovada", description: `O pedido de ${req.patientName} foi enviado para a logística.` });
+        toast({ title: "Solicitação Aprovada", description: `O pedido de ${req.patientName} foi encaminhado para a logística.` });
       } else {
-        toast({ title: "Solicitação Negada", description: `O pedido de ${req.patientName} foi recusado.`, variant: "destructive" });
+        toast({ title: "Solicitação Negada", description: `O pedido de ${req.patientName} foi arquivado.`, variant: "destructive" });
       }
       
+      // Limpa estados auxiliares
       if (analysis[id]) {
         const newAnalysis = { ...analysis };
         delete newAnalysis[id];
         setAnalysis(newAnalysis);
       }
-      
       const newExpanded = new Set(expandedIds);
       newExpanded.delete(id);
       setExpandedIds(newExpanded);
 
     } catch {
-      toast({ title: "Erro na Ação", description: "Não foi possível atualizar o status no banco de dados.", variant: "destructive" });
+      toast({ title: "Erro na Ação", description: "Falha ao atualizar status no sistema.", variant: "destructive" });
     }
   };
 
@@ -164,8 +160,8 @@ export default function AdminPage() {
             <div className="flex items-center space-x-2">
               <BrainCircuit className={aiEnabled ? "text-primary animate-pulse h-4 w-4 sm:h-5 sm:w-5" : "text-muted-foreground h-4 w-4 sm:h-5 sm:w-5"} />
               <div className="grid gap-0">
-                <Label htmlFor="ai-toggle" className="text-[10px] sm:text-sm font-semibold leading-none">IA com Sigilo</Label>
-                <p className="text-[8px] text-muted-foreground uppercase font-black tracking-tighter hidden xs:block">Protocolo LGPD</p>
+                <Label htmlFor="ai-toggle" className="text-[10px] sm:text-sm font-semibold leading-none">IA Ativa</Label>
+                <p className="text-[8px] text-muted-foreground uppercase font-black tracking-tighter hidden xs:block">Sigilo Rio Claro</p>
               </div>
             </div>
             <Switch 
@@ -181,14 +177,14 @@ export default function AdminPage() {
       <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-4">
         <StatsCard title="Pendentes" value={requests.length} icon={Zap} description="Aguardando Triagem" />
         <StatsCard title="Taxa Aprovação" value="92%" icon={CheckCircle} description="Média Mensal" />
-        <StatsCard title="IA Ativa" value="SIM" icon={BrainCircuit} description="Nvidia Nemotron" className="hidden xs:flex" />
+        <StatsCard title="IA Ativa" value="SIM" icon={BrainCircuit} description="Nvidia Nemotron" />
         <StatsCard title="Alertas" value={requests.filter(r => r.urgencyLevel === 'critical').length} icon={AlertTriangle} description="Críticos" />
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden bg-card rounded-2xl sm:rounded-3xl">
         <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/5 p-4 sm:p-6">
           <div>
-            <CardTitle className="text-base sm:text-lg">Solicitações Pendentes</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Solicitações Aguardando Decisão</CardTitle>
             <CardDescription className="text-[10px] sm:text-xs">Triagem técnica para a malha viária municipal.</CardDescription>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><Filter className="h-4 w-4" /></Button>
@@ -205,17 +201,17 @@ export default function AdminPage() {
                 <CheckCircle className="h-8 w-8" />
               </div>
               <p className="font-bold">Tudo em dia!</p>
-              <p className="text-xs">Nenhuma solicitação pendente.</p>
+              <p className="text-xs">Nenhuma solicitação pendente no momento.</p>
             </div>
           ) : (
             <div className="overflow-x-auto no-scrollbar">
               <Table>
                 <TableHeader className="bg-muted/30">
                   <TableRow className="border-none hover:bg-transparent">
-                    <TableHead className="font-bold h-10 py-0">Paciente / UBS</TableHead>
+                    <TableHead className="font-bold h-10 py-0">Paciente / Origem</TableHead>
                     <TableHead className="font-bold h-10 py-0 hidden sm:table-cell">Prioridade</TableHead>
                     <TableHead className="font-bold h-10 py-0 hidden md:table-cell">Suporte IA</TableHead>
-                    <TableHead className="text-right font-bold h-10 py-0">Decisão</TableHead>
+                    <TableHead className="text-right font-bold h-10 py-0 pr-6">Ações de Decisão</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -271,7 +267,7 @@ export default function AdminPage() {
                                 ) : (
                                   <BrainCircuit className={cn("h-3.5 w-3.5", analysis[req.id] ? "text-primary" : "text-muted-foreground")} />
                                 )}
-                                {analysis[req.id] ? "RE-ANALISAR" : "ANALISAR"}
+                                {analysis[req.id] ? "RE-ANALISAR" : "ANALISAR IA"}
                               </Button>
                               {analysis[req.id] && (
                                 <Button 
@@ -281,7 +277,7 @@ export default function AdminPage() {
                                   onClick={() => toggleExpand(req.id)}
                                 >
                                   {expandedIds.has(req.id) ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                                  {expandedIds.has(req.id) ? "OCULTAR" : "DETALHES"}
+                                  {expandedIds.has(req.id) ? "RECOLHER" : "DETALHES"}
                                 </Button>
                               )}
                             </div>
@@ -290,45 +286,45 @@ export default function AdminPage() {
                           )}
                         </TableCell>
 
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2 sm:gap-3">
+                        <TableCell className="text-right pr-6">
+                          <div className="flex justify-end gap-3 sm:gap-4">
                             <Button 
                               size="icon" 
-                              className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-100 transition-all active:scale-90" 
+                              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-100 transition-all active:scale-90" 
                               onClick={() => handleAction(req.id, 'DENIED')}
-                              title="Negar Pedido"
+                              title="Negar Solicitação"
                             >
-                              <X className="h-5 w-5" />
+                              <X className="h-5 w-5 sm:h-6 sm:w-6" />
                             </Button>
                             <Button 
                               size="icon" 
-                              className="h-10 w-10 sm:h-11 sm:w-11 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-100 transition-all active:scale-90" 
+                              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-100 transition-all active:scale-90" 
                               onClick={() => handleAction(req.id, 'APPROVED')}
-                              title="Aprovar Pedido"
+                              title="Aprovar Solicitação"
                             >
-                              <Check className="h-5 w-5" />
+                              <Check className="h-5 w-5 sm:h-6 sm:w-6" />
                             </Button>
                           </div>
                         </TableCell>
                       </TableRow>
 
-                      {/* Parecer IA em Linha Integrada */}
+                      {/* Linha de Análise Técnica Integrada */}
                       {expandedIds.has(req.id) && analysis[req.id] && (
                         <TableRow className="bg-primary/[0.02] border-b-2 border-primary/10">
                           <TableCell colSpan={4} className="p-0">
                             <div className="p-4 sm:p-6 animate-in slide-in-from-top-2 duration-300">
-                              <div className="max-w-5xl mx-auto bg-white rounded-[2rem] border border-primary/10 shadow-xl overflow-hidden">
-                                <div className="p-5 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
-                                  {/* Coluna de Diagnóstico IA */}
-                                  <div className="flex-1 space-y-4">
+                              <div className="max-w-6xl mx-auto bg-white rounded-[2rem] border border-primary/10 shadow-xl overflow-hidden">
+                                <div className="p-5 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-12">
+                                  {/* Recomendação IA */}
+                                  <div className="flex-1 space-y-5">
                                     <div className="flex items-center gap-3">
-                                      <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
-                                        <BrainCircuit className="h-6 w-6" />
+                                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                                        <BrainCircuit className="h-7 w-7" />
                                       </div>
                                       <div>
                                         <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.2em] leading-none">Parecer Técnico</h4>
                                         <Badge className={cn(
-                                          "mt-1.5 text-[9px] font-black uppercase h-5 px-3 border-none",
+                                          "mt-1.5 text-[10px] font-black uppercase h-5 px-3 border-none",
                                           analysis[req.id]?.suggestedAction === 'approve' ? 'bg-emerald-100 text-emerald-700' :
                                           analysis[req.id]?.suggestedAction === 'deny' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
                                         )}>
@@ -337,23 +333,23 @@ export default function AdminPage() {
                                       </div>
                                     </div>
                                     
-                                    <div className="bg-primary/[0.03] p-5 rounded-3xl border border-primary/5 italic relative">
-                                      <div className="absolute top-0 left-6 -translate-y-1/2 bg-white px-2 text-[9px] font-bold text-primary uppercase tracking-widest">IA: Recomendação Estratégica</div>
+                                    <div className="bg-primary/[0.03] p-6 rounded-[2rem] border border-primary/5 italic relative">
+                                      <div className="absolute top-0 left-8 -translate-y-1/2 bg-white px-3 text-[10px] font-black text-primary uppercase tracking-widest">Recomendação Estratégica</div>
                                       <p className="text-sm font-medium text-slate-600 leading-relaxed">
                                         &quot;{analysis[req.id]?.recommendation}&quot;
                                       </p>
                                     </div>
                                   </div>
 
-                                  {/* Coluna de Variáveis de Escopo */}
-                                  <div className="w-full md:w-[320px] space-y-3">
+                                  {/* Variáveis de Escopo */}
+                                  <div className="w-full md:w-[350px] space-y-4">
                                     <p className="text-[10px] font-black uppercase text-slate-400 tracking-tighter flex items-center gap-2 px-1">
-                                      <Activity className="h-3.5 w-3.5 text-primary" /> Variáveis de Escopo Analisadas
+                                      <Activity className="h-4 w-4 text-primary" /> Variáveis de Escopo Analisadas
                                     </p>
                                     <div className="grid grid-cols-1 gap-2">
                                       {analysis[req.id]?.criticalFactors.map((factor, idx) => (
-                                        <div key={idx} className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] text-slate-600 font-bold hover:bg-white hover:border-primary/20 transition-all group">
-                                          <div className="size-2 rounded-full bg-primary/40 group-hover:scale-125 group-hover:bg-primary transition-all shrink-0" />
+                                        <div key={idx} className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] text-slate-600 font-bold hover:bg-white hover:border-primary/20 transition-all group">
+                                          <div className="size-2.5 rounded-full bg-primary/30 group-hover:scale-125 group-hover:bg-primary transition-all shrink-0" />
                                           <span className="truncate">{factor}</span>
                                         </div>
                                       ))}
@@ -361,9 +357,12 @@ export default function AdminPage() {
                                   </div>
                                 </div>
                                 
-                                <div className="bg-slate-50 px-8 py-3 flex items-center gap-2 border-t">
-                                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Protocolo de Sigilo Rio Claro Ativo &bull; Nvidia Nemotron Nano</span>
+                                <div className="bg-slate-50 px-8 py-3.5 flex items-center justify-between border-t">
+                                  <div className="flex items-center gap-2">
+                                    <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proteção de Dados Ativa &bull; Nvidia Nemotron Nano</span>
+                                  </div>
+                                  <Button variant="ghost" size="sm" onClick={() => toggleExpand(req.id)} className="text-[10px] font-black text-primary uppercase">Fechar Painel</Button>
                                 </div>
                               </div>
                             </div>
@@ -379,17 +378,17 @@ export default function AdminPage() {
         </CardContent>
       </Card>
 
-      <div className="p-4 sm:p-6 bg-blue-50 rounded-[1.5rem] sm:rounded-[2.5rem] border border-dashed border-blue-200 flex flex-col md:flex-row items-center gap-4 sm:gap-6 mx-1">
-        <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-[1rem] sm:rounded-[2rem] bg-white shadow-lg flex items-center justify-center shrink-0">
-          <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+      <div className="p-5 sm:p-8 bg-blue-50 rounded-[2rem] sm:rounded-[3rem] border border-dashed border-blue-200 flex flex-col md:flex-row items-center gap-6 mx-1">
+        <div className="h-14 w-14 sm:h-20 sm:w-20 rounded-[1.5rem] sm:rounded-[2.5rem] bg-white shadow-xl flex items-center justify-center shrink-0">
+          <Activity className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
         </div>
-        <div className="flex-1 text-center md:text-left space-y-1">
-          <h4 className="font-black text-base sm:text-lg text-blue-800 uppercase tracking-tighter">Fluxo de Triagem Aumentada</h4>
-          <p className="text-[11px] sm:text-sm text-blue-600 leading-relaxed max-w-2xl font-medium">
-            O Painel de Comando exibe pareceres que cruzam o histórico do paciente e o destino para sugerir a melhor conduta. Os dados são pseudonimizados antes do envio para a nuvem de processamento.
+        <div className="flex-1 text-center md:text-left space-y-1.5">
+          <h4 className="font-black text-lg sm:text-xl text-blue-800 uppercase tracking-tighter">Workflow de Triagem Aumentada</h4>
+          <p className="text-[12px] sm:text-sm text-blue-600 leading-relaxed max-w-3xl font-medium">
+            O Painel de Comando cruza a gravidade relatada pela UBS com a disponibilidade da frota para sugerir a melhor decisão. Utilize a IA para garantir que casos de Hemodiálise, Oncologia e Pós-operatórios tenham a prioridade correta garantida pelo protocolo municipal.
           </p>
         </div>
-        <ArrowRight className="h-6 w-6 text-blue-300 hidden md:block" />
+        <ArrowRight className="h-8 w-8 text-blue-300 hidden md:block" />
       </div>
     </div>
   );
