@@ -9,7 +9,6 @@ import {
   CheckCircle2, 
   ArrowLeft, 
   Loader2,
-  ShieldCheck,
   Info
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

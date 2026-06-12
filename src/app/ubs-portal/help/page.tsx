@@ -5,8 +5,6 @@ import {
   Clock, 
   Rocket,
   History,
-  KeyRound,
-  Smartphone,
   ClipboardList,
   Users,
   BrainCircuit,

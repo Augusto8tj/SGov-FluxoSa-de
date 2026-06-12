@@ -4,15 +4,12 @@
  */
 
 import { aiService } from '@/services/ai-service';
-import { z } from 'zod';
 
-const UbsDemandOutputSchema = z.object({
-  summary: z.string(),
-  recommendation: z.string(),
-  priorityLevel: z.enum(['low', 'medium', 'high']),
-});
-
-export type UbsDemandOutput = z.infer<typeof UbsDemandOutputSchema>;
+export type UbsDemandOutput = {
+  summary: string;
+  recommendation: string;
+  priorityLevel: 'low' | 'medium' | 'high';
+};
 
 export async function summarizeUbsDemand(input: any): Promise<UbsDemandOutput> {
   const prompt = `Resumo estratégico para a ${input.ubsName}:

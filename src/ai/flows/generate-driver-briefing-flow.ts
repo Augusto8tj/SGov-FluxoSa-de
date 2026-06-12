@@ -5,15 +5,12 @@
  */
 
 import { aiService } from '@/services/ai-service';
-import { z } from 'genkit';
 
-const DriverBriefingOutputSchema = z.object({
-  summary: z.string(),
-  criticalAlerts: z.array(z.string()),
-  protocolReminder: z.string(),
-});
-
-export type DriverBriefingOutput = z.infer<typeof DriverBriefingOutputSchema>;
+export type DriverBriefingOutput = {
+  summary: string;
+  criticalAlerts: string[];
+  protocolReminder: string;
+};
 
 export async function generateDriverBriefing(input: any): Promise<DriverBriefingOutput> {
   const prompt = `Gere um briefing de segurança para o condutor ${input.driverName} do veículo ${input.vehicleType}.

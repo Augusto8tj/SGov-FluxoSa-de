@@ -4,15 +4,12 @@
  */
 
 import { aiService } from '@/services/ai-service';
-import { z } from 'zod';
 
-const SystemInsightsOutputSchema = z.object({
-  briefing: z.string(),
-  priorityAction: z.string(),
-  alertLevel: z.enum(['normal', 'warning', 'critical']),
-});
-
-export type SystemInsightsOutput = z.infer<typeof SystemInsightsOutputSchema>;
+export type SystemInsightsOutput = {
+  briefing: string;
+  priorityAction: string;
+  alertLevel: 'normal' | 'warning' | 'critical';
+};
 
 export async function generateSystemInsights(input: any): Promise<SystemInsightsOutput> {
   const prompt = `Resumo executivo para a Secretaria de Saúde de Rio Claro:

@@ -5,14 +5,11 @@
  */
 
 import { aiService } from '@/services/ai-service';
-import { z } from 'genkit';
 
-const ClassifyUrgencyOutputSchema = z.object({
-  suggestedUrgency: z.enum(['low', 'medium', 'high', 'critical']),
-  reasoning: z.string(),
-});
-
-export type ClassifyUrgencyOutput = z.infer<typeof ClassifyUrgencyOutputSchema>;
+export type ClassifyUrgencyOutput = {
+  suggestedUrgency: 'low' | 'medium' | 'high' | 'critical';
+  reasoning: string;
+};
 
 export async function classifyUrgency(input: { patientNotes: string, destination: string }): Promise<ClassifyUrgencyOutput> {
   const prompt = `Você é um triador médico em Rio Claro.

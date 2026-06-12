@@ -8,7 +8,6 @@ import {
   Loader2, 
   Ambulance, 
   User, 
-  ShieldCheck,
   ArrowRight,
   Filter,
   KeyRound,

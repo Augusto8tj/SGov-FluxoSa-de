@@ -4,15 +4,12 @@
  */
 
 import { aiService } from '@/services/ai-service';
-import { z } from 'zod';
 
-const ProvideDecisionSupportOutputSchema = z.object({
-  recommendation: z.string(),
-  criticalFactors: z.array(z.string()),
-  suggestedAction: z.enum(['approve', 'deny', 'escalate', 'needs_more_info']),
-});
-
-export type ProvideDecisionSupportOutput = z.infer<typeof ProvideDecisionSupportOutputSchema>;
+export type ProvideDecisionSupportOutput = {
+  recommendation: string;
+  criticalFactors: string[];
+  suggestedAction: 'approve' | 'deny' | 'escalate' | 'needs_more_info';
+};
 
 export async function provideDecisionSupportForApprovals(input: any): Promise<ProvideDecisionSupportOutput> {
   const prompt = `Analise a solicitação de transporte #${input.requestId} para ${input.patientMaskedName}.
