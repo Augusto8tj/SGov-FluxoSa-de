@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { 
   Ambulance, 
-  User, 
   Zap, 
   Loader2, 
   Route as RouteIcon,
@@ -43,7 +42,6 @@ export default function RoutesPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [result, setResult] = useState<GenerateOptimizedRoutesOutput | null>(null);
   
-  // Estado para armazenar o motorista selecionado para cada assignment (index da rota -> driverId)
   const [selectedDrivers, setSelectedDrivers] = useState<Record<number, string>>({});
   
   const { toast } = useToast();
@@ -83,25 +81,23 @@ export default function RoutesPage() {
     try {
       const appointments = requests.map(r => ({
         id: r.id,
-        patientId: r.patientName,
-        pickupLocation: r.pickupLocation,
-        destination: r.destinationLocation
+        patientName: r.patientName,
+        pickup: r.pickupLocation,
+        destination: r.destinationLocation,
+        urgency: r.urgencyLevel
       }));
 
       const data = await generateOptimizedRoutes({
         appointments,
-        vehicles: vehicles.map(v => ({ id: v.id, type: v.type, capacity: v.capacity, available: true })),
-        drivers: drivers.map(d => ({ id: d.id, name: d.name, available: true })),
-        ubs: [],
-        enableAiAssistance: true
+        vehicles: vehicles.map(v => ({ id: v.id, type: v.type, capacity: v.capacity })),
+        drivers: drivers.map(d => ({ id: d.id, name: d.name })),
       });
       
       setResult(data);
-      // Resetar seleções de motorista ao gerar nova rota
       setSelectedDrivers({});
       toast({ 
         title: "Otimização Concluída", 
-        description: "Rotas geradas para a malha viária de Rio Claro." 
+        description: "A IA distribuiu os pacientes nos melhores trajetos." 
       });
     } catch (error: any) {
       toast({ 
@@ -117,7 +113,6 @@ export default function RoutesPage() {
   const handleCommitManifestos = async () => {
     if (!result) return;
 
-    // Verificar se todos os motoristas foram selecionados
     const missingDriver = result.assignments.some((_, idx) => !selectedDrivers[idx]);
     if (missingDriver) {
       toast({ title: "Atenção", description: "Por favor, selecione um motorista para cada rota.", variant: "destructive" });
@@ -166,7 +161,7 @@ export default function RoutesPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Otimizador de Rotas</h2>
-          <p className="text-muted-foreground">Converta pedidos autorizados em manifestos de viagem.</p>
+          <p className="text-muted-foreground">Converta pedidos autorizados em manifestos de viagem via IA.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={loadData} className="h-11 rounded-xl">Recarregar</Button>
@@ -176,7 +171,7 @@ export default function RoutesPage() {
             className="bg-primary hover:bg-primary/90 shadow-md h-11 px-8 gap-2 rounded-xl"
           >
             {optimizing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5 text-accent" />}
-            {optimizing ? "Processando..." : "Otimizar Logística"}
+            {optimizing ? "IA Calculando..." : "Otimizar Logística"}
           </Button>
         </div>
       </div>
@@ -210,7 +205,7 @@ export default function RoutesPage() {
             <CardFooter className="pt-2 border-t mt-2">
               <div className="flex items-center gap-2">
                 <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Algoritmo Rio Claro v1.1</span>
+                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Cérebro Logístico Rio Claro</span>
               </div>
             </CardFooter>
           </Card>
@@ -221,7 +216,7 @@ export default function RoutesPage() {
             </div>
             <div>
               <p className="text-[10px] font-black uppercase text-amber-700">Atenção ao Confirmar</p>
-              <p className="text-[10px] text-amber-600 leading-tight">Ao clicar em "Gerar e Enviar", as solicitações serão atualizadas no banco de dados e os motoristas selecionados receberão a missão em seus dispositivos.</p>
+              <p className="text-[10px] text-amber-600 leading-tight">Revise os agrupamentos da IA abaixo. Ao confirmar, os motoristas receberão o itinerário em tempo real.</p>
             </div>
           </div>
         </div>
@@ -232,9 +227,9 @@ export default function RoutesPage() {
               <div className="p-4 bg-primary/10 rounded-full mb-4">
                 <RouteIcon className="h-10 w-10 text-primary" />
               </div>
-              <h3 className="text-lg font-black uppercase tracking-tighter">Aguardando Planejamento</h3>
+              <h3 className="text-lg font-black uppercase tracking-tighter">Aguardando IA</h3>
               <p className="text-muted-foreground text-xs max-w-xs text-center mt-1">
-                Selecione "Otimizar Logística" para agrupar os pacientes por distrito e veículo.
+                A IA analisará a localização dos {requests.length} pacientes para criar os melhores manifestos.
               </p>
             </Card>
           )}
@@ -243,34 +238,32 @@ export default function RoutesPage() {
             <div className="flex flex-col items-center justify-center py-24 space-y-4 text-center">
               <Loader2 className="h-12 w-12 text-primary animate-spin" />
               <div>
-                <p className="text-lg font-black uppercase tracking-tighter animate-pulse">Calculando Eficiência...</p>
-                <p className="text-sm text-muted-foreground">Cruzando dados de geolocalização e urgência clínica.</p>
+                <p className="text-lg font-black uppercase tracking-tighter animate-pulse">IA Calculando Rotas...</p>
+                <p className="text-sm text-muted-foreground">Cruzando bairros, distritos e capacidade dos veículos.</p>
               </div>
             </div>
           )}
 
           {result && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {/* Rotas Sugeridas */}
               <div className="grid gap-4 md:grid-cols-2">
                 {result.assignments.map((assignment, idx) => (
                   <Card key={idx} className="border-none shadow-sm overflow-hidden border-l-4 border-l-primary rounded-2xl bg-card">
                     <CardHeader className="pb-2 bg-muted/20">
                       <div className="flex items-center justify-between">
-                        <Badge variant="outline" className="text-[10px] font-black uppercase">ROTA #{idx + 1}</Badge>
+                        <Badge variant="outline" className="text-[10px] font-black uppercase">MANIFESTO IA #{idx + 1}</Badge>
                         <div className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground uppercase">
                           <Navigation className="h-3 w-3" /> {assignment.estimatedDistanceKm.toFixed(1)} km
                         </div>
                       </div>
                       <CardTitle className="text-lg flex items-center gap-2 mt-2">
                         <Ambulance className="h-5 w-5 text-primary" />
-                        {vehicles.find(v => v.id === assignment.vehicleId)?.type || "Viatura"}
+                        {vehicles.find(v => v.id === assignment.vehicleId)?.type || "Viatura Designada"}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 pt-4">
-                      {/* Seleção de Motorista */}
                       <div className="space-y-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
-                        <Label className="text-[10px] font-black uppercase text-primary">Escalar Condutor</Label>
+                        <Label className="text-[10px] font-black uppercase text-primary">Atribuir Condutor</Label>
                         <Select 
                           value={selectedDrivers[idx] || ""} 
                           onValueChange={(val) => updateDriverSelection(idx, val)}
@@ -292,34 +285,29 @@ export default function RoutesPage() {
                           return (
                             <div key={appId} className="relative">
                               <div className="absolute -left-[20px] top-1 size-3 rounded-full bg-primary ring-4 ring-white" />
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <p className="text-sm font-bold text-slate-700">{req?.patientName || `Solicitação ${appId}`}</p>
-                                  <p className="text-[10px] text-muted-foreground uppercase font-medium">Destino: {req?.destinationLocation || 'N/A'}</p>
-                                </div>
+                              <div>
+                                <p className="text-sm font-bold text-slate-700">{req?.patientName || `Paciente ${appId}`}</p>
+                                <p className="text-[10px] text-muted-foreground uppercase font-medium">Destino: {req?.destinationLocation || 'N/A'}</p>
                               </div>
                             </div>
                           );
                         })}
                       </div>
-                    </CardContent>
-                    <CardFooter className="bg-muted/10 py-3 border-t">
-                      <div className="text-[10px] text-muted-foreground font-bold uppercase flex items-center gap-2">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                        Aguardando Atribuição Manual
+                      
+                      <div className="mt-2 p-2 bg-slate-50 rounded-lg border border-dashed text-[10px] text-slate-500 italic">
+                        IA: {assignment.notes}
                       </div>
-                    </CardFooter>
+                    </CardContent>
                   </Card>
                 ))}
               </div>
 
-              {/* Proposta Final (Agora abaixo das rotas) */}
               <Card className="bg-primary text-primary-foreground border-none shadow-xl rounded-3xl overflow-hidden mt-6">
                 <CardContent className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div className="flex gap-3">
                     <Zap className="h-6 w-6 text-accent shrink-0 mt-1" />
                     <div className="space-y-1">
-                      <p className="text-xs font-black uppercase tracking-widest opacity-80">Proposta de Escala Logística</p>
+                      <p className="text-xs font-black uppercase tracking-widest opacity-80">Parecer da Inteligência Artificial</p>
                       <p className="text-sm font-medium leading-relaxed">{result.optimizationSummary}</p>
                     </div>
                   </div>
@@ -329,7 +317,7 @@ export default function RoutesPage() {
                     disabled={committing}
                   >
                     {committing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    {committing ? "Gravando..." : "Gerar e Enviar Manifestos"}
+                    {committing ? "Oficializando..." : "Oficializar e Enviar"}
                   </Button>
                 </CardContent>
               </Card>

@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Fluxo para geração de rotas otimizadas.
- * Utiliza lógica determinística por padrão para garantir a operação logística.
+ * Utiliza IA para agrupar pacientes em veículos com base em localização e capacidade.
  */
 
 import { aiService } from '@/services/ai-service';
@@ -9,11 +9,10 @@ import { z } from 'genkit';
 
 const RouteAssignmentSchema = z.object({
   vehicleId: z.string(),
-  driverId: z.string(),
-  route: z.array(z.string()),
+  route: z.array(z.string()).describe("Lista de IDs das solicitações/agendamentos"),
   estimatedDurationMinutes: z.number(),
   estimatedDistanceKm: z.number(),
-  notes: z.string(),
+  notes: z.string().describe("Explicação do porquê esse grupo foi formado"),
 });
 
 export type GenerateOptimizedRoutesOutput = {
@@ -22,40 +21,55 @@ export type GenerateOptimizedRoutesOutput = {
 };
 
 export async function generateOptimizedRoutes(input: any): Promise<GenerateOptimizedRoutesOutput> {
-  // A roteirização de pacientes exige alta precisão e segurança.
-  // Utilizamos a lógica determinística local como base e a IA para o resumo.
-  
-  const assignments = deterministicOptimization(input.appointments, input.vehicles, input.drivers);
-  
-  const prompt = `Gere um resumo técnico para a otimização de rotas em Rio Claro:
-Total de Pacientes: ${input.appointments.length}
-Vagas em Veículos: ${input.vehicles.reduce((acc: number, v: any) => acc + v.capacity, 0)}`;
+  const prompt = `Você é o Coordenador de Logística de Saúde de Rio Claro - RJ.
+Sua missão é distribuir os seguintes pacientes nos veículos disponíveis da forma mais eficiente possível.
 
-  const aiResult = await aiService.generate<{ summary: string }>(
+DADOS DE ENTRADA:
+- Pacientes (Pedidos): ${JSON.stringify(input.appointments)}
+- Veículos Disponíveis: ${JSON.stringify(input.vehicles)}
+
+REGRAS DE NEGÓCIO:
+1. Agrupe pacientes que saem do mesmo distrito ou UBS para o mesmo destino.
+2. Respeite a CAPACIDADE de cada veículo.
+3. Priorize ambulâncias para casos que pareçam mais urgentes (distâncias longas ou termos clínicos).
+4. Minimize a quilometragem total da frota.
+
+Responda em Português do Brasil.`;
+
+  const schemaDescription = `{ 
+    assignments: Array<{ vehicleId: string, route: string[], estimatedDurationMinutes: number, estimatedDistanceKm: number, notes: string }>, 
+    optimizationSummary: string 
+  }`;
+
+  const aiResult = await aiService.generate<GenerateOptimizedRoutesOutput>(
     prompt,
-    "{ summary: string }"
+    schemaDescription
   );
 
+  if (aiResult.output && aiResult.output.assignments) {
+    return aiResult.output;
+  }
+
+  // Fallback Determinístico caso a IA falhe
   return {
-    assignments,
-    optimizationSummary: aiResult.output?.summary || "Otimização concluída via processamento local de contingência."
+    assignments: deterministicOptimization(input.appointments, input.vehicles),
+    optimizationSummary: "Otimização concluída via processamento local de contingência."
   };
 }
 
-function deterministicOptimization(appointments: any[], vehicles: any[], drivers: any[]) {
+function deterministicOptimization(appointments: any[], vehicles: any[]) {
   const availableVehicles = vehicles.filter(v => v.available);
-  const availableDrivers = drivers.filter(d => d.available);
   const assignments: any[] = [];
   
+  // Distribuição simples 1:1 para não travar o sistema
   appointments.forEach((app, idx) => {
-    if (idx < availableVehicles.length && idx < availableDrivers.length) {
+    if (idx < availableVehicles.length) {
       assignments.push({
         vehicleId: availableVehicles[idx].id,
-        driverId: availableDrivers[idx].id,
         route: [app.id],
-        estimatedDurationMinutes: 25,
-        estimatedDistanceKm: 12,
-        notes: "Roteirização via protocolo de distribuição equitativa."
+        estimatedDurationMinutes: 30,
+        estimatedDistanceKm: 15,
+        notes: "Distribuição individual (Modo de Contingência)."
       });
     }
   });
