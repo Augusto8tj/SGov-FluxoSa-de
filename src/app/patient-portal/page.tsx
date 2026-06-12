@@ -6,7 +6,7 @@ import {
   KeyRound, 
   Search, 
   Loader2, 
-  HelpCircle,
+  HelpCircle, 
   ShieldCheck,
   Ambulance,
   Clock
@@ -76,7 +76,7 @@ export default function PatientPortalLogin() {
                   inputMode="numeric"
                   maxLength={6}
                   placeholder="000000" 
-                  className="h-16 text-2xl text-center font-black tracking-[0.5em] pl-12 rounded-2xl bg-slate-50 focus-visible:ring-primary/20 border-none"
+                  className="h-20 text-4xl text-center font-black tracking-[0.5em] pl-12 rounded-2xl bg-slate-50 focus-visible:ring-primary/20 border-none shadow-inner"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                 />
