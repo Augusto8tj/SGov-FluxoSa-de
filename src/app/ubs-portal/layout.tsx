@@ -7,8 +7,13 @@ import { Separator } from "@/components/ui/separator";
 import { ThemeSelector } from "@/components/theme-selector";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+
+/**
+ * @fileOverview Layout do Portal UBS.
+ * Adicionado controle de montagem para garantir consistência na hidratação.
+ */
 
 export default function UbsLayout({
   children,
@@ -17,19 +22,24 @@ export default function UbsLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !loading && !user) {
       router.push("/login");
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isMounted]);
 
-  if (loading) {
+  if (!isMounted || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-          <p className="text-sm font-medium text-muted-foreground">Validando acesso UBS...</p>
+          <p className="text-sm font-medium text-muted-foreground">Acessando Unidade...</p>
         </div>
       </div>
     );

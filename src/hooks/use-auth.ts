@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,43 +8,40 @@ import { useRouter } from "next/navigation";
 
 /**
  * @fileOverview Hook customizado para gerenciar o estado de autenticação.
- * Otimizado para evitar flashes de "loading" durante a navegação em modo demo.
+ * Corrigido para ser seguro durante a hidratação (Hydration Safe), garantindo
+ * que o estado inicial no servidor coincida com o do cliente.
  */
 
-// Função auxiliar para pegar o usuário inicial sem delay
-const getInitialUser = () => {
-  if (typeof window === "undefined") return null;
-  const demoUser = sessionStorage.getItem("sgov_demo_user");
-  return demoUser ? JSON.parse(demoUser) : null;
-};
-
 export function useAuth() {
-  const [user, setUser] = useState<any | null>(getInitialUser());
-  // Se já temos um usuário demo, começamos com loading: false
-  const [loading, setLoading] = useState(!getInitialUser());
+  // Estado inicial consistente: no servidor e no primeiro render do cliente, começamos com loading: true
+  const [user, setUser] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Se for usuário demo, o estado inicial já resolveu
-    const demoUser = sessionStorage.getItem("sgov_demo_user");
-    if (demoUser) {
-      if (!user) setUser(JSON.parse(demoUser));
-      setLoading(false);
-      return;
-    }
-
-    // Monitoramento do Firebase Auth real
-    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
-      if (fbUser) {
-        setUser(fbUser);
-      } else {
-        setUser(null);
+    // Verificação de sessão (Demo ou Firebase) ocorre apenas após a montagem no cliente
+    const checkAuth = () => {
+      const demoUser = sessionStorage.getItem("sgov_demo_user");
+      if (demoUser) {
+        setUser(JSON.parse(demoUser));
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    });
 
-    return () => unsubscribe();
-  }, [user]);
+      // Monitoramento do Firebase Auth real
+      const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+        setUser(fbUser || null);
+        setLoading(false);
+      });
+
+      return unsubscribe;
+    };
+
+    const unsubscribe = checkAuth();
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
+  }, []);
 
   const logout = async () => {
     try {

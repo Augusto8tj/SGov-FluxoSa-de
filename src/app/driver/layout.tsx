@@ -3,12 +3,17 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Loader2, LayoutDashboard, ShieldAlert } from "lucide-react";
 import { ThemeSelector } from "@/components/theme-selector";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+
+/**
+ * @fileOverview Layout do Aplicativo do Condutor.
+ * Corrigido erro de hidratação através do controle de montagem (isMounted).
+ */
 
 export default function DriverLayout({
   children,
@@ -18,14 +23,19 @@ export default function DriverLayout({
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !loading && !user) {
       router.push("/login");
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isMounted]);
 
-  if (loading) {
+  if (!isMounted || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center space-y-4">
