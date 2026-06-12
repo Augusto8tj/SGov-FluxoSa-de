@@ -9,7 +9,9 @@ import {
   CheckCircle2, 
   ArrowLeft, 
   Loader2,
-  Info
+  Info,
+  PhoneCall,
+  ShieldCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -158,16 +160,45 @@ export default function PatientManifestView() {
 
           <Separator className="bg-slate-50" />
 
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+              <PhoneCall className="h-4 w-4 text-primary" /> Central de Atendimento
+            </h4>
+            <div className="p-4 bg-primary/5 rounded-3xl border border-primary/10 flex items-center justify-between group hover:bg-primary/10 transition-colors">
+              <div className="space-y-0.5">
+                <p className="text-[10px] font-black text-primary uppercase">Regulação Municipal</p>
+                <p className="text-sm font-black text-slate-700">(19) 3526-0000</p>
+              </div>
+              <Button size="icon" className="rounded-full h-10 w-10 shadow-lg" asChild>
+                <a href="tel:1935260000"><PhoneCall className="h-4 w-4" /></a>
+              </Button>
+            </div>
+            <p className="text-[9px] text-muted-foreground px-2 italic text-center">
+              Para sua segurança e do condutor, não expomos contatos pessoais. Use a Central para dúvidas sobre atrasos ou cancelamentos.
+            </p>
+          </div>
+
+          <Separator className="bg-slate-50" />
+
           <div className="space-y-3">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <Info className="h-4 w-4 text-primary" /> Orientações de Segurança
             </h4>
-            <div className="bg-primary/5 p-4 rounded-2xl space-y-3">
+            <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
               <div className="flex gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                 <p className="text-[11px] font-medium text-slate-600">Esteja no ponto de embarque com 15 minutos de antecedência.</p>
               </div>
+              <div className="flex gap-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                <p className="text-[11px] font-medium text-slate-600">Tenha em mãos o documento de identidade com foto.</p>
+              </div>
             </div>
+          </div>
+
+          <div className="flex items-center justify-center gap-2 opacity-30 pt-2">
+            <ShieldCheck className="h-3 w-3" />
+            <span className="text-[8px] font-black uppercase tracking-widest">Protocolo de Privacidade Rio Claro</span>
           </div>
         </CardContent>
       </Card>

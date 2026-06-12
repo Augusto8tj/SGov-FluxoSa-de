@@ -11,7 +11,8 @@ import {
   AlertTriangle,
   KeyRound,
   CheckCircle2,
-  UserCircle
+  UserCircle,
+  Lock
 } from "lucide-react";
 import { 
   Accordion, 
@@ -104,6 +105,27 @@ export default function UbsHelpPage() {
                 <p className="font-bold text-xs text-emerald-600 uppercase">Necessidades Especiais</p>
                 <p className="text-xs">Sinalize sempre se o paciente requer maca, cadeira de rodas ou oxigênio para a correta triagem da viatura.</p>
               </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="ia-sigilo" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-primary/20">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-amber-100 p-3 rounded-xl text-amber-600">
+                <Lock className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-bold text-lg">Sigilo e LGPD</p>
+                <p className="text-sm text-muted-foreground">Proteção de dados do motorista e paciente</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
+              <p className="text-xs leading-relaxed text-amber-800">
+                <b>Importante:</b> Seguindo as diretrizes de Ordem Pública e LGPD, o Portal do Cidadão nunca exibe o contato pessoal dos motoristas. Caso o paciente precise de suporte, ele deve utilizar o canal da Central de Regulação exibido no portal. Nunca forneça telefones privados de condutores a terceiros.
+              </p>
             </div>
           </AccordionContent>
         </AccordionItem>

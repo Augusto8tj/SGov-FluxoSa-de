@@ -263,11 +263,11 @@ export default function AdminHelpPage() {
             <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
               <Lock className="h-5 w-5 text-amber-600 mt-1 shrink-0" />
               <div className="space-y-2">
-                <p className="font-bold text-amber-900 text-sm">Protocolo de Pseudonimização</p>
+                <p className="font-bold text-amber-900 text-sm">Protocolo de Pseudonimização e Privacidade</p>
                 <p className="text-xs text-amber-800 leading-relaxed">
                   Para estar em conformidade com a LGPD, o SGov FluxoSaúde <b>nunca</b> envia nomes de pacientes ou documentos para os servidores de IA. 
                   <br/><br/>
-                  <b>O que acontece:</b> Antes da análise, o sistema substitui nomes por &quot;Cidadão A&quot; ou apenas o primeiro nome, e envia apenas as notas clínicas e os distritos geográficos. O processamento da IA é puramente técnico-logístico.
+                  <b>No Portal do Cidadão:</b> O sistema nunca exibe dados de contato pessoal de condutores ou informações clínicas detalhadas, protegendo tanto o servidor quanto o cidadão. A comunicação externa é sempre centralizada pela Central de Regulação.
                 </p>
               </div>
             </div>
