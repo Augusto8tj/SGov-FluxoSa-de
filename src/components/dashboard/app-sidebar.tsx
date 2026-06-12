@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -32,17 +33,28 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import Link from "next/link";
 
+/**
+ * Menu organizado por ordem natural de atividade:
+ * 1. Monitoramento (Dashboard)
+ * 2. Triagem (Painel de Comando)
+ * 3. Gestão de Pedidos (Agendamentos)
+ * 4. Planejamento IA (Otimizador)
+ * 5. Supervisão em Tempo Real (Manifestos)
+ * 6. Feedback de Campo (Relatórios)
+ * 7. Base de Dados (Pacientes, Veículos, UBS)
+ * 8. Segurança (Auditoria)
+ */
 const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
+  { title: "Painel de Comando", icon: ShieldCheck, url: "/dashboard/admin" },
   { title: "Agendamentos", icon: ClipboardList, url: "/dashboard/requests" },
+  { title: "Otimizador de Rotas", icon: MapPin, url: "/dashboard/routes" },
   { title: "Manifestos de Viagem", icon: Route, url: "/dashboard/manifests" },
+  { title: "Relatórios de Campo", icon: MessageSquare, url: "/dashboard/reports" },
   { title: "Pacientes", icon: Users, url: "/dashboard/patients" },
   { title: "Veículos", icon: Ambulance, url: "/dashboard/fleet" },
   { title: "Postos (UBS)", icon: Hospital, url: "/dashboard/ubs" },
-  { title: "Otimizador de Rotas", icon: MapPin, url: "/dashboard/routes" },
-  { title: "Relatórios de Campo", icon: MessageSquare, url: "/dashboard/reports" },
   { title: "Auditoria", icon: Fingerprint, url: "/dashboard/audit" },
-  { title: "Painel de Comando", icon: ShieldCheck, url: "/dashboard/admin" },
 ];
 
 export function AppSidebar() {
