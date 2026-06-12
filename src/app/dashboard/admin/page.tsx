@@ -16,6 +16,7 @@ import {
   ChevronUp,
   Activity,
   ArrowRight,
+  Route,
   Loader2 as LoaderIcon
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -37,6 +38,7 @@ import { StatsCard } from "@/components/dashboard/stats-card";
 import { requestService } from "@/services/request-service";
 import { TransportRequest } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export default function AdminPage() {
   const [mounted, setMounted] = useState(false);
@@ -52,7 +54,7 @@ export default function AdminPage() {
     setLoadingData(true);
     try {
       const all = await requestService.getRequests();
-      // Filtra apenas pendentes para o Painel de Comando
+      // Inicialmente mostramos apenas os PENDING para focar na triagem
       setRequests(all.filter(r => r.status === 'PENDING'));
     } catch {
       toast({ title: "Erro", description: "Falha ao sincronizar pedidos pendentes.", variant: "destructive" });
@@ -112,30 +114,29 @@ export default function AdminPage() {
     if (!req) return;
 
     try {
-      await requestService.updateRequest(id, { 
+      const updateData: any = { 
         status: action,
         updatedAt: new Date().toISOString() 
-      });
+      };
+
+      // Simulação para o modo Demo: Atribui manifesto imediatamente ao aprovar
+      if (action === 'APPROVED') {
+        updateData.manifestId = `MF-${id.split('-').pop()}`;
+        updateData.vehicleId = "Ambulância (V1)";
+        updateData.driverId = "Carlos Silva (D1)";
+        updateData.assignedAt = new Date().toISOString();
+      }
+
+      await requestService.updateRequest(id, updateData);
       
-      // Remove da lista pendente localmente
-      setRequests(prev => prev.filter(r => r.id !== id));
+      // Atualiza o estado local para refletir a mudança e permitir a transição visual
+      setRequests(prev => prev.map(r => r.id === id ? { ...r, ...updateData } : r));
       
       if (action === 'APPROVED') {
         toast({ title: "Solicitação Aprovada", description: `O pedido de ${req.patientName} foi encaminhado para a logística.` });
       } else {
         toast({ title: "Solicitação Negada", description: `O pedido de ${req.patientName} foi arquivado.`, variant: "destructive" });
       }
-      
-      // Limpa estados auxiliares
-      if (analysis[id]) {
-        const newAnalysis = { ...analysis };
-        delete newAnalysis[id];
-        setAnalysis(newAnalysis);
-      }
-      const newExpanded = new Set(expandedIds);
-      newExpanded.delete(id);
-      setExpandedIds(newExpanded);
-
     } catch {
       toast({ title: "Erro na Ação", description: "Falha ao atualizar status no sistema.", variant: "destructive" });
     }
@@ -175,10 +176,10 @@ export default function AdminPage() {
       </div>
 
       <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-4">
-        <StatsCard title="Pendentes" value={requests.length} icon={Zap} description="Aguardando Triagem" />
+        <StatsCard title="Pendentes" value={requests.filter(r => r.status === 'PENDING').length} icon={Zap} description="Aguardando Triagem" />
         <StatsCard title="Taxa Aprovação" value="92%" icon={CheckCircle} description="Média Mensal" />
         <StatsCard title="IA Ativa" value="SIM" icon={BrainCircuit} description="Nvidia Nemotron" />
-        <StatsCard title="Alertas" value={requests.filter(r => r.urgencyLevel === 'critical').length} icon={AlertTriangle} description="Críticos" />
+        <StatsCard title="Alertas" value={requests.filter(r => r.urgencyLevel === 'critical' && r.status === 'PENDING').length} icon={AlertTriangle} description="Críticos" />
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden bg-card rounded-2xl sm:rounded-3xl">
@@ -242,7 +243,7 @@ export default function AdminPage() {
                             variant={req.urgencyLevel === 'critical' ? 'destructive' : req.urgencyLevel === 'high' ? 'destructive' : 'default'} 
                             className={cn(
                               "text-[10px] font-black uppercase px-3",
-                              req.urgencyLevel === 'critical' && "animate-pulse"
+                              req.urgencyLevel === 'critical' && req.status === 'PENDING' && "animate-pulse"
                             )}
                           >
                             {req.urgencyLevel.toUpperCase()}
@@ -260,7 +261,7 @@ export default function AdminPage() {
                                   analysis[req.id] && "bg-primary/10 text-primary border-primary/30"
                                 )}
                                 onClick={() => handleAiAnalysis(req)}
-                                disabled={loadingAi === req.id}
+                                disabled={loadingAi === req.id || req.status !== 'PENDING'}
                               >
                                 {loadingAi === req.id ? (
                                   <LoaderIcon className="h-3 w-3 animate-spin" />
@@ -287,24 +288,50 @@ export default function AdminPage() {
                         </TableCell>
 
                         <TableCell className="text-right pr-6">
-                          <div className="flex justify-end gap-3 sm:gap-4">
-                            <Button 
-                              size="icon" 
-                              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-100 transition-all active:scale-90" 
-                              onClick={() => handleAction(req.id, 'DENIED')}
-                              title="Negar Solicitação"
-                            >
-                              <X className="h-5 w-5 sm:h-6 sm:w-6" />
-                            </Button>
-                            <Button 
-                              size="icon" 
-                              className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-100 transition-all active:scale-90" 
-                              onClick={() => handleAction(req.id, 'APPROVED')}
-                              title="Aprovar Solicitação"
-                            >
-                              <Check className="h-5 w-5 sm:h-6 sm:w-6" />
-                            </Button>
-                          </div>
+                          {req.status === 'PENDING' ? (
+                            <div className="flex justify-end gap-3 sm:gap-4">
+                              <Button 
+                                size="icon" 
+                                className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-100 transition-all active:scale-90" 
+                                onClick={() => handleAction(req.id, 'DENIED')}
+                                title="Negar Solicitação"
+                              >
+                                <X className="h-5 w-5 sm:h-6 sm:w-6" />
+                              </Button>
+                              <Button 
+                                size="icon" 
+                                className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-100 transition-all active:scale-90" 
+                                onClick={() => handleAction(req.id, 'APPROVED')}
+                                title="Aprovar Solicitação"
+                              >
+                                <Check className="h-5 w-5 sm:h-6 sm:w-6" />
+                              </Button>
+                            </div>
+                          ) : req.status === 'APPROVED' ? (
+                            <div className="flex justify-end items-center gap-2">
+                              <Badge className="bg-emerald-100 text-emerald-700 border-none font-black text-[10px] uppercase h-9 px-3">
+                                APROVADO
+                              </Badge>
+                              {req.manifestId && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-10 rounded-xl gap-2 border-primary/20 text-primary font-black text-[10px] uppercase shadow-sm bg-white"
+                                  asChild
+                                >
+                                  <Link href="/dashboard/manifests">
+                                    <Route className="h-4 w-4" /> VER MANIFESTO
+                                  </Link>
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex justify-end">
+                              <Badge variant="outline" className="text-rose-600 border-rose-200 bg-rose-50 font-black text-[10px] uppercase h-9 px-3">
+                                NEGADO
+                              </Badge>
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
 
@@ -333,9 +360,9 @@ export default function AdminPage() {
                                       </div>
                                     </div>
                                     
-                                    <div className="bg-primary/[0.03] p-6 rounded-[2rem] border border-primary/5 italic relative mt-8">
+                                    <div className="bg-primary/[0.03] p-6 rounded-[2rem] border border-primary/5 relative mt-8">
                                       <div className="absolute top-0 left-8 -translate-y-1/2 bg-white px-3 text-[10px] font-black text-primary uppercase tracking-widest whitespace-nowrap">Recomendação Estratégica</div>
-                                      <p className="text-sm font-medium text-slate-600 leading-relaxed">
+                                      <p className="text-sm font-medium text-slate-600 leading-relaxed italic">
                                         &quot;{analysis[req.id]?.recommendation}&quot;
                                       </p>
                                     </div>
