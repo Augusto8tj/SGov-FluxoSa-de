@@ -15,7 +15,6 @@ import {
   Lock,
   Printer,
   CalendarDays,
-  KeyRound,
   UserCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,7 +101,7 @@ export default function AdminHelpPage() {
                     <Badge className="bg-amber-100 text-amber-700 border-none font-mono">405060</Badge>
                   </div>
                 </div>
-                <p className="text-[9px] text-muted-foreground italic">Use estes códigos no menu "Portal do Cidadão" para mostrar o status em tempo real.</p>
+                <p className="text-[9px] text-muted-foreground italic">Use estes códigos no menu &quot;Portal do Cidadão&quot; para mostrar o status em tempo real.</p>
               </div>
               <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm space-y-3">
                 <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest border-b pb-1">Usuários de Teste (Senha: admin123)</p>
@@ -128,7 +127,7 @@ export default function AdminHelpPage() {
               </div>
             </div>
           </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-6 pb-6 pt-2">
+          <AccordionContent className="text-slate-600 space-y-8 pb-6 pt-2">
             <div className="relative space-y-8 before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
               <div className="flex gap-4 relative pl-1">
                 <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold z-10 shrink-0">1</div>

@@ -7,7 +7,7 @@ import {
   MoreVertical, 
   BrainCircuit, 
   Loader2, 
-  Edit,
+  Edit, 
   Trash2,
   Calendar as CalendarIcon,
   MapPin,
@@ -24,8 +24,7 @@ import {
   Activity,
   ShieldCheck,
   ClipboardList,
-  ChevronUp,
-  ChevronDown
+  ChevronUp
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
