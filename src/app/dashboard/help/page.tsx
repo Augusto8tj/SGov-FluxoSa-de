@@ -9,14 +9,12 @@ import {
   Fingerprint,
   HelpCircle,
   ClipboardList,
-  Ambulance,
   BrainCircuit,
-  Users,
   MapPin,
   CheckCircle2,
   Lock
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Accordion, 
   AccordionContent, 
@@ -24,7 +22,6 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 export default function AdminHelpPage() {
   return (
@@ -74,7 +71,6 @@ export default function AdminHelpPage() {
       </h3>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
-        {/* NOVO: FLUXO OPERACIONAL */}
         <AccordionItem value="fluxo-geral" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -128,7 +124,6 @@ export default function AdminHelpPage() {
           </AccordionContent>
         </AccordionItem>
 
-        {/* NOVO: GUIA DO SECRETÁRIO */}
         <AccordionItem value="guia-secretario" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -145,7 +140,7 @@ export default function AdminHelpPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-muted/20 rounded-xl space-y-2">
                 <p className="font-bold text-xs uppercase text-primary">Triagem Técnica</p>
-                <p className="text-xs leading-relaxed">Acesse o <b>Painel de Comando</b> para visualizar pedidos pendentes. Use o botão "Analisar com IA" para obter um parecer clínico sem expor nomes reais.</p>
+                <p className="text-xs leading-relaxed">Acesse o <b>Painel de Comando</b> para visualizar pedidos pendentes. Use o botão &quot;Analisar com IA&quot; para obter um parecer clínico sem expor nomes reais.</p>
               </div>
               <div className="p-4 bg-muted/20 rounded-xl space-y-2">
                 <p className="font-bold text-xs uppercase text-primary">Logística Inteligente</p>
@@ -163,7 +158,6 @@ export default function AdminHelpPage() {
           </AccordionContent>
         </AccordionItem>
 
-        {/* NOVO: INTELIGÊNCIA ARTIFICIAL */}
         <AccordionItem value="guia-ia" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-primary/30">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -187,7 +181,7 @@ export default function AdminHelpPage() {
                 <p className="text-xs text-amber-800 leading-relaxed">
                   Para estar em conformidade com a LGPD, o SGov FluxoSaúde <b>nunca</b> envia nomes de pacientes ou documentos para os servidores de IA. 
                   <br/><br/>
-                  <b>O que acontece:</b> Antes da análise, o sistema substitui nomes por "Cidadão A" ou apenas o primeiro nome, e envia apenas as notas clínicas e os distritos geográficos. O processamento da IA é puramente técnico-logístico.
+                  <b>O que acontece:</b> Antes da análise, o sistema substitui nomes por &quot;Cidadão A&quot; ou apenas o primeiro nome, e envia apenas as notas clínicas e os distritos geográficos. O processamento da IA é puramente técnico-logístico.
                 </p>
               </div>
             </div>
@@ -264,4 +258,3 @@ export default function AdminHelpPage() {
     </div>
   );
 }
-

@@ -17,16 +17,8 @@ import { MOCK_REQUESTS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "requests";
 
-/**
- * @fileOverview Serviço de gestão de solicitações de transporte no Firestore.
- * Otimizado para retornar dados instantaneamente em modo de demonstração.
- */
 export const requestService = {
-  /**
-   * Busca todas as solicitações. Prioriza mocks instantâneos se estiver em modo demo.
-   */
   async getRequests(): Promise<TransportRequest[]> {
-    // Checagem de modo demo para retorno instantâneo
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
       return MOCK_REQUESTS;
     }
@@ -34,7 +26,6 @@ export const requestService = {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
       
-      // Tenta primeiro carregar do cache
       let querySnapshot;
       try {
         querySnapshot = await getDocsFromCache(q);
@@ -50,14 +41,11 @@ export const requestService = {
         id: doc.id,
         ...doc.data()
       } as TransportRequest));
-    } catch (error) {
+    } catch {
       return MOCK_REQUESTS;
     }
   },
 
-  /**
-   * Busca uma solicitação pelo código de acesso do paciente.
-   */
   async getByAccessCode(code: string): Promise<TransportRequest | null> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
       return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
@@ -73,7 +61,7 @@ export const requestService = {
 
       const docData = querySnapshot.docs[0];
       return { id: docData.id, ...docData.data() } as TransportRequest;
-    } catch (error) {
+    } catch {
       return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
     }
   },
@@ -97,7 +85,6 @@ export const requestService = {
   },
 
   async updateRequest(id: string, data: Partial<TransportRequest>): Promise<void> {
-    // Modo Demo: Sucesso silencioso para permitir atualização da UI sem erros de Firestore
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
       return Promise.resolve();
     }
@@ -124,10 +111,6 @@ export const requestService = {
     }
   },
 
-  /**
-   * Oficializa um lote de manifestos gerados pela IA ouFallback.
-   * Em modo demo, apenas retorna sucesso para a UI.
-   */
   async createManifestBatch(assignments: any[]): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
       return Promise.resolve();
@@ -138,7 +121,6 @@ export const requestService = {
     assignments.forEach((assign) => {
       const manifestId = `MF-${Date.now().toString().slice(-6)}-${assign.vehicleId}`;
       assign.route.forEach((requestId: string) => {
-        // Ignora IDs de mock para evitar erros no Firestore real se o banco estiver vazio
         if (requestId.startsWith('REQ-')) return;
         
         const docRef = doc(db, COLLECTION_NAME, requestId);

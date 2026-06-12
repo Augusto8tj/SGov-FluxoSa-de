@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -113,12 +112,11 @@ export default function AdminPage() {
     if (!req) return;
 
     try {
-      const updateData: any = { 
+      const updateData: Partial<TransportRequest> = { 
         status: action,
         updatedAt: new Date().toISOString() 
       };
 
-      // Simulação para o modo Demo: Atribui manifesto imediatamente ao aprovar
       if (action === 'APPROVED') {
         updateData.manifestId = `MF-${id.split('-').pop()}`;
         updateData.vehicleId = "Ambulância (V1)";
@@ -128,7 +126,6 @@ export default function AdminPage() {
 
       await requestService.updateRequest(id, updateData);
       
-      // Atualiza o estado local para refletir a mudança e permitir a transição visual imediata
       setRequests(prev => prev.map(r => r.id === id ? { ...r, ...updateData } : r));
       
       if (action === 'APPROVED') {
@@ -194,14 +191,6 @@ export default function AdminPage() {
             <div className="py-20 text-center space-y-3">
               <LoaderIcon className="h-8 w-8 animate-spin text-primary mx-auto" />
               <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sincronizando com as UBS...</p>
-            </div>
-          ) : requests.length === 0 ? (
-            <div className="py-20 text-center text-muted-foreground space-y-2">
-              <div className="bg-emerald-50 h-16 w-16 rounded-full flex items-center justify-center mx-auto text-emerald-600 mb-2">
-                <CheckCircle className="h-8 w-8" />
-              </div>
-              <p className="font-bold">Tudo em dia!</p>
-              <p className="text-xs">Nenhuma solicitação pendente no momento.</p>
             </div>
           ) : (
             <div className="overflow-x-auto no-scrollbar">
@@ -332,14 +321,12 @@ export default function AdminPage() {
                         </TableCell>
                       </TableRow>
 
-                      {/* Linha de Análise Técnica Integrada (Accordion) */}
                       {expandedIds.has(req.id) && analysis[req.id] && (
                         <TableRow className="bg-primary/[0.02] border-b-2 border-primary/10">
                           <TableCell colSpan={4} className="p-0">
                             <div className="p-4 sm:p-6 animate-in slide-in-from-top-2 duration-300">
                               <div className="max-w-6xl mx-auto bg-white rounded-[2rem] border border-primary/10 shadow-xl overflow-hidden">
                                 <div className="p-5 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-12">
-                                  {/* Recomendação IA */}
                                   <div className="flex-1 space-y-6">
                                     <div className="flex items-start gap-4">
                                       <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner shrink-0 mt-1">
@@ -365,7 +352,6 @@ export default function AdminPage() {
                                     </div>
                                   </div>
 
-                                  {/* Variáveis de Escopo */}
                                   <div className="w-full md:w-[350px] space-y-4">
                                     <p className="text-[10px] font-black uppercase text-slate-400 flex items-center gap-2 px-1">
                                       <Activity className="h-4 w-4 text-primary" /> Variáveis de Escopo Analisadas

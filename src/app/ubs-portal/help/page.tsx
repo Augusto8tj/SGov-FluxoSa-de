@@ -9,9 +9,7 @@ import {
   Smartphone,
   ClipboardList,
   Users,
-  ShieldCheck,
   BrainCircuit,
-  MessageSquare,
   AlertTriangle
 } from "lucide-react";
 import { 
@@ -21,7 +19,7 @@ import {
   AccordionTrigger 
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function UbsHelpPage() {
   return (
@@ -51,7 +49,6 @@ export default function UbsHelpPage() {
       </h3>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
-        {/* NOVO: CADASTRO DE CIDADÃO */}
         <AccordionItem value="cadastro" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -73,13 +70,12 @@ export default function UbsHelpPage() {
               </div>
               <div className="p-4 bg-slate-50 rounded-xl border">
                 <p className="font-bold text-xs text-emerald-600 uppercase">Necessidades Especiais</p>
-                <p className="text-xs">Sempre marque a opção "Requer Acompanhante" ou informe o uso de O2 nas notas, pois isso define o tipo de veículo alocado.</p>
+                <p className="text-xs">Sempre marque a opção &quot;Requer Acompanhante&quot; ou informe o uso de O2 nas notas, pois isso define o tipo de veículo alocado.</p>
               </div>
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        {/* NOVO: SOLICITAÇÃO DE TRANSPORTE */}
         <AccordionItem value="solicitacao" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -98,7 +94,7 @@ export default function UbsHelpPage() {
               <div>
                 <p className="font-bold text-blue-900 text-sm">Use o Sugestor de Urgência (IA)</p>
                 <p className="text-xs text-blue-800 leading-relaxed">
-                  Ao descrever o quadro do paciente, clique no botão <b>"SUGERIR URGÊNCIA (IA)"</b>. O sistema analisará os termos médicos e o destino para indicar a prioridade correta segundo os protocolos municipais.
+                  Ao descrever o quadro do paciente, clique no botão <b>&quot;SUGERIR URGÊNCIA (IA)&quot;</b>. O sistema analisará os termos médicos e o destino para indicar a prioridade correta segundo os protocolos municipais.
                 </p>
               </div>
             </div>

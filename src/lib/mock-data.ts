@@ -1,10 +1,5 @@
 import { Patient, TransportRequest, Vehicle, Driver, UBS } from "./types";
 
-/**
- * @fileOverview Dados de demonstração enriquecidos para o SGov FluxoSaúde.
- * Cenário preparado para simular o volume diário de triagem e logística.
- */
-
 export const MOCK_PATIENTS: Patient[] = [
   { id: "P1", name: "Benedito Silva", medicalRecordNumber: "123.456.789-00", comorbidities: ["Diabetes", "Hipertensão"], needsCompanion: true, notes: "Cadeirante, requer rampa.", createdAt: new Date().toISOString() },
   { id: "P2", name: "Maria de Fátima", medicalRecordNumber: "987.654.321-11", comorbidities: ["Renal Crônico"], needsCompanion: false, notes: "Tratamento de Hemodiálise.", createdAt: new Date().toISOString() },
@@ -24,7 +19,6 @@ export const MOCK_PATIENTS: Patient[] = [
 ];
 
 export const MOCK_REQUESTS: TransportRequest[] = [
-  // 15 Pedidos Pendentes para Triagem (Painel de Comando)
   { id: "REQ-001", patientId: "P1", patientName: "Benedito Silva", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "critical", status: "PENDING", requestedTime: "2024-05-25T08:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString(), aiRecommendation: "Paciente crítico, necessita suporte avançado." },
   { id: "REQ-002", patientId: "P2", patientName: "Maria de Fátima", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Centro Hemodiálise", urgencyLevel: "high", status: "PENDING", requestedTime: "2024-05-25T09:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString(), aiRecommendation: "Sessão recorrente, transporte essencial." },
   { id: "REQ-003", patientId: "P3", patientName: "José Bonifácio", ubsId: "UBS-02", pickupLocation: "UBS Passa Três", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "PENDING", requestedTime: "2024-05-25T10:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
@@ -35,13 +29,12 @@ export const MOCK_REQUESTS: TransportRequest[] = [
   { id: "REQ-008", patientId: "P8", patientName: "Machado de Assis", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "PENDING", requestedTime: "2024-05-25T14:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
   { id: "REQ-009", patientId: "P9", patientName: "Clarice Lispector", ubsId: "UBS-02", pickupLocation: "UBS Passa Três", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "PENDING", requestedTime: "2024-05-25T14:30:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
   { id: "REQ-010", patientId: "P10", patientName: "Guimarães Rosa", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Clínica Especializada", urgencyLevel: "low", status: "PENDING", requestedTime: "2024-05-25T15:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
-  { id: "REQ-011", patientId: "P11", patientName: "Graciliano Ramos", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "critical", status: "PENDING", requestedTime: "2024-05-25T08:30:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString(), aiRecommendation: "Urgência clínica elevada pós-exame." },
+  { id: "REQ-011", patientId: "P11", patientName: "Graciliano Ramos", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "critical", status: "PENDING", requestedTime: "2024-05-25T08:30:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
   { id: "REQ-012", patientId: "P12", patientName: "Rachel de Queiroz", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Hospital Regional", urgencyLevel: "high", status: "PENDING", requestedTime: "2024-05-25T09:45:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
   { id: "REQ-013", patientId: "P13", patientName: "Jorge Amado", ubsId: "UBS-02", pickupLocation: "UBS Passa Três", destinationLocation: "Fisioterapia", urgencyLevel: "medium", status: "PENDING", requestedTime: "2024-05-25T11:15:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
   { id: "REQ-014", patientId: "P14", patientName: "Érico Veríssimo", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "PENDING", requestedTime: "2024-05-25T15:30:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
   { id: "REQ-015", patientId: "P15", patientName: "Lygia Fagundes", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "PENDING", requestedTime: "2024-05-25T16:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
 
-  // 10 Pedidos Aprovados AGUARDANDO Rota (Para o Otimizador de Rotas) - Otimizados para Agrupamento Comum
   { id: "REQ-201", patientId: "P11", patientName: "Graciliano Ramos", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T08:30:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
   { id: "REQ-202", patientId: "P12", patientName: "Rachel de Queiroz", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Hospital Municipal", urgencyLevel: "high", status: "APPROVED", requestedTime: "2024-05-25T09:45:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
   { id: "REQ-203", patientId: "P13", patientName: "Jorge Amado", ubsId: "UBS-02", pickupLocation: "UBS Passa Três", destinationLocation: "Hospital Municipal", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T11:15:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
@@ -53,7 +46,6 @@ export const MOCK_REQUESTS: TransportRequest[] = [
   { id: "REQ-209", patientId: "P9", patientName: "Clarice Lispector", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Centro Hemodiálise", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T11:45:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
   { id: "REQ-210", patientId: "P10", patientName: "Guimarães Rosa", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Centro Hemodiálise", urgencyLevel: "low", status: "APPROVED", requestedTime: "2024-05-25T14:30:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
 
-  // 10 Pedidos Aprovados e JÁ ATRIBUÍDOS a Manifestos (Gestão de Manifestos)
   { 
     id: "REQ-101", 
     patientId: "P1", 
@@ -105,143 +97,17 @@ export const MOCK_REQUESTS: TransportRequest[] = [
     vehicleId: "Van Municipal (V2)",
     patientAccessCode: "887766"
   },
-  { 
-    id: "REQ-104", 
-    patientId: "P4", 
-    patientName: "Clarice Souza", 
-    ubsId: "UBS-02", 
-    pickupLocation: "UBS Passa Três", 
-    destinationLocation: "Hospital Regional", 
-    urgencyLevel: "low", 
-    status: "APPROVED", 
-    requestedTime: "2024-05-25T09:10:00Z", 
-    operatorId: "ADMIN", 
-    createdAt: new Date().toISOString(),
-    manifestId: "MF-2024-002",
-    driverId: "Marcos Pereira",
-    vehicleId: "Van Municipal (V2)",
-    patientAccessCode: "221100"
-  },
-  { 
-    id: "REQ-105", 
-    patientId: "P5", 
-    patientName: "Ricardo Lima", 
-    ubsId: "UBS-03", 
-    pickupLocation: "UBS Lídice", 
-    destinationLocation: "Centro Especialidades", 
-    urgencyLevel: "medium", 
-    status: "APPROVED", 
-    requestedTime: "2024-05-25T10:00:00Z", 
-    operatorId: "ADMIN", 
-    createdAt: new Date().toISOString(),
-    manifestId: "MF-2024-003",
-    driverId: "Ana Cláudia",
-    vehicleId: "Viatura Acessível (V3)",
-    patientAccessCode: "990088"
-  },
-  { 
-    id: "REQ-106", 
-    patientId: "P6", 
-    patientName: "Sônia Abrantes", 
-    ubsId: "UBS-01", 
-    pickupLocation: "UBS Central", 
-    destinationLocation: "Laboratório Municipal", 
-    urgencyLevel: "low", 
-    status: "APPROVED", 
-    requestedTime: "2024-05-25T10:30:00Z", 
-    operatorId: "ADMIN", 
-    createdAt: new Date().toISOString(),
-    manifestId: "MF-2024-004",
-    driverId: "Ricardo Oliveira",
-    vehicleId: "Sedan Adm (V4)",
-    patientAccessCode: "445566"
-  },
-  { 
-    id: "REQ-107", 
-    patientId: "P7", 
-    patientName: "Gilberto Gil", 
-    ubsId: "UBS-01", 
-    pickupLocation: "UBS Central", 
-    destinationLocation: "Hospital Municipal", 
-    urgencyLevel: "high", 
-    status: "APPROVED", 
-    requestedTime: "2024-05-25T14:00:00Z", 
-    operatorId: "ADMIN", 
-    createdAt: new Date().toISOString(),
-    manifestId: "MF-2024-005",
-    driverId: "Carlos Alberto Silva",
-    vehicleId: "Ambulância (V1)",
-    patientAccessCode: "778899"
-  },
-  { 
-    id: "REQ-108", 
-    patientId: "P8", 
-    patientName: "Ivete Sangalo", 
-    ubsId: "UBS-02", 
-    pickupLocation: "UBS Passa Três", 
-    destinationLocation: "Centro Hemodiálise", 
-    urgencyLevel: "medium", 
-    status: "APPROVED", 
-    requestedTime: "2024-05-25T14:15:00Z", 
-    operatorId: "ADMIN", 
-    createdAt: new Date().toISOString(),
-    manifestId: "MF-2024-005",
-    driverId: "Carlos Alberto Silva",
-    vehicleId: "Ambulância (V1)",
-    patientAccessCode: "332211"
-  },
-  { 
-    id: "REQ-109", 
-    patientId: "P9", 
-    patientName: "Lulu Santos", 
-    ubsId: "UBS-03", 
-    pickupLocation: "UBS Lídice", 
-    destinationLocation: "Hospital Regional", 
-    urgencyLevel: "low", 
-    status: "APPROVED", 
-    requestedTime: "2024-05-25T15:00:00Z", 
-    operatorId: "ADMIN", 
-    createdAt: new Date().toISOString(),
-    manifestId: "MF-2024-006",
-    driverId: "Ana Cláudia",
-    vehicleId: "Van Municipal (V2)",
-    patientAccessCode: "119922"
-  },
-  { 
-    id: "REQ-110", 
-    patientId: "P10", 
-    patientName: "Rita Lee", 
-    ubsId: "UBS-03", 
-    pickupLocation: "UBS Lídice", 
-    destinationLocation: "Hospital Regional", 
-    urgencyLevel: "medium", 
-    status: "APPROVED", 
-    requestedTime: "2024-05-25T15:10:00Z", 
-    operatorId: "ADMIN", 
-    createdAt: new Date().toISOString(),
-    manifestId: "MF-2024-006",
-    driverId: "Ana Cláudia",
-    vehicleId: "Van Municipal (V2)",
-    patientAccessCode: "665544"
-  },
 ];
 
 export const MOCK_VEHICLES: Vehicle[] = [
   { id: "V1", type: "Ambulância", licensePlate: "ABC-1234", capacity: 2, available: true, status: 'AVAILABLE', odometer: 12450, fuelLevel: 85, lastMaintenance: "2024-04-12", nextMaintenance: "2024-06-15", insuranceExpiry: "2024-12-31", lastSanitization: "2024-05-20 07:00", assignedDriverName: "Carlos Alberto Silva" },
   { id: "V2", type: "Van", licensePlate: "XYZ-5678", capacity: 12, available: true, status: 'AVAILABLE', odometer: 45600, fuelLevel: 40, lastMaintenance: "2024-03-05", nextMaintenance: "2024-07-10", insuranceExpiry: "2024-10-15", lastSanitization: "2024-05-20 06:30" },
   { id: "V3", type: "Acessível", licensePlate: "LMN-3456", capacity: 1, available: true, status: 'AVAILABLE', odometer: 8900, fuelLevel: 95, lastMaintenance: "2024-05-01", nextMaintenance: "2024-08-01", insuranceExpiry: "2025-01-20", lastSanitization: "2024-05-20 08:15" },
-  { id: "V4", type: "Sedan", licensePlate: "GHI-9012", capacity: 4, available: true, status: 'AVAILABLE', odometer: 15200, fuelLevel: 100, lastSanitization: "2024-05-25 07:00" },
-  { id: "V5", type: "Ambulância", licensePlate: "PMR-0001", capacity: 2, available: true, status: 'AVAILABLE', odometer: 5000, fuelLevel: 90, lastSanitization: "2024-05-25 07:30" },
-  { id: "V6", type: "Van", licensePlate: "PMR-0002", capacity: 12, available: true, status: 'AVAILABLE', odometer: 12000, fuelLevel: 100, lastSanitization: "2024-05-25 07:15" },
 ];
 
 export const MOCK_DRIVERS: Driver[] = [
   { id: "D1", name: "Carlos Alberto Silva", licenseNumber: "123456789", phone: "(19) 99123-4567", available: true, status: 'AVAILABLE' },
   { id: "D2", name: "Marcos Pereira", licenseNumber: "987654321", phone: "(19) 98765-4321", available: true, status: 'AVAILABLE' },
-  { id: "D3", name: "Ana Cláudia", licenseNumber: "456123789", phone: "(19) 99888-7766", available: true, status: 'AVAILABLE' },
-  { id: "D4", name: "Ricardo Oliveira", licenseNumber: "789456123", phone: "(19) 99777-1122", available: true, status: 'AVAILABLE' },
-  { id: "D5", name: "Benedito Ramos", licenseNumber: "112233445", phone: "(19) 99111-2233", available: true, status: 'AVAILABLE' },
-  { id: "D6", name: "Sônia Maria", licenseNumber: "556677889", phone: "(19) 99444-5566", available: true, status: 'AVAILABLE' },
 ];
 
 export const MOCK_UBS: UBS[] = [
