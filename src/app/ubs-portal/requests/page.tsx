@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -61,6 +60,11 @@ import { TransportRequest, Patient } from "@/lib/types";
 import { classifyUrgency } from "@/ai/flows/classify-urgency-flow";
 import { requestService } from "@/services/request-service";
 import { patientService } from "@/services/patient-service";
+import { format, parseISO, isValid } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function UbsRequestsPage() {
   const [mounted, setMounted] = useState(false);
@@ -76,7 +80,14 @@ export default function UbsRequestsPage() {
   const [patientNotes, setPatientNotes] = useState("");
   const [destination, setDestination] = useState("");
   const [urgency, setUrgency] = useState<string>("low");
+  
+  // Date-Time States
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedHour, setSelectedHour] = useState("08");
+  const [selectedMinute, setSelectedMinute] = useState("00");
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [scheduledTime, setScheduledTime] = useState("");
+  
   const [isClassifying, setIsClassifying] = useState(false);
   const [editingRequest, setEditingRequest] = useState<TransportRequest | null>(null);
 
@@ -111,7 +122,10 @@ export default function UbsRequestsPage() {
     setDestination("");
     setPatientNotes("");
     setUrgency("low");
-    setScheduledTime(new Date().toISOString().slice(0, 16));
+    setSelectedDate(new Date());
+    setSelectedHour("08");
+    setSelectedMinute("00");
+    setScheduledTime(new Date().toISOString());
     setEditingRequest(null);
   };
 
@@ -122,7 +136,6 @@ export default function UbsRequestsPage() {
     }
     setIsClassifying(true);
     try {
-      // Pseudonimização: Envia apenas notas clínicas e destino
       const result = await classifyUrgency({ patientNotes, destination });
       setUrgency(result.suggestedUrgency);
       toast({ 
@@ -133,6 +146,16 @@ export default function UbsRequestsPage() {
       toast({ variant: "destructive", title: "IA Indisponível", description: "Não foi possível classificar automaticamente." });
     } finally {
       setIsClassifying(false);
+    }
+  };
+
+  const handleSaveCalendarSelection = () => {
+    if (selectedDate) {
+      const newDate = new Date(selectedDate);
+      newDate.setHours(parseInt(selectedHour), parseInt(selectedMinute));
+      setScheduledTime(newDate.toISOString());
+      setIsCalendarOpen(false);
+      toast({ title: "Agendado para", description: format(newDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) });
     }
   };
 
@@ -153,7 +176,7 @@ export default function UbsRequestsPage() {
       urgencyLevel: urgency as any,
       status: editingRequest?.status || "PENDING",
       operatorId: "UBS_MGR",
-      aiRecommendation: patientNotes, // Salva as notas clínicas
+      aiRecommendation: patientNotes, 
     };
 
     try {
@@ -298,7 +321,7 @@ export default function UbsRequestsPage() {
                     onChange={(e) => setPatientNotes(e.target.value)} 
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label>Urgência</Label>
                     <Select value={urgency} onValueChange={setUrgency}>
@@ -313,12 +336,89 @@ export default function UbsRequestsPage() {
                   </div>
                   <div className="grid gap-2">
                     <Label>Data/Hora</Label>
-                    <Input 
-                      type="datetime-local" 
-                      className="h-11 rounded-xl" 
-                      value={scheduledTime} 
-                      onChange={(e) => setScheduledTime(e.target.value)} 
-                    />
+                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full h-11 justify-start text-left font-normal rounded-xl",
+                            !scheduledTime && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {scheduledTime ? (
+                            format(parseISO(scheduledTime), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+                          ) : (
+                            <span>Selecione data/hora</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 flex flex-col sm:flex-row rounded-2xl shadow-2xl" align="start">
+                        <div className="flex flex-col">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            locale={ptBR}
+                            className="rounded-t-2xl sm:rounded-l-2xl sm:rounded-tr-none border-b sm:border-b-0 sm:border-r"
+                          />
+                          <div className="flex items-center justify-between p-3 border-t bg-muted/20 sm:hidden">
+                             <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())} className="text-[10px] font-bold">HOJE</Button>
+                             <Button variant="ghost" size="sm" onClick={() => { setSelectedDate(undefined); setScheduledTime(""); }} className="text-[10px] font-bold text-rose-500">LIMPAR</Button>
+                             <Button size="sm" onClick={handleSaveCalendarSelection} className="text-[10px] font-black uppercase">SALVAR</Button>
+                          </div>
+                        </div>
+                        <div className="w-full sm:w-48 flex flex-col">
+                          <div className="p-3 border-b bg-muted/10">
+                            <p className="text-[10px] font-black uppercase text-primary tracking-widest text-center">Horário</p>
+                          </div>
+                          <div className="flex-1 flex gap-2 p-2">
+                            <ScrollArea className="h-64 w-1/2">
+                              <div className="flex flex-col gap-1 p-1">
+                                {Array.from({ length: 24 }).map((_, i) => {
+                                  const hour = i.toString().padStart(2, '0');
+                                  return (
+                                    <Button 
+                                      key={i} 
+                                      variant={selectedHour === hour ? "default" : "ghost"} 
+                                      size="sm"
+                                      className="h-8 font-mono"
+                                      onClick={() => setSelectedHour(hour)}
+                                    >
+                                      {hour}
+                                    </Button>
+                                  );
+                                })}
+                              </div>
+                            </ScrollArea>
+                            <ScrollArea className="h-64 w-1/2">
+                              <div className="flex flex-col gap-1 p-1">
+                                {['00', '15', '30', '45'].map((min) => (
+                                  <Button 
+                                    key={min} 
+                                    variant={selectedMinute === min ? "default" : "ghost"} 
+                                    size="sm"
+                                    className="h-8 font-mono"
+                                    onClick={() => setSelectedMinute(min)}
+                                  >
+                                    {min}
+                                  </Button>
+                                ))}
+                              </div>
+                            </ScrollArea>
+                          </div>
+                          <div className="p-3 border-t bg-muted/20 hidden sm:flex items-center justify-between gap-2">
+                             <div className="flex gap-1">
+                               <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())} className="text-[10px] font-bold h-7 px-2">Hoje</Button>
+                               <Button variant="ghost" size="sm" onClick={() => { setSelectedDate(undefined); setScheduledTime(""); }} className="text-[10px] font-bold h-7 px-2 text-rose-500">Limpar</Button>
+                             </div>
+                             <Button size="sm" onClick={handleSaveCalendarSelection} className="text-[10px] font-black uppercase h-7 px-3 shadow-md">
+                               SALVAR
+                             </Button>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               </div>
@@ -392,7 +492,7 @@ export default function UbsRequestsPage() {
                             <MapPin className="h-3 w-3" /> {req.destinationLocation}
                           </div>
                           <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                            <Clock className="h-3 w-3" /> {new Date(req.requestedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <Clock className="h-3 w-3" /> {isValid(parseISO(req.requestedTime)) ? format(parseISO(req.requestedTime), "HH:mm") : "00:00"}
                           </div>
                         </div>
                       </TableCell>
@@ -409,7 +509,13 @@ export default function UbsRequestsPage() {
                               setPatientId(req.patientId);
                               setDestination(req.destinationLocation);
                               setUrgency(req.urgencyLevel);
-                              setScheduledTime(req.requestedTime.slice(0, 16));
+                              setScheduledTime(req.requestedTime);
+                              const parsedDate = parseISO(req.requestedTime);
+                              if (isValid(parsedDate)) {
+                                setSelectedDate(parsedDate);
+                                setSelectedHour(parsedDate.getHours().toString().padStart(2, '0'));
+                                setSelectedMinute(parsedDate.getMinutes().toString().padStart(2, '0'));
+                              }
                               setPatientNotes(req.aiRecommendation || "");
                               setIsDialogOpen(true);
                             }}>

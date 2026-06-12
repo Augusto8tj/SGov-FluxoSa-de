@@ -24,7 +24,8 @@ import {
   Activity,
   ShieldCheck,
   ClipboardList,
-  ChevronUp
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -70,6 +71,11 @@ import { patientService } from "@/services/patient-service";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, parseISO, isValid } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function RequestsPage() {
   const [mounted, setMounted] = useState(false);
@@ -85,6 +91,12 @@ export default function RequestsPage() {
   const [patientNotes, setPatientNotes] = useState("");
   const [destination, setDestination] = useState("");
   const [urgency, setUrgency] = useState<string>("low");
+  
+  // Date-Time States
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedHour, setSelectedHour] = useState("08");
+  const [selectedMinute, setSelectedMinute] = useState("00");
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [scheduledTime, setScheduledTime] = useState("");
   
   const [editingRequest, setEditingRequest] = useState<TransportRequest | null>(null);
@@ -117,7 +129,10 @@ export default function RequestsPage() {
     setDestination("");
     setPatientNotes("");
     setUrgency("low");
-    setScheduledTime(new Date().toISOString().slice(0, 16));
+    setSelectedDate(new Date());
+    setSelectedHour("08");
+    setSelectedMinute("00");
+    setScheduledTime(new Date().toISOString());
     setEditingRequest(null);
   };
 
@@ -156,6 +171,16 @@ export default function RequestsPage() {
       loadData();
     } catch {
       toast({ title: "Erro", description: "Falha ao mudar status.", variant: "destructive" });
+    }
+  };
+
+  const handleSaveCalendarSelection = () => {
+    if (selectedDate) {
+      const newDate = new Date(selectedDate);
+      newDate.setHours(parseInt(selectedHour), parseInt(selectedMinute));
+      setScheduledTime(newDate.toISOString());
+      setIsCalendarOpen(false);
+      toast({ title: "Data Atualizada", description: format(newDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) });
     }
   };
 
@@ -326,8 +351,90 @@ export default function RequestsPage() {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="time">Data e Hora</Label>
-                  <Input id="time" type="datetime-local" className="h-11" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} />
+                  <Label>Data e Hora</Label>
+                  <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full h-11 justify-start text-left font-normal",
+                          !scheduledTime && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {scheduledTime ? (
+                          format(parseISO(scheduledTime), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })
+                        ) : (
+                          <span>Selecione data e hora</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 flex flex-col sm:flex-row rounded-xl shadow-2xl" align="start">
+                      <div className="flex flex-col">
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={setSelectedDate}
+                          locale={ptBR}
+                          className="rounded-t-xl sm:rounded-l-xl sm:rounded-tr-none border-b sm:border-b-0 sm:border-r"
+                        />
+                        <div className="flex items-center justify-between p-3 border-t bg-muted/20 sm:hidden">
+                           <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())} className="text-[10px] font-bold">HOJE</Button>
+                           <Button variant="ghost" size="sm" onClick={() => { setSelectedDate(undefined); setScheduledTime(""); }} className="text-[10px] font-bold text-rose-500">LIMPAR</Button>
+                           <Button size="sm" onClick={handleSaveCalendarSelection} className="text-[10px] font-black uppercase">SALVAR</Button>
+                        </div>
+                      </div>
+                      <div className="w-full sm:w-48 flex flex-col">
+                        <div className="p-3 border-b bg-muted/10">
+                          <p className="text-[10px] font-black uppercase text-primary tracking-widest text-center">Horário</p>
+                        </div>
+                        <div className="flex-1 flex gap-2 p-2">
+                          <ScrollArea className="h-64 w-1/2">
+                            <div className="flex flex-col gap-1 p-1">
+                              {Array.from({ length: 24 }).map((_, i) => {
+                                const hour = i.toString().padStart(2, '0');
+                                return (
+                                  <Button 
+                                    key={i} 
+                                    variant={selectedHour === hour ? "default" : "ghost"} 
+                                    size="sm"
+                                    className="h-8 font-mono"
+                                    onClick={() => setSelectedHour(hour)}
+                                  >
+                                    {hour}
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </ScrollArea>
+                          <ScrollArea className="h-64 w-1/2">
+                            <div className="flex flex-col gap-1 p-1">
+                              {['00', '15', '30', '45'].map((min) => (
+                                <Button 
+                                  key={min} 
+                                  variant={selectedMinute === min ? "default" : "ghost"} 
+                                  size="sm"
+                                  className="h-8 font-mono"
+                                  onClick={() => setSelectedMinute(min)}
+                                >
+                                  {min}
+                                </Button>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
+                        <div className="p-3 border-t bg-muted/20 hidden sm:flex items-center justify-between gap-2">
+                           <div className="flex gap-1">
+                             <Button variant="ghost" size="sm" onClick={() => setSelectedDate(new Date())} className="text-[10px] font-bold h-7 px-2">Hoje</Button>
+                             <Button variant="ghost" size="sm" onClick={() => { setSelectedDate(undefined); setScheduledTime(""); }} className="text-[10px] font-bold h-7 px-2 text-rose-500">Limpar</Button>
+                           </div>
+                           <Button size="sm" onClick={handleSaveCalendarSelection} className="text-[10px] font-black uppercase h-7 px-3 shadow-md">
+                             SALVAR
+                           </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>
@@ -452,7 +559,13 @@ export default function RequestsPage() {
                                 setPatientId(req.patientId); 
                                 setDestination(req.destinationLocation); 
                                 setUrgency(req.urgencyLevel); 
-                                setScheduledTime(req.requestedTime.slice(0, 16));
+                                setScheduledTime(req.requestedTime);
+                                const parsedDate = parseISO(req.requestedTime);
+                                if (isValid(parsedDate)) {
+                                  setSelectedDate(parsedDate);
+                                  setSelectedHour(parsedDate.getHours().toString().padStart(2, '0'));
+                                  setSelectedMinute(parsedDate.getMinutes().toString().padStart(2, '0'));
+                                }
                                 setPatientNotes(req.aiRecommendation || "");
                                 setIsDialogOpen(true); 
                               }} className="gap-2 cursor-pointer">
