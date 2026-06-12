@@ -78,8 +78,7 @@ export const requestService = {
         updatedAt: now
       });
       return docRef.id;
-    } catch (error) {
-      console.error("Error adding request:", error);
+    } catch {
       throw new Error("Falha ao criar nova solicitação.");
     }
   },
@@ -95,8 +94,7 @@ export const requestService = {
         ...data,
         updatedAt: new Date().toISOString()
       });
-    } catch (error) {
-      console.error("Error updating request:", error);
+    } catch {
       throw new Error(`Falha ao atualizar solicitação ${id}.`);
     }
   },
@@ -105,8 +103,7 @@ export const requestService = {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
       await deleteDoc(docRef);
-    } catch (error) {
-      console.error("Error deleting request:", error);
+    } catch {
       throw new Error("Falha ao remover solicitação.");
     }
   },

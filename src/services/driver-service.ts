@@ -1,4 +1,3 @@
-
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -44,7 +43,7 @@ export const driverService = {
         id: doc.id,
         ...doc.data()
       } as Driver));
-    } catch (error) {
+    } catch {
       return MOCK_DRIVERS.filter(d => d.available);
     }
   }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -25,7 +24,6 @@ import {
   Activity,
   ShieldCheck,
   ClipboardList,
-  ChevronDown,
   ChevronUp
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -95,10 +93,6 @@ export default function RequestsPage() {
   const { toast } = useToast();
 
   const loadData = useCallback(async () => {
-    // Carregamento instantâneo se estiver em modo demo
-    const isDemo = typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user");
-    if (!isDemo) setLoading(true);
-
     try {
       const [fetchedRequests, fetchedPatients] = await Promise.all([
         requestService.getRequests(),
@@ -106,7 +100,7 @@ export default function RequestsPage() {
       ]);
       setRequests(fetchedRequests);
       setPatients(fetchedPatients);
-    } catch (error: any) {
+    } catch {
       toast({ title: "Aviso", description: "Falha na sincronização. Verifique a conexão.", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -140,7 +134,7 @@ export default function RequestsPage() {
         title: "IA: Análise Concluída", 
         description: `Urgência sugerida: ${result.suggestedUrgency.toUpperCase()}.` 
       });
-    } catch (error: any) {
+    } catch {
       toast({ variant: "destructive", title: "IA Indisponível", description: "Não foi possível conectar ao motor Genkit." });
     } finally {
       setIsClassifying(false);
@@ -160,7 +154,7 @@ export default function RequestsPage() {
       await requestService.updateRequest(id, updateData);
       toast({ title: "Status Atualizado", description: `Pedido definido como ${status}.` });
       loadData();
-    } catch (error: any) {
+    } catch {
       toast({ title: "Erro", description: "Falha ao mudar status.", variant: "destructive" });
     }
   };
@@ -195,7 +189,7 @@ export default function RequestsPage() {
       resetForm();
       loadData();
       toast({ title: "Sucesso", description: "Solicitação processada com sucesso." });
-    } catch (error: any) {
+    } catch {
       toast({ title: "Erro", description: "Falha ao gravar solicitação.", variant: "destructive" });
     }
   };
@@ -205,7 +199,7 @@ export default function RequestsPage() {
       await requestService.deleteRequest(id);
       loadData();
       toast({ title: "Removido", description: "Solicitação cancelada." });
-    } catch (error: any) {
+    } catch {
       toast({ title: "Erro", description: "Não foi possível remover.", variant: "destructive" });
     }
   };

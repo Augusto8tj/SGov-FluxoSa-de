@@ -7,7 +7,6 @@ import {
   Loader2, 
   Route as RouteIcon,
   Navigation,
-  CheckCircle2,
   Send,
   AlertTriangle,
   UserCheck
@@ -29,11 +28,9 @@ import { requestService } from "@/services/request-service";
 import { vehicleService } from "@/services/vehicle-service";
 import { driverService } from "@/services/driver-service";
 import { TransportRequest, Vehicle, Driver } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 export default function RoutesPage() {
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [optimizing, setOptimizing] = useState(false);
   const [committing, setCommitting] = useState(false);
   
@@ -47,7 +44,6 @@ export default function RoutesPage() {
   const { toast } = useToast();
 
   const loadData = useCallback(async () => {
-    setLoading(true);
     try {
       const [reqs, vehs, drvs] = await Promise.all([
         requestService.getRequests(),
@@ -61,8 +57,6 @@ export default function RoutesPage() {
       setDrivers(drvs);
     } catch {
       toast({ title: "Erro de Carga", description: "Não foi possível carregar dados reais.", variant: "destructive" });
-    } finally {
-      setLoading(false);
     }
   }, [toast]);
 
@@ -99,7 +93,7 @@ export default function RoutesPage() {
         title: "Otimização Concluída", 
         description: "A IA distribuiu os pacientes nos melhores trajetos." 
       });
-    } catch (error: any) {
+    } catch {
       toast({ 
         title: "Erro na IA", 
         description: "Falha ao processar roteirização inteligente.", 

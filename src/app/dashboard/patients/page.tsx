@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   Search, 
   UserPlus, 
@@ -52,7 +51,6 @@ const MOCK_PATIENTS: Patient[] = [
 ];
 
 export default function PatientsPage() {
-  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [patients] = useState<Patient[]>(MOCK_PATIENTS);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -137,56 +135,49 @@ export default function PatientsPage() {
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden bg-card">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-2">
-            <Loader2 className="h-8 w-8 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground">Carregando base de dados...</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow>
-                  <TableHead className="min-w-[150px]">Nome</TableHead>
-                  <TableHead>CNS</TableHead>
-                  <TableHead>Necessidades</TableHead>
-                  <TableHead className="text-right">Ação</TableHead>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow>
+                <TableHead className="min-w-[150px]">Nome</TableHead>
+                <TableHead>CNS</TableHead>
+                <TableHead>Necessidades</TableHead>
+                <TableHead className="text-right">Ação</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredPatients.map((p) => (
+                <TableRow key={p.id} className="hover:bg-muted/10">
+                  <TableCell className="font-semibold text-sm">{p.name}</TableCell>
+                  <TableCell className="text-xs font-mono text-muted-foreground">{p.medicalRecordNumber}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {p.comorbidities.map((c, i) => (
+                        <Badge key={i} className="bg-primary/10 text-primary border-none text-[9px] uppercase">{c}</Badge>
+                      ))}
+                      {p.needsCompanion && <Badge className="bg-accent/20 text-accent-foreground border-none text-[9px] uppercase">Acomp.</Badge>}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => { setEditingPatient(p); setFormName(p.name); setFormCns(p.medicalRecordNumber); setIsDialogOpen(true); }}>
+                          <Edit className="h-4 w-4 mr-2" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">
+                          <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPatients.map((p) => (
-                  <TableRow key={p.id} className="hover:bg-muted/10">
-                    <TableCell className="font-semibold text-sm">{p.name}</TableCell>
-                    <TableCell className="text-xs font-mono text-muted-foreground">{p.medicalRecordNumber}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {p.comorbidities.map((c, i) => (
-                          <Badge key={i} className="bg-primary/10 text-primary border-none text-[9px] uppercase">{c}</Badge>
-                        ))}
-                        {p.needsCompanion && <Badge className="bg-accent/20 text-accent-foreground border-none text-[9px] uppercase">Acomp.</Badge>}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => { setEditingPatient(p); setFormName(p.name); setFormCns(p.medicalRecordNumber); setIsDialogOpen(true); }}>
-                            <Edit className="h-4 w-4 mr-2" /> Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
     </div>
   );

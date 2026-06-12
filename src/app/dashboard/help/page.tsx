@@ -12,8 +12,7 @@ import {
   BrainCircuit,
   MapPin,
   CheckCircle2,
-  Lock,
-  Activity
+  Lock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 

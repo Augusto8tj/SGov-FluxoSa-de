@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -14,8 +13,7 @@ import {
   LogOut,
   Heart,
   Star,
-  ShieldCheck,
-  Loader2
+  ShieldCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,7 +46,6 @@ const MOCK_MISSION = [
 
 export default function DriverDashboard() {
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [briefing, setBriefing] = useState<DriverBriefingOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [checklistDone, setChecklistDone] = useState(false);
@@ -72,19 +69,13 @@ export default function DriverDashboard() {
   const getBriefing = async () => {
     setLoadingAi(true);
     try {
-      const maskedPassengers = [
-        { maskedName: "Benedito", needs: ["Maca", "Oxigênio"], urgency: "crítica" },
-        { maskedName: "Maria", needs: ["Acompanhante"], urgency: "alta" }
-      ];
-
       const result = await generateDriverBriefing({
         driverName: user?.name || "Condutor",
         vehicleType: "Ambulância Municipal",
-        passengers: maskedPassengers,
-        routeDetails: "Itinerário entre Lídice e Centro com 4 paradas planejadas."
+        passengers: [{ maskedName: "Benedito", needs: ["Maca", "Oxigênio"], urgency: "crítica" }],
+        routeDetails: "Itinerário entre Lídice e Centro."
       });
       setBriefing(result);
-      toast({ title: "Briefing Seguro Gerado", description: "Instruções protegidas e atualizadas." });
     } catch {
       toast({ title: "Erro na IA", variant: "destructive" });
     } finally {
@@ -110,10 +101,6 @@ export default function DriverDashboard() {
 
       setIsFeedbackOpen(false);
       setMissionComplete(true);
-      toast({ 
-        title: "Jornada Encerrada", 
-        description: "Seu feedback foi enviado para a Central de Logística." 
-      });
     } catch (error: any) {
       toast({ title: "Erro no envio", description: error.message, variant: "destructive" });
     } finally {
@@ -122,15 +109,6 @@ export default function DriverDashboard() {
   };
 
   if (!mounted) return null;
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
-        <Zap className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest">Sincronizando Dados Municipais...</p>
-      </div>
-    );
-  }
 
   if (missionComplete) {
     return (
@@ -162,17 +140,10 @@ export default function DriverDashboard() {
           </Card>
 
           <div className="w-full pt-4 space-y-4">
-            <Button 
-              className="w-full h-14 text-lg font-bold gap-2 shadow-xl shadow-primary/20"
-              onClick={() => window.location.reload()}
-            >
+            <Button className="w-full h-14 text-lg font-bold gap-2" onClick={() => window.location.reload()}>
               <Ambulance className="h-5 w-5" /> Nova Jornada
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full h-12 text-muted-foreground font-semibold gap-2 border-none"
-              onClick={logout}
-            >
+            <Button variant="outline" className="w-full h-12 font-semibold gap-2 border-none" onClick={logout}>
               <LogOut className="h-4 w-4" /> Sair do Sistema
             </Button>
           </div>
@@ -206,12 +177,7 @@ export default function DriverDashboard() {
             <CardDescription className="text-primary/70 text-xs">Verificação obrigatória antes da partida.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {[
-              "Combustível e Nível de Óleo",
-              "Sistema de Freios e Pneus",
-              "Equipamentos Clínicos (O2/Maca)",
-              "Cintos de Segurança"
-            ].map((item, i) => (
+            {["Combustível", "Sistema de Freios", "Equipamentos Clínicos", "Cintos de Segurança"].map((item, i) => (
               <div key={i} className="flex items-center space-x-3 p-2 bg-white/50 rounded-lg">
                 <Checkbox id={`check-${i}`} className="h-5 w-5" />
                 <label htmlFor={`check-${i}`} className="text-sm font-bold text-slate-700">{item}</label>
@@ -240,7 +206,7 @@ export default function DriverDashboard() {
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
               <h3 className="font-black text-xs text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary fill-primary" /> Briefing da IA (Sigilo Ativo)
+                <Zap className="h-4 w-4 text-primary fill-primary" /> Briefing da IA
               </h3>
               {!briefing && (
                 <Button variant="ghost" size="sm" onClick={getBriefing} disabled={loadingAi} className="text-[10px] font-black h-7 text-primary hover:bg-primary/5">
@@ -309,9 +275,7 @@ export default function DriverDashboard() {
 
           <Dialog open={isFeedbackOpen} onOpenChange={setIsFeedbackOpen}>
             <DialogTrigger asChild>
-              <Button 
-                className="w-full h-14 gap-2 text-xs font-black uppercase tracking-widest shadow-xl bg-primary hover:bg-primary/90 mt-4 rounded-2xl"
-              >
+              <Button className="w-full h-14 gap-2 text-xs font-black uppercase tracking-widest shadow-xl bg-primary hover:bg-primary/90 mt-4 rounded-2xl">
                 <CheckCircle2 className="h-5 w-5" /> Finalizar Missão
               </Button>
             </DialogTrigger>
@@ -320,13 +284,10 @@ export default function DriverDashboard() {
                 <DialogTitle className="flex items-center gap-2 text-xl font-black tracking-tighter">
                   <MessageSquare className="h-6 w-6 text-primary" /> Relatório de Viagem
                 </DialogTitle>
-                <DialogDescription className="text-xs font-medium">
-                  Observações para a logística sobre o trajeto ou pacientes (mantenha o sigilo médico).
-                </DialogDescription>
               </DialogHeader>
               <div className="py-4">
                 <Textarea 
-                  placeholder="Ex: Obras na via principal do Centro..."
+                  placeholder="Relate como foi o turno..."
                   className="min-h-[120px] focus:ring-primary rounded-2xl"
                   value={feedbackNote}
                   onChange={(e) => setFeedbackNote(e.target.value)}

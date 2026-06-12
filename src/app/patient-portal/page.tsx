@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -10,7 +9,6 @@ import {
   HelpCircle,
   ShieldCheck,
   Ambulance,
-  MapPin,
   Clock
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -37,7 +35,6 @@ export default function PatientPortalLogin() {
     try {
       const request = await requestService.getByAccessCode(code);
       if (request) {
-        // Armazena temporariamente o código na sessão para ver os detalhes
         sessionStorage.setItem("patient_access_code", code);
         router.push("/patient-portal/view");
       } else {

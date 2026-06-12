@@ -1,4 +1,3 @@
-
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -43,7 +42,7 @@ export const patientService = {
         id: doc.id,
         ...doc.data()
       } as Patient));
-    } catch (error) {
+    } catch {
       return MOCK_PATIENTS;
     }
   },
@@ -57,8 +56,7 @@ export const patientService = {
         updatedAt: now
       });
       return docRef.id;
-    } catch (error) {
-      console.error("Error in patientService.addPatient:", error);
+    } catch {
       throw new Error("Erro ao realizar cadastro do cidadão.");
     }
   },
@@ -70,8 +68,7 @@ export const patientService = {
         ...data,
         updatedAt: new Date().toISOString()
       });
-    } catch (error) {
-      console.error("Error in patientService.updatePatient:", error);
+    } catch {
       throw new Error("Erro ao atualizar dados cadastrais.");
     }
   },
@@ -80,8 +77,7 @@ export const patientService = {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
       await deleteDoc(docRef);
-    } catch (error) {
-      console.error("Error in patientService.deletePatient:", error);
+    } catch {
       throw new Error("Erro ao remover registro do paciente.");
     }
   }

@@ -1,9 +1,7 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { 
-  Route, 
   Search, 
   MapPin, 
   Clock, 
@@ -19,7 +17,7 @@ import {
   ChevronUp,
   ClipboardList
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -48,7 +46,6 @@ export default function UbsManifestsPage() {
     setLoading(true);
     try {
       const allRequests = await requestService.getRequests();
-      // Filtra apenas pedidos desta UBS que tenham manifesto (Aprovados ou Concluídos)
       const ubsManifests = allRequests.filter(r => 
         (r.ubsId === "UBS-01" || r.operatorId === "UBS_MGR") && 
         (r.status === 'APPROVED' || r.status === 'COMPLETED') &&
@@ -97,37 +94,17 @@ export default function UbsManifestsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4 border-none bg-blue-50 border-l-4 border-l-blue-500">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
-              <Ambulance className="h-5 w-5" />
+          <CardContent className="p-0">
+            <div className="flex items-center gap-3">
+              <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
+                <Ambulance className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Viagens Hoje</p>
+                <p className="text-xl font-black">{manifests.length}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase text-blue-600 tracking-widest">Viagens Hoje</p>
-              <p className="text-xl font-black">{manifests.length}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4 border-none bg-emerald-50 border-l-4 border-l-emerald-500">
-          <div className="flex items-center gap-3">
-            <div className="bg-emerald-100 p-2 rounded-lg text-emerald-600">
-              <ShieldCheck className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase text-emerald-600 tracking-widest">Logística Atribuída</p>
-              <p className="text-xl font-black">{manifests.filter(m => m.status === 'APPROVED').length}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-4 border-none bg-indigo-50 border-l-4 border-l-indigo-500">
-          <div className="flex items-center gap-3">
-            <div className="bg-indigo-100 p-2 rounded-lg text-indigo-600">
-              <KeyRound className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase text-indigo-600 tracking-widest">Acesso Cidadão</p>
-              <p className="text-xl font-black">Ativo</p>
-            </div>
-          </div>
+          </CardContent>
         </Card>
       </div>
 
@@ -178,7 +155,6 @@ export default function UbsManifestsPage() {
                             <div 
                               className="flex items-center gap-1.5 text-[10px] font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded cursor-pointer hover:bg-indigo-100 w-fit"
                               onClick={() => handleCopyCode(item.patientAccessCode || "000000")}
-                              title="Clique para copiar o código de acesso do paciente"
                             >
                               <KeyRound className="h-3 w-3" /> {item.patientAccessCode}
                             </div>
@@ -231,7 +207,6 @@ export default function UbsManifestsPage() {
                         </TableCell>
                       </TableRow>
 
-                      {/* Painel Expansível: Itinerário da Viatura */}
                       {expandedRequestId === item.id && (
                         <TableRow className="bg-primary/[0.02] border-b-2 border-primary/10">
                           <TableCell colSpan={5} className="p-0">
@@ -288,7 +263,7 @@ export default function UbsManifestsPage() {
         <div className="flex-1 text-center md:text-left">
           <h4 className="font-black text-lg text-indigo-700 uppercase tracking-tighter">Acesso do Cidadão</h4>
           <p className="text-sm text-indigo-600 leading-relaxed max-w-2xl mt-1">
-            Cada viagem possui um <b>Código de Acesso</b> exclusivo. Forneça este número ao paciente para que ele consulte os detalhes do veículo e motorista pelo link público <b>/patient-portal</b>.
+            Cada viagem possui um <b>Código de Acesso</b> exclusivo.
           </p>
         </div>
         <ArrowRight className="h-6 w-6 text-indigo-300 hidden md:block" />

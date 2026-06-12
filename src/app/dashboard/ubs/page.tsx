@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -57,7 +56,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { UBS } from "@/lib/types";
 import { MOCK_UBS } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
 
 export default function UBSPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -87,11 +85,9 @@ export default function UBSPage() {
     }
 
     if (newUnit.id) {
-      // Modo Edição
       setUnits(prev => prev.map(u => u.id === newUnit.id ? { ...u, ...newUnit } as UBS : u));
       toast({ title: "Unidade Atualizada", description: `Os dados da ${newUnit.name} foram salvos com sucesso.` });
     } else {
-      // Modo Novo Cadastro
       const unit: UBS = {
         id: `UBS-0${units.length + 1}`,
         name: newUnit.name || "",
@@ -102,7 +98,7 @@ export default function UBSPage() {
         operatingHours: newUnit.operatingHours,
         type: newUnit.type as any,
         status: 'active',
-        location: { lat: -22.72, lng: -44.13 } // Mock location default para Rio Claro RJ
+        location: { lat: -22.72, lng: -44.13 } 
       };
       setUnits(prev => [...prev, unit]);
       toast({ title: "Unidade Cadastrada", description: `A ${unit.name} foi adicionada ao sistema.` });

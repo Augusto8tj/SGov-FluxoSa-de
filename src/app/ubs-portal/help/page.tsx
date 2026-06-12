@@ -68,10 +68,6 @@ export default function UbsHelpPage() {
                 <p className="font-bold text-xs text-emerald-600 uppercase">CNS é Obrigatório</p>
                 <p className="text-xs">O Cartão Nacional de Saúde deve ser inserido sem pontos ou traços para garantir a unicidade do registro.</p>
               </div>
-              <div className="p-4 bg-slate-50 rounded-xl border">
-                <p className="font-bold text-xs text-emerald-600 uppercase">Necessidades Especiais</p>
-                <p className="text-xs">Sempre marque a opção &quot;Requer Acompanhante&quot; ou informe o uso de O2 nas notas, pois isso define o tipo de veículo alocado.</p>
-              </div>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -94,63 +90,10 @@ export default function UbsHelpPage() {
               <div>
                 <p className="font-bold text-blue-900 text-sm">Use o Sugestor de Urgência (IA)</p>
                 <p className="text-xs text-blue-800 leading-relaxed">
-                  Ao descrever o quadro do paciente, clique no botão <b>&quot;SUGERIR URGÊNCIA (IA)&quot;</b>. O sistema analisará os termos médicos e o destino para indicar a prioridade correta segundo os protocolos municipais.
+                  Ao descrever o quadro do paciente, clique no botão <b>&quot;SUGERIR URGÊNCIA (IA)&quot;</b>.
                 </p>
               </div>
             </div>
-            <ul className="text-xs space-y-2 pl-4 list-disc">
-              <li>Novos agendamentos só podem ser feitos se a <b>Janela de Operação</b> estiver aberta (indicador verde no topo).</li>
-              <li>Certifique-se de que o destino esteja correto. O motorista usará essa informação no GPS.</li>
-              <li>Acompanhe o status: <b>Pendente</b> (na Secretaria), <b>Aprovado</b> (em Logística) ou <b>Negado</b>.</li>
-            </ul>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="citizens" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600">
-                <KeyRound className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">Acesso do Cidadão</p>
-                <p className="text-sm text-muted-foreground">Como o paciente consulta a viagem</p>
-              </div>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-4 pb-6">
-            <p className="text-sm">Cada agendamento aprovado gera um <b>Código de Acesso</b> de 6 dígitos.</p>
-            <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 space-y-2">
-              <p className="text-xs font-bold text-indigo-800 uppercase">Instruções para a Recepção:</p>
-              <ul className="text-xs list-disc pl-5 space-y-1 text-indigo-700">
-                <li>Acesse a tela &quot;Manifestos de Viagem&quot; no seu menu lateral.</li>
-                <li>Localize o paciente e copie o código numérico ao lado do nome.</li>
-                <li>Informe ao paciente o link <b>/patient-portal</b> e forneça o código para consulta.</li>
-              </ul>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="pwa" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
-                <Smartphone className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">Instalação Mobile (PWA)</p>
-                <p className="text-sm text-muted-foreground">Transformando o portal em Aplicativo</p>
-              </div>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-4 pb-6">
-            <p className="text-sm">Para agilizar o trabalho diário, instale o Portal UBS no celular:</p>
-            <ol className="text-xs list-decimal pl-5 space-y-2">
-              <li>Acesse o link do portal pelo navegador (Chrome/Safari).</li>
-              <li>Aguarde o convite de instalação ou clique no menu de opções do navegador.</li>
-              <li>Selecione &quot;Instalar Aplicativo&quot; ou &quot;Adicionar à Tela de Início&quot;.</li>
-              <li>Ative as notificações para receber alertas de aprovação da Secretaria.</li>
-            </ol>
           </AccordionContent>
         </AccordionItem>
 
@@ -174,24 +117,6 @@ export default function UbsHelpPage() {
               <p className="text-xs font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
                 <History className="h-3 w-3" /> Histórico de Avanços
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-                <div className="flex items-start gap-2 text-[11px]">
-                  <span className="text-primary font-black">&bull;</span>
-                  <p><b>Portal do Cidadão:</b> Pacientes agora consultam viagens via código seguro.</p>
-                </div>
-                <div className="flex items-start gap-2 text-[11px]">
-                  <span className="text-primary font-black">&bull;</span>
-                  <p><b>Manifestos UBS:</b> Acompanhe em tempo real quem buscará o paciente.</p>
-                </div>
-                <div className="flex items-start gap-2 text-[11px]">
-                  <span className="text-primary font-black">&bull;</span>
-                  <p><b>PWA:</b> Instale o portal na tela inicial do seu celular como um App.</p>
-                </div>
-                <div className="flex items-start gap-2 text-[11px]">
-                  <span className="text-primary font-black">&bull;</span>
-                  <p><b>IA Nvidia:</b> Sugestão de urgência baseada no protocolo local Rio Claro.</p>
-                </div>
-              </div>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -206,10 +131,6 @@ export default function UbsHelpPage() {
           </div>
         </CardContent>
       </Card>
-
-      <div className="text-center py-10">
-        <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.2em]">PMRC - Saúde e Ordem Pública - 2024</p>
-      </div>
     </div>
   );
 }

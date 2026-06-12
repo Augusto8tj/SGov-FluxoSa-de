@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
@@ -12,7 +11,6 @@ import {
   User, 
   ShieldCheck,
   Filter,
-  CheckCircle2,
   Navigation,
   ExternalLink,
   Users,
@@ -51,7 +49,6 @@ export default function GlobalManifestsPage() {
     setLoading(true);
     try {
       const allRequests = await requestService.getRequests();
-      // Filtramos apenas registros que já possuem manifesto atribuído
       setRequests(allRequests.filter(r => r.manifestId));
     } catch {
       toast({ title: "Erro de Sincronização", description: "Falha ao carregar dados reais da malha viária.", variant: "destructive" });
@@ -65,7 +62,6 @@ export default function GlobalManifestsPage() {
     loadData();
   }, [loadData]);
 
-  // Agrupamento por Manifesto para exibição consolidada
   const groupedManifests = useMemo(() => {
     const groups: Record<string, TransportRequest[]> = {};
     requests.forEach(req => {
@@ -76,7 +72,6 @@ export default function GlobalManifestsPage() {
     return groups;
   }, [requests]);
 
-  // Filtragem inteligente sobre os grupos
   const manifestsList = useMemo(() => {
     return Object.entries(groupedManifests).filter(([id, items]) => {
       if (!searchTerm) return true;
@@ -238,7 +233,6 @@ export default function GlobalManifestsPage() {
                           </TableCell>
                         </TableRow>
 
-                        {/* Acordeon: Itinerário Consolidado da Missão */}
                         {expandedManifestId === mId && (
                           <TableRow className="bg-primary/[0.02] border-b-2 border-primary/10">
                             <TableCell colSpan={5} className="p-0">

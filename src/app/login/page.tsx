@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -10,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 
 export default function LoginPage() {
@@ -25,7 +23,6 @@ export default function LoginPage() {
     setLoading(true);
 
     const lowerEmail = email.toLowerCase();
-
     const demoUsers = [
       { email: 'secretario@rioclaro.rj.gov.br', pass: 'admin123', role: 'admin' },
       { email: 'gerente.ubs@rioclaro.rj.gov.br', pass: 'admin123', role: 'ubs' },

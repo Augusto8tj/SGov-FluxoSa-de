@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,16 +6,13 @@ import {
   Ambulance, 
   User, 
   Clock, 
-  MapPin, 
   CheckCircle2, 
   ArrowLeft, 
   Loader2,
   ShieldCheck,
-  AlertTriangle,
-  Navigation,
   Info
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { requestService } from "@/services/request-service";
@@ -54,10 +50,9 @@ export default function PatientManifestView() {
     loadData();
   }, [router]);
 
-  // Função para mascarar o nome do paciente preservando a privacidade
   const maskName = (name: string) => {
     const parts = name.split(" ");
-    return parts.map((p, i) => {
+    return parts.map((p) => {
       if (p.length <= 2) return p;
       return p[0] + "*".repeat(p.length - 1);
     }).join(" ");
@@ -112,7 +107,6 @@ export default function PatientManifestView() {
             <CardTitle className="text-2xl font-black uppercase tracking-tighter">
               {request.status === 'APPROVED' ? 'Confirmado' : 'Em Análise'}
             </CardTitle>
-            <p className="text-xs font-bold opacity-90">Secretaria de Saúde - Rio Claro</p>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
@@ -147,23 +141,6 @@ export default function PatientManifestView() {
                     </p>
                   </div>
                 </div>
-
-                <div className="space-y-4 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-px before:bg-slate-100">
-                  <div className="flex items-start gap-4 relative pl-1">
-                    <div className="mt-1 size-3 rounded-full bg-primary border-2 border-white ring-4 ring-primary/5 z-10" />
-                    <div className="space-y-0.5">
-                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-tighter">Origem (Embarque)</p>
-                      <p className="text-sm font-bold text-slate-700">{request.pickupLocation}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4 relative pl-1">
-                    <div className="mt-1 size-3 rounded-full bg-rose-500 border-2 border-white ring-4 ring-rose-500/5 z-10" />
-                    <div className="space-y-0.5">
-                      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-tighter">Destino (Desembarque)</p>
-                      <p className="text-sm font-bold text-slate-700">{request.destinationLocation}</p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           ) : (
@@ -174,7 +151,7 @@ export default function PatientManifestView() {
               <div className="space-y-2">
                 <p className="text-sm font-bold text-slate-700 leading-tight">Aguardando Triagem Logística</p>
                 <p className="text-xs text-slate-500 leading-relaxed max-w-[200px] mx-auto">
-                  A Secretaria de Saúde está definindo o melhor veículo para o seu trajeto. Consulte novamente em alguns minutos.
+                  A Secretaria de Saúde está definindo o melhor veículo para o seu trajeto.
                 </p>
               </div>
             </div>
@@ -191,24 +168,10 @@ export default function PatientManifestView() {
                 <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                 <p className="text-[11px] font-medium text-slate-600">Esteja no ponto de embarque com 15 minutos de antecedência.</p>
               </div>
-              <div className="flex gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                <p className="text-[11px] font-medium text-slate-600">Apresente documento com foto ao motorista municipal.</p>
-              </div>
-              <div className="flex gap-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                <p className="text-[11px] font-medium text-slate-600">Obrigatório o uso de cinto de segurança durante todo o trajeto.</p>
-              </div>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      <div className="p-4 bg-slate-100 rounded-2xl border border-dashed border-slate-300 text-center">
-        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter flex items-center justify-center gap-2">
-          <ShieldCheck className="h-3.5 w-3.5" /> Manifestação Oficial PMRC &bull; v1.0
-        </p>
-      </div>
     </div>
   );
 }

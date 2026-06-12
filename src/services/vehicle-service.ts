@@ -1,4 +1,3 @@
-
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -43,7 +42,7 @@ export const vehicleService = {
         id: doc.id,
         ...doc.data()
       } as Vehicle));
-    } catch (error) {
+    } catch {
       return MOCK_VEHICLES;
     }
   },
@@ -57,8 +56,7 @@ export const vehicleService = {
         updatedAt: now
       });
       return docRef.id;
-    } catch (error) {
-      console.error("Error in vehicleService.addVehicle:", error);
+    } catch {
       throw new Error("Erro ao registrar veículo no banco de dados.");
     }
   },
@@ -70,8 +68,7 @@ export const vehicleService = {
         ...data,
         updatedAt: new Date().toISOString()
       });
-    } catch (error) {
-      console.error("Error in vehicleService.updateVehicle:", error);
+    } catch {
       throw new Error("Erro ao atualizar informações do veículo.");
     }
   },
@@ -80,8 +77,7 @@ export const vehicleService = {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
       await deleteDoc(docRef);
-    } catch (error) {
-      console.error("Error in vehicleService.deleteVehicle:", error);
+    } catch {
       throw new Error("Erro ao remover veículo da frota.");
     }
   }
