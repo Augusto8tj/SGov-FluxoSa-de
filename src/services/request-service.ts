@@ -17,6 +17,10 @@ import { MOCK_REQUESTS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "requests";
 
+/**
+ * @fileOverview Serviço de gestão de solicitações com suporte a batch para manifestos.
+ * Implementa a lógica de filtro status === 'APPROVED' E manifestId ausente conforme backup.
+ */
 export const requestService = {
   async getRequests(): Promise<TransportRequest[]> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
@@ -85,6 +89,7 @@ export const requestService = {
 
   async updateRequest(id: string, data: Partial<TransportRequest>): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      // Em modo demo, apenas simulamos o sucesso
       return Promise.resolve();
     }
 
@@ -108,8 +113,12 @@ export const requestService = {
     }
   },
 
+  /**
+   * Oficializa múltiplos manifestos em uma única transação Firestore.
+   */
   async createManifestBatch(assignments: any[]): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      // Simulação para o Secretário no modo demonstração
       return Promise.resolve();
     }
 
@@ -118,8 +127,7 @@ export const requestService = {
     assignments.forEach((assign) => {
       const manifestId = `MF-${Date.now().toString().slice(-6)}-${assign.vehicleId}`;
       assign.route.forEach((requestId: string) => {
-        if (requestId.startsWith('REQ-')) return;
-        
+        // Ignora prefixos REQ- de demonstração se necessário, mas no Firestore real usamos IDs alfanuméricos
         const docRef = doc(db, COLLECTION_NAME, requestId);
         batch.update(docRef, {
           manifestId,

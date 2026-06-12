@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview Fluxo para geração de rotas otimizadas.
- * Utiliza IA para agrupar pacientes em veículos com base em localização e capacidade.
- * Possui fallback determinístico blindado para evitar erros de interface.
+ * @fileOverview Fluxo para geração de rotas otimizadas baseado no Backup Logístico.
+ * Utiliza IA (Nvidia Nemotron) para agrupamento geográfico inteligente.
+ * Possui fallback determinístico blindado para evitar erros de demonstração.
  */
 
 import { aiService } from '@/services/ai-service';
@@ -23,17 +23,17 @@ export async function generateOptimizedRoutes(input: { appointments: any[], vehi
     const prompt = `Você é o Coordenador de Logística de Saúde de Rio Claro - RJ.
 Sua missão é agrupar os seguintes pacientes nos veículos disponíveis da forma mais eficiente possível.
 
+REGRAS DE OURO:
+1. IDs DE PACIENTES: Use EXATAMENTE os IDs fornecidos (ex: REQ-001). Nunca invente ou altere IDs.
+2. AGRUPAMENTO GEOGRÁFICO: Coloque no mesmo veículo pacientes que saem do mesmo local (Lídice, Centro, Passa Três) para o mesmo Destino.
+3. CAPACIDADE: Respeite rigorosamente a capacidade de cada veículo.
+4. LÍNGUA: Responda obrigatoriamente em Português do Brasil.
+
 DADOS DE ENTRADA:
 - Pacientes (Pedidos): ${JSON.stringify(input.appointments)}
 - Veículos Disponíveis: ${JSON.stringify(input.vehicles)}
 
-REGRAS OBRIGATÓRIAS:
-1. IDs DE PACIENTES: Use EXATAMENTE os IDs fornecidos (ex: REQ-001). Nunca invente ou altere IDs.
-2. AGRUPAMENTO: Coloque no mesmo veículo pacientes que saem do mesmo local (Lídice, Centro, Passa Três) para o mesmo Destino.
-3. CAPACIDADE: Nunca ultrapasse a capacidade de vagas do veículo.
-4. LÍNGUA: Responda obrigatoriamente em Português do Brasil.
-
-RETORNE APENAS O OBJETO JSON.`;
+RETORNE APENAS O OBJETO JSON conforme o esquema solicitado.`;
 
     const schemaDescription = `{ 
       assignments: Array<{ vehicleId: string, route: string[], estimatedDurationMinutes: number, estimatedDistanceKm: number, notes: string }>, 
@@ -49,8 +49,7 @@ RETORNE APENAS O OBJETO JSON.`;
       return aiResult.output;
     }
 
-    // Se a IA retornar vazio ou erro estrutural, acionamos o fallback automático
-    throw new Error("IA retornou dados insuficientes. Acionando contingência.");
+    throw new Error("IA retornou dados insuficientes. Acionando contingência local.");
 
   } catch (error) {
     console.warn("Optimizer Flow: Usando Fallback de Contingência devido a erro na IA.", error);
@@ -63,14 +62,14 @@ RETORNE APENAS O OBJETO JSON.`;
 }
 
 /**
- * Algoritmo de Agrupamento Determinístico Blindado.
+ * Algoritmo de Agrupamento Determinístico Blindado (Baseado no Backup).
  * Garante que a demonstração sempre funcione agrupando por Destino e Origem.
  */
 function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[] {
   const availableVehicles = vehicles.length > 0 ? vehicles : [{ id: 'V1', type: 'Ambulância', capacity: 4 }];
   const assignments: any[] = [];
   
-  // Agrupa por destino e origem
+  // Agrupa por destino e origem para maximizar eficiência
   const groupsByDest: Record<string, any[]> = {};
   appointments.forEach(app => {
     const key = `${app.pickup}-${app.destination}`;
@@ -91,7 +90,7 @@ function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[]
         route: chunk.map(c => c.id),
         estimatedDurationMinutes: 45,
         estimatedDistanceKm: 12.5,
-        notes: `Agrupamento Otimizado: Rota direta de ${pickup} com destino a ${dest}.`
+        notes: `Agrupamento Logístico: Rota otimizada de ${pickup} para ${dest}.`
       });
       vehicleIdx++;
     }
