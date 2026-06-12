@@ -16,7 +16,8 @@ import {
   BookOpen,
   Fingerprint,
   Route,
-  UserRoundCheck
+  UserRoundCheck,
+  Printer
 } from "lucide-react";
 
 import {
@@ -44,7 +45,8 @@ import Link from "next/link";
  * 6. Gestão de Condutores (Motoristas)
  * 7. Feedback de Campo (Relatórios)
  * 8. Base de Dados (Pacientes, Veículos, UBS)
- * 9. Segurança (Auditoria)
+ * 9. Documentos (Impressão)
+ * 10. Segurança (Auditoria)
  */
 const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
@@ -57,6 +59,7 @@ const menuItems = [
   { title: "Pacientes", icon: Users, url: "/dashboard/patients" },
   { title: "Veículos", icon: Ambulance, url: "/dashboard/fleet" },
   { title: "Postos (UBS)", icon: Hospital, url: "/dashboard/ubs" },
+  { title: "Documentos", icon: Printer, url: "/dashboard/docs" },
   { title: "Auditoria", icon: Fingerprint, url: "/dashboard/audit" },
 ];
 

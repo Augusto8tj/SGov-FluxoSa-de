@@ -1,0 +1,194 @@
+
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { 
+  Printer, 
+  FileText, 
+  Search, 
+  Download, 
+  ExternalLink, 
+  ShieldCheck,
+  CheckCircle2,
+  Clock,
+  Filter,
+  FileCheck
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+
+const MOCK_DOCS = [
+  { id: "DOC-2024-001", type: "DIÁRIA", name: "Pedido de Diária - Carlos Silva", date: "12/06/2024", status: "READY", driver: "Carlos Alberto Silva", value: "R$ 150,00" },
+  { id: "DOC-2024-002", type: "COMBUSTÍVEL", name: "Requisição V1 - Marcos Pereira", date: "12/06/2024", status: "READY", driver: "Marcos Pereira", value: "R$ 340,50" },
+  { id: "DOC-2024-003", type: "DIÁRIA", name: "Pedido de Diária - Ricardo Oliveira", date: "11/06/2024", status: "PRINTED", driver: "Ricardo Oliveira", value: "R$ 150,00" },
+  { id: "DOC-2024-004", type: "COMBUSTÍVEL", name: "Requisição V3 - Carlos Silva", date: "10/06/2024", status: "PRINTED", driver: "Carlos Alberto Silva", value: "R$ 210,00" },
+];
+
+export default function DocumentManagementPage() {
+  const [mounted, setMounted] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handlePrint = (doc: any) => {
+    const type = doc.type === 'DIÁRIA' ? 'daily' : 'fuel';
+    const params = new URLSearchParams({
+      type,
+      id: doc.id,
+      driver: doc.driver,
+      value: doc.value,
+      date: doc.date
+    });
+    window.open(`/dashboard/print?${params.toString()}`, '_blank');
+  };
+
+  if (!mounted) return null;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+            <Printer className="h-8 w-8" /> Central de Documentos
+          </h2>
+          <p className="text-muted-foreground text-sm">Geração de documentos oficiais e guias para impressão física.</p>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="border-none shadow-sm bg-indigo-50 border-l-4 border-l-indigo-500">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
+              <FileText className="h-4 w-4" /> Prontos para Imprimir
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-black text-indigo-700">{MOCK_DOCS.filter(d => d.status === 'READY').length}</p>
+            <p className="text-[10px] text-indigo-600/70 mt-1 uppercase font-bold">Documentos homologados</p>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-sm bg-emerald-50 border-l-4 border-l-emerald-500">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
+              <FileCheck className="h-4 w-4" /> Já Impressos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-black text-emerald-700">{MOCK_DOCS.filter(d => d.status === 'PRINTED').length}</p>
+            <p className="text-[10px] text-emerald-600/70 mt-1 uppercase font-bold">Histórico de emissão</p>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-sm bg-slate-100 border-l-4 border-l-slate-400">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4" /> Integridade
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xl font-black text-slate-700 uppercase">Auditado</p>
+            <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold">Assinatura Digital Ativa</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Buscar por documento ou motorista..." 
+            className="pl-10 h-12 bg-card border-none shadow-sm rounded-xl"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl shrink-0"><Filter className="h-4 w-4" /></Button>
+      </div>
+
+      <Card className="border-none shadow-md overflow-hidden bg-card rounded-2xl">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow className="border-none">
+                <TableHead className="font-bold">Documento / Tipo</TableHead>
+                <TableHead className="font-bold">Motorista Beneficiário</TableHead>
+                <TableHead className="font-bold">Data de Emissão</TableHead>
+                <TableHead className="font-bold">Valor</TableHead>
+                <TableHead className="text-right font-bold">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {MOCK_DOCS.map((doc) => (
+                <TableRow key={doc.id} className="hover:bg-muted/10 transition-colors">
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "h-10 w-10 rounded-xl flex items-center justify-center shadow-sm",
+                        doc.type === 'DIÁRIA' ? "bg-indigo-100 text-indigo-600" : "bg-amber-100 text-amber-600"
+                      )}>
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm text-slate-700">{doc.name}</span>
+                        <span className="text-[9px] text-muted-foreground uppercase font-black">{doc.id}</span>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-xs font-bold text-slate-600">{doc.driver}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" /> {doc.date}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm font-black text-primary">{doc.value}</span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-muted-foreground"><Download className="h-4 w-4" /></Button>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="h-9 px-4 rounded-xl gap-2 font-black uppercase text-[10px] tracking-widest shadow-lg"
+                        onClick={() => handlePrint(doc)}
+                      >
+                        <Printer className="h-3.5 w-3.5" /> Imprimir
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </Card>
+
+      <div className="p-8 bg-slate-100 rounded-[3rem] border border-dashed border-slate-300 flex flex-col md:flex-row items-center gap-8 mx-1">
+        <div className="h-20 w-20 rounded-[2rem] bg-white shadow-xl flex items-center justify-center shrink-0">
+          <ShieldCheck className="h-10 w-10 text-primary" />
+        </div>
+        <div className="flex-1 text-center md:text-left space-y-1">
+          <h4 className="font-black text-xl text-slate-800 uppercase tracking-tighter">Workflow de Auditoria</h4>
+          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl font-medium">
+            Todos os documentos gerados pelo sistema recebem um código de autenticidade (HASH) impresso no rodapé, permitindo que o RH valide a legitimidade do documento físico apenas escaneando o QR Code futuro.
+          </p>
+        </div>
+        <Printer className="h-8 w-8 text-slate-300 hidden md:block" />
+      </div>
+    </div>
+  );
+}

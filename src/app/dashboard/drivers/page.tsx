@@ -23,7 +23,8 @@ import {
   ThumbsUp,
   ThumbsDown,
   X,
-  Check
+  Check,
+  Printer
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -73,6 +74,18 @@ export default function DriversManagementPage() {
       description: `O registro ${id} foi processado e enviado para o financeiro.`,
       variant: action === 'DENIED' ? "destructive" : "default"
     });
+  };
+
+  const handlePrintRequest = (req: any) => {
+    const type = req.type === 'DIÁRIA' ? 'daily' : 'fuel';
+    const params = new URLSearchParams({
+      type,
+      id: req.id,
+      driver: req.driver,
+      value: req.value,
+      date: req.date
+    });
+    window.open(`/dashboard/print?${params.toString()}`, '_blank');
   };
 
   if (!mounted) return null;
@@ -195,12 +208,12 @@ export default function DriversManagementPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-4">
               <h3 className="text-sm font-black uppercase text-slate-400 tracking-widest px-1">Solicitações Pendentes</h3>
-              {financials.filter(f => f.status === 'PENDING').map((req) => (
+              {financials.map((req) => (
                 <Card key={req.id} className="border-none shadow-sm overflow-hidden bg-card group hover:shadow-md transition-all rounded-2xl">
                   <div className="flex flex-col sm:flex-row">
                     <div className={cn(
                       "w-full sm:w-2 px-4 sm:px-0",
-                      req.type === 'DIÁRIA' ? "bg-indigo-500" : "bg-amber-500"
+                      req.status === 'APPROVED' ? "bg-emerald-500" : req.type === 'DIÁRIA' ? "bg-indigo-500" : "bg-amber-500"
                     )} />
                     <CardContent className="p-5 flex-1">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -208,30 +221,43 @@ export default function DriversManagementPage() {
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-[9px] font-black border-slate-200">{req.type}</Badge>
                             <span className="text-[10px] text-muted-foreground font-bold">{req.date}</span>
+                            {req.status === 'APPROVED' && <Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] uppercase">Aprovado</Badge>}
                           </div>
                           <p className="text-sm font-black text-slate-800 uppercase tracking-tighter">{req.driver}</p>
                           <p className="text-xs text-slate-500 font-medium italic">&quot;{req.reason}&quot;</p>
                         </div>
                         <div className="flex items-center gap-6">
                           <div className="text-right">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Valor Pleiteado</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Valor</p>
                             <p className="text-lg font-black text-primary">{req.value}</p>
                           </div>
                           <div className="flex gap-2">
-                            <Button 
-                              size="icon" 
-                              className="h-10 w-10 rounded-xl bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-100"
-                              onClick={() => handleFinancialAction(req.id, 'DENIED')}
-                            >
-                              <X className="h-5 w-5" />
-                            </Button>
-                            <Button 
-                              size="icon" 
-                              className="h-10 w-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-100"
-                              onClick={() => handleFinancialAction(req.id, 'APPROVED')}
-                            >
-                              <Check className="h-5 w-5" />
-                            </Button>
+                            {req.status === 'PENDING' ? (
+                              <>
+                                <Button 
+                                  size="icon" 
+                                  className="h-10 w-10 rounded-xl bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-100"
+                                  onClick={() => handleFinancialAction(req.id, 'DENIED')}
+                                >
+                                  <X className="h-5 w-5" />
+                                </Button>
+                                <Button 
+                                  size="icon" 
+                                  className="h-10 w-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-100"
+                                  onClick={() => handleFinancialAction(req.id, 'APPROVED')}
+                                >
+                                  <Check className="h-5 w-5" />
+                                </Button>
+                              </>
+                            ) : req.status === 'APPROVED' ? (
+                              <Button 
+                                variant="outline" 
+                                className="h-10 rounded-xl gap-2 font-black uppercase text-[10px] tracking-widest border-primary/20 text-primary"
+                                onClick={() => handlePrintRequest(req)}
+                              >
+                                <Printer className="h-4 w-4" /> Imprimir Guia
+                              </Button>
+                            ) : null}
                           </div>
                         </div>
                       </div>
@@ -239,12 +265,6 @@ export default function DriversManagementPage() {
                   </div>
                 </Card>
               ))}
-              {financials.filter(f => f.status === 'PENDING').length === 0 && (
-                <div className="py-20 text-center space-y-4 opacity-30">
-                  <BadgeCheck className="h-16 w-16 mx-auto text-slate-400" />
-                  <p className="text-sm font-black uppercase tracking-widest">Tudo em dia com o financeiro</p>
-                </div>
-              )}
             </div>
 
             <div className="space-y-6">
@@ -264,18 +284,15 @@ export default function DriversManagementPage() {
                       <div className="h-full bg-white w-[65%]" />
                     </div>
                   </div>
-                  <p className="text-[10px] opacity-80 font-medium leading-relaxed italic">
-                    O teto municipal para diárias de transporte sanitário está dentro do esperado para o quadrimestre.
-                  </p>
                 </CardContent>
               </Card>
 
               <div className="p-5 bg-amber-50 rounded-2xl border border-dashed border-amber-200">
                 <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-2 flex items-center gap-2">
-                  <ShieldAlert className="h-4 w-4" /> Alerta de Auditoria
+                  <Printer className="h-4 w-4" /> Auditoria de Guias
                 </h4>
                 <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
-                  Solicitações de combustível acima de R$ 300,00 sem nota fiscal digitalizada serão sinalizadas para revisão manual da Ordem Pública.
+                  Após imprimir a guia física, colha a assinatura do motorista e anexe ao relatório mensal para fins de prestação de contas.
                 </p>
               </div>
             </div>
@@ -320,9 +337,6 @@ export default function DriversManagementPage() {
                 <div className="text-center py-10 space-y-2">
                   <p className="text-3xl font-black text-emerald-600">98%</p>
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Satisfação dos Pacientes</p>
-                  <p className="text-xs text-slate-500 italic mt-4 px-6">
-                    &quot;Os motoristas de Rio Claro são elogiados pela pontualidade e auxílio no embarque de cadeirantes.&quot;
-                  </p>
                 </div>
               </CardContent>
             </Card>
