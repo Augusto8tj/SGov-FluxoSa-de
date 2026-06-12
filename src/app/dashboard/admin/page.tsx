@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   ShieldCheck, 
   BrainCircuit, 
@@ -11,7 +12,8 @@ import {
   X,
   AlertTriangle,
   History,
-  Loader2 as LoaderIcon
+  Loader2 as LoaderIcon,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,71 +31,91 @@ import {
 import { provideDecisionSupportForApprovals, ProvideDecisionSupportOutput } from "@/ai/flows/provide-decision-support-for-approvals";
 import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/dashboard/stats-card";
+import { requestService } from "@/services/request-service";
+import { TransportRequest } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const initialRequests = [
-  { id: "REQ-001", patient: "Maria Souza", ubs: "UBS Rio Claro", priority: "high", details: "Diabetes, Hipertensão. Requer maca.", status: "PENDING", time: "14:30" },
-  { id: "REQ-002", patient: "José Santos", ubs: "UBS Central", priority: "medium", priorityLabel: "Médio", details: "Acompanhamento renal.", status: "PENDING", time: "15:00" },
-  { id: "REQ-003", patient: "Ana Oliveira", ubs: "UBS Norte", priority: "low", details: "Exames de rotina.", status: "PENDING", time: "16:15" },
-];
 
 export default function AdminPage() {
   const [mounted, setMounted] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
   const [aiEnabled, setAiEnabled] = useState(true);
-  const [requests, setRequests] = useState(initialRequests);
+  const [requests, setRequests] = useState<TransportRequest[]>([]);
   const [analysis, setAnalysis] = useState<Record<string, ProvideDecisionSupportOutput>>({});
-  const [loading, setLoading] = useState<string | null>(null);
+  const [loadingAi, setLoadingAi] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const loadPendingRequests = useCallback(async () => {
+    setLoadingData(true);
+    try {
+      const all = await requestService.getRequests();
+      // Mostramos apenas o que precisa de decisão (PENDING)
+      setRequests(all.filter(r => r.status === 'PENDING'));
+    } catch {
+      toast({ title: "Erro", description: "Falha ao sincronizar pedidos pendentes.", variant: "destructive" });
+    } finally {
+      setLoadingData(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    loadPendingRequests();
+  }, [loadPendingRequests]);
 
-  const handleAiAnalysis = async (req: typeof initialRequests[0]) => {
+  const handleAiAnalysis = async (req: TransportRequest) => {
     if (!aiEnabled) return;
     
-    setLoading(req.id);
+    setLoadingAi(req.id);
     try {
-      const maskedName = req.patient.split(' ')[0];
-      const partialId = req.id.split('-').pop() || "000";
+      // Pseudonimização para LGPD: enviamos apenas o primeiro nome
+      const maskedName = req.patientName.split(' ')[0];
 
       const result = await provideDecisionSupportForApprovals({
-        requestId: `#${partialId}`,
+        requestId: req.id,
         patientMaskedName: maskedName,
-        patientDetails: req.details,
-        needsCompanion: true,
-        pickupLocation: req.ubs,
-        destinationLocation: "Hospital Municipal Rio Claro",
-        requestedTime: "2024-05-20 " + req.time,
-        urgencyLevel: req.priority as any,
-        availableVehiclesSummary: "3 ambulâncias, 2 vans",
-        availableDriversSummary: "5 motoristas ativos",
-        conflictingRequestsSummary: "Nenhum conflito crítico detectado"
+        patientDetails: req.aiRecommendation || "Condição padrão de transporte sanitário.",
+        pickupLocation: req.pickupLocation,
+        destinationLocation: req.destinationLocation,
+        urgencyLevel: req.urgencyLevel,
+        availableVehiclesSummary: "Frota operacional com 4 viaturas ativas."
       });
+      
       setAnalysis(prev => ({ ...prev, [req.id]: result }));
-      toast({ title: "Análise Segura Concluída", description: `Dados de ${maskedName} processados com sigilo.` });
+      toast({ title: "Análise IA Concluída", description: `Parecer gerado para o pedido de ${maskedName}.` });
     } catch {
-      toast({ title: "Erro na análise", description: "Não foi possível obter suporte da IA agora.", variant: "destructive" });
+      toast({ title: "Erro na IA", description: "Não foi possível processar a análise agora.", variant: "destructive" });
     } finally {
-      setLoading(null);
+      setLoadingAi(null);
     }
   };
 
-  const handleAction = (id: string, action: 'APPROVE' | 'DENY') => {
+  const handleAction = async (id: string, action: 'APPROVED' | 'DENIED') => {
     const req = requests.find(r => r.id === id);
     if (!req) return;
 
-    setRequests(prev => prev.filter(r => r.id !== id));
-    if (action === 'APPROVE') {
-      toast({ title: "Solicitação Aprovada", description: `O transporte para ${req.patient} foi escalado.` });
-    } else {
-      toast({ title: "Solicitação Negada", description: `O pedido de ${req.patient} foi recusado.`, variant: "destructive" });
-    }
-    
-    if (analysis[id]) {
-      const newAnalysis = { ...analysis };
-      delete newAnalysis[id];
-      setAnalysis(newAnalysis);
+    try {
+      await requestService.updateRequest(id, { 
+        status: action,
+        updatedAt: new Date().toISOString() 
+      });
+      
+      // Remove da lista local de pendentes
+      setRequests(prev => prev.filter(r => r.id !== id));
+      
+      if (action === 'APPROVED') {
+        toast({ title: "Solicitação Aprovada", description: `O pedido de ${req.patientName} foi enviado para a logística.` });
+      } else {
+        toast({ title: "Solicitação Negada", description: `O pedido de ${req.patientName} foi recusado.`, variant: "destructive" });
+      }
+      
+      // Limpa análise do cache
+      if (analysis[id]) {
+        const newAnalysis = { ...analysis };
+        delete newAnalysis[id];
+        setAnalysis(newAnalysis);
+      }
+    } catch {
+      toast({ title: "Erro na Ação", description: "Não foi possível atualizar o status no banco de dados.", variant: "destructive" });
     }
   };
 
@@ -103,92 +125,136 @@ export default function AdminPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">Painel de Comando</h2>
-          <p className="text-muted-foreground text-sm">Gestão estratégica e aprovações com proteção de dados.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+            <ShieldCheck className="h-8 w-8" /> Painel de Comando
+          </h2>
+          <p className="text-muted-foreground text-sm">Central de aprovação estratégica e triagem inteligente.</p>
         </div>
-        <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border">
-          <div className="flex items-center space-x-2">
-            <BrainCircuit className={aiEnabled ? "text-primary animate-pulse h-5 w-5" : "text-muted-foreground h-5 w-5"} />
-            <div className="grid gap-0.5 text-left">
-              <Label htmlFor="ai-toggle" className="text-sm font-semibold">IA com Sigilo</Label>
-              <p className="text-[10px] text-muted-foreground uppercase">Dados Pseudonimizados</p>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" className="h-11 rounded-xl gap-2" onClick={loadPendingRequests}>
+            <RefreshCw className={cn("h-4 w-4", loadingData && "animate-spin")} /> Atualizar
+          </Button>
+          <div className="flex items-center space-x-4 bg-white dark:bg-slate-900 p-3 rounded-xl shadow-sm border">
+            <div className="flex items-center space-x-2">
+              <BrainCircuit className={aiEnabled ? "text-primary animate-pulse h-5 w-5" : "text-muted-foreground h-5 w-5"} />
+              <div className="grid gap-0.5 text-left">
+                <Label htmlFor="ai-toggle" className="text-sm font-semibold leading-none">IA com Sigilo</Label>
+                <p className="text-[9px] text-muted-foreground uppercase font-black tracking-widest">Protocolo LGPD</p>
+              </div>
             </div>
+            <Switch 
+              id="ai-toggle" 
+              checked={aiEnabled} 
+              onCheckedChange={setAiEnabled}
+            />
           </div>
-          <Switch 
-            id="ai-toggle" 
-            checked={aiEnabled} 
-            onCheckedChange={setAiEnabled}
-          />
         </div>
       </div>
 
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-        <StatsCard title="Pendentes" value={requests.length} icon={Zap} description="Aguardando Análise" />
-        <StatsCard title="Processados" value="124" icon={CheckCircle} description="Hoje" />
-        <StatsCard title="Em Rota" value="8" icon={Zap} description="Veículos" />
-        <StatsCard title="Alertas" value="2" icon={AlertTriangle} description="Prioridade Crítica" />
+        <StatsCard title="Pendentes" value={requests.length} icon={Zap} description="Aguardando Triagem" />
+        <StatsCard title="Taxa Aprovação" value="92%" icon={CheckCircle} description="Média Mensal" trend={{ value: 4, isPositive: true }} />
+        <StatsCard title="IA Ativa" value="SIM" icon={BrainCircuit} description="Nvidia Nemotron" />
+        <StatsCard title="Alertas" value={requests.filter(r => r.urgencyLevel === 'critical').length} icon={AlertTriangle} description="Prioridade Crítica" />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2 border-none shadow-sm overflow-hidden">
+        <Card className="lg:col-span-2 border-none shadow-sm overflow-hidden bg-card rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/10">
             <div>
-              <CardTitle className="text-lg">Solicitações Aguardando</CardTitle>
-              <CardDescription className="text-xs">Triagem técnica para a malha municipal.</CardDescription>
+              <CardTitle className="text-lg">Solicitações Aguardando Decisão</CardTitle>
+              <CardDescription className="text-xs">Triagem técnica para a malha viária municipal.</CardDescription>
             </div>
             <Button variant="ghost" size="icon"><Filter className="h-4 w-4" /></Button>
           </CardHeader>
           <CardContent className="p-0">
-            {requests.length === 0 ? (
+            {loadingData ? (
+              <div className="py-20 text-center space-y-3">
+                <LoaderIcon className="h-8 w-8 animate-spin text-primary mx-auto" />
+                <p className="text-xs font-black uppercase text-muted-foreground tracking-widest">Sincronizando com as UBS...</p>
+              </div>
+            ) : requests.length === 0 ? (
               <div className="py-20 text-center text-muted-foreground space-y-2">
-                <CheckCircle className="h-10 w-10 mx-auto opacity-20" />
-                <p>Nenhuma solicitação pendente.</p>
+                <div className="bg-emerald-50 h-16 w-16 rounded-full flex items-center justify-center mx-auto text-emerald-600 mb-2">
+                  <CheckCircle className="h-8 w-8" />
+                </div>
+                <p className="font-bold">Tudo em dia!</p>
+                <p className="text-xs">Nenhuma solicitação pendente de aprovação.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Paciente</TableHead>
-                      <TableHead>Prioridade</TableHead>
-                      <TableHead>IA</TableHead>
-                      <TableHead className="text-right">Ação</TableHead>
+                  <TableHeader className="bg-muted/30">
+                    <TableRow className="border-none">
+                      <TableHead className="font-bold">Paciente / UBS</TableHead>
+                      <TableHead className="font-bold">Prioridade</TableHead>
+                      <TableHead className="font-bold">Suporte IA</TableHead>
+                      <TableHead className="text-right font-bold">Decisão</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {requests.map((req) => (
-                      <TableRow key={req.id}>
+                      <TableRow key={req.id} className="hover:bg-muted/10 transition-colors">
                         <TableCell>
                           <div className="flex flex-col">
-                            <span className="font-bold text-sm">{req.patient}</span>
-                            <span className="text-[10px] text-muted-foreground uppercase">{req.id} • {req.ubs}</span>
+                            <span className="font-bold text-sm text-slate-800">{req.patientName}</span>
+                            <span className="text-[10px] text-muted-foreground uppercase font-black">{req.ubsId} &bull; {req.pickupLocation}</span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={req.priority === 'high' ? 'destructive' : req.priority === 'medium' ? 'default' : 'secondary'} className="text-[10px]">
-                            {req.priority.toUpperCase()}
+                          <Badge 
+                            variant={req.urgencyLevel === 'critical' ? 'destructive' : req.urgencyLevel === 'high' ? 'destructive' : 'default'} 
+                            className={cn(
+                              "text-[10px] font-black uppercase",
+                              req.urgencyLevel === 'critical' && "animate-pulse"
+                            )}
+                          >
+                            {req.urgencyLevel.toUpperCase()}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           {aiEnabled ? (
                             <Button 
-                              variant="outline" 
+                              variant={analysis[req.id] ? "secondary" : "outline"} 
                               size="sm" 
-                              className="h-8 gap-2 border-primary/20 text-[10px] font-bold"
+                              className={cn(
+                                "h-8 gap-2 border-primary/20 text-[9px] font-black uppercase rounded-lg",
+                                analysis[req.id] && "bg-primary/10 text-primary border-primary/30"
+                              )}
                               onClick={() => handleAiAnalysis(req)}
-                              disabled={loading === req.id}
+                              disabled={loadingAi === req.id}
                             >
-                              {loading === req.id ? <LoaderIcon className="h-3 w-3 animate-spin" /> : <BrainCircuit className="h-3 w-3 text-primary" />}
-                              ANALISAR
+                              {loadingAi === req.id ? (
+                                <LoaderIcon className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <BrainCircuit className={cn("h-3.5 w-3.5", analysis[req.id] ? "text-primary" : "text-muted-foreground")} />
+                              )}
+                              {analysis[req.id] ? "REVISAR ANÁLISE" : "ANALISAR"}
                             </Button>
                           ) : (
-                            <span className="text-[10px] text-muted-foreground italic">OFF</span>
+                            <span className="text-[10px] text-muted-foreground italic font-bold">OFF-LINE</span>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-rose-500" onClick={() => handleAction(req.id, 'DENY')}><X className="h-4 w-4" /></Button>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-emerald-500" onClick={() => handleAction(req.id, 'APPROVE')}><Check className="h-4 w-4" /></Button>
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              className="h-9 w-9 rounded-full text-rose-500 hover:bg-rose-50 hover:text-rose-600" 
+                              onClick={() => handleAction(req.id, 'DENIED')}
+                              title="Negar Pedido"
+                            >
+                              <X className="h-5 w-5" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              variant="ghost" 
+                              className="h-9 w-9 rounded-full text-emerald-500 hover:bg-emerald-50 hover:text-emerald-600" 
+                              onClick={() => handleAction(req.id, 'APPROVED')}
+                              title="Aprovar Pedido"
+                            >
+                              <Check className="h-5 w-5" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -201,52 +267,81 @@ export default function AdminPage() {
         </Card>
 
         <div className="space-y-6">
-          <Card className="border-none shadow-sm overflow-hidden flex flex-col h-full">
+          <Card className="border-none shadow-md overflow-hidden flex flex-col h-full bg-card rounded-2xl">
             <CardHeader className="bg-primary text-primary-foreground pb-4">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-5 w-5" />
-                <CardTitle className="text-lg">Decisões Apoiadas</CardTitle>
+                <CardTitle className="text-lg">Pareceres Gerados</CardTitle>
               </div>
-              <CardDescription className="text-primary-foreground/80 text-xs italic">Relatórios gerados com proteção de dados sensíveis.</CardDescription>
+              <CardDescription className="text-primary-foreground/80 text-[10px] font-bold uppercase tracking-widest">IA & Apoio à Decisão</CardDescription>
             </CardHeader>
-            <CardContent className="pt-6 flex-1 overflow-y-auto">
+            <CardContent className="pt-6 flex-1 overflow-y-auto max-h-[600px] no-scrollbar">
               {Object.keys(analysis).length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center opacity-40">
-                  <div className="bg-muted p-4 rounded-full mb-4">
-                    <History className="h-8 w-8" />
+                <div className="flex flex-col items-center justify-center py-20 text-center opacity-40">
+                  <div className="bg-muted p-4 rounded-3xl mb-4">
+                    <History className="h-10 w-10 text-muted-foreground" />
                   </div>
-                  <p className="text-xs font-bold uppercase">Nenhuma análise no cache</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Nenhuma análise no cache</p>
+                  <p className="text-[9px] mt-2 max-w-[180px]">Clique em "Analisar" em um pedido para ver as recomendações da IA.</p>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {Object.entries(analysis).map(([id, result]) => (
-                    <div key={id} className="border-b pb-6 last:border-0 last:pb-0 animate-in fade-in">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-black text-primary bg-primary/5 px-2 py-1 rounded">#{id.split('-').pop()}</span>
-                        <Badge className={
-                          result.suggestedAction === 'approve' ? 'bg-emerald-100 text-emerald-700' :
-                          result.suggestedAction === 'deny' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
-                        }>
-                          {result.suggestedAction.toUpperCase()}
-                        </Badge>
-                      </div>
-                      <p className="text-sm font-medium leading-relaxed mb-4">{result.recommendation}</p>
-                      <div className="space-y-2">
-                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Fatores Analisados</p>
-                        {result.criticalFactors.map((factor, idx) => (
-                          <div key={idx} className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/30 p-2 rounded-lg">
-                            <CheckCircle className="h-3 w-3 text-primary mt-0.5 shrink-0" />
-                            {factor}
+                  {Object.entries(analysis).map(([id, result]) => {
+                    const req = requests.find(r => r.id === id);
+                    return (
+                      <div key={id} className="border-b pb-6 last:border-0 last:pb-0 animate-in fade-in slide-in-from-right-4 duration-300">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-primary uppercase tracking-tighter">Pedido #{id.split('-').pop()}</span>
+                            <span className="text-xs font-bold text-slate-700">{req?.patientName.split(' ')[0]}</span>
                           </div>
-                        ))}
+                          <Badge className={cn(
+                            "text-[8px] font-black uppercase px-2 h-5 border-none",
+                            result.suggestedAction === 'approve' ? 'bg-emerald-100 text-emerald-700' :
+                            result.suggestedAction === 'deny' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                          )}>
+                            {result.suggestedAction.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                        <p className="text-xs font-medium leading-relaxed text-slate-600 mb-4 bg-slate-50 p-3 rounded-xl italic">
+                          &quot;{result.recommendation}&quot;
+                        </p>
+                        <div className="space-y-2">
+                          <p className="text-[9px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-1.5">
+                            <Zap className="h-3 w-3 text-amber-500" /> Fatores Críticos Analisados
+                          </p>
+                          {result.criticalFactors.map((factor, idx) => (
+                            <div key={idx} className="flex items-start gap-2 text-[10px] text-slate-500 bg-muted/20 p-2 rounded-lg border border-slate-100">
+                              <CheckCircle className="h-3 w-3 text-emerald-500 mt-0.5 shrink-0" />
+                              <span className="font-medium leading-tight">{factor}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 mt-4">
+                          <Button size="sm" variant="outline" className="h-8 text-[9px] font-black uppercase rounded-lg border-rose-100 text-rose-600 hover:bg-rose-50" onClick={() => handleAction(id, 'DENIED')}>Negar</Button>
+                          <Button size="sm" className="h-8 text-[9px] font-black uppercase rounded-lg bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-100" onClick={() => handleAction(id, 'APPROVED')}>Aprovar</Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      <div className="p-6 bg-blue-50 rounded-[2.5rem] border border-dashed border-blue-200 flex flex-col md:flex-row items-center gap-6">
+        <div className="h-16 w-16 rounded-[2rem] bg-white shadow-xl flex items-center justify-center shrink-0">
+          <BrainCircuit className="h-8 w-8 text-primary" />
+        </div>
+        <div className="flex-1 text-center md:text-left">
+          <h4 className="font-black text-lg text-blue-800 uppercase tracking-tighter">Fluxo de Aprovação Responsável</h4>
+          <p className="text-sm text-blue-600 leading-relaxed max-w-2xl mt-1 font-medium">
+            O Painel de Comando prioriza pedidos críticos. Após sua aprovação aqui, a solicitação entra automaticamente na fila do <b>Otimizador de Rotas</b> para ser agrupada e atribuída a um condutor municipal.
+          </p>
+        </div>
+        <CheckCircle className="h-6 w-6 text-blue-300 hidden md:block" />
       </div>
     </div>
   );
