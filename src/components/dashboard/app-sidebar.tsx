@@ -15,7 +15,8 @@ import {
   MessageSquare,
   BookOpen,
   Fingerprint,
-  Route
+  Route,
+  UserRoundCheck
 } from "lucide-react";
 
 import {
@@ -40,9 +41,10 @@ import Link from "next/link";
  * 3. Gestão de Pedidos (Agendamentos)
  * 4. Planejamento IA (Otimizador)
  * 5. Supervisão em Tempo Real (Manifestos)
- * 6. Feedback de Campo (Relatórios)
- * 7. Base de Dados (Pacientes, Veículos, UBS)
- * 8. Segurança (Auditoria)
+ * 6. Gestão de Condutores (Motoristas)
+ * 7. Feedback de Campo (Relatórios)
+ * 8. Base de Dados (Pacientes, Veículos, UBS)
+ * 9. Segurança (Auditoria)
  */
 const menuItems = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
@@ -50,6 +52,7 @@ const menuItems = [
   { title: "Agendamentos", icon: ClipboardList, url: "/dashboard/requests" },
   { title: "Otimizador de Rotas", icon: MapPin, url: "/dashboard/routes" },
   { title: "Manifestos de Viagem", icon: Route, url: "/dashboard/manifests" },
+  { title: "Motoristas", icon: UserRoundCheck, url: "/dashboard/drivers" },
   { title: "Relatórios de Campo", icon: MessageSquare, url: "/dashboard/reports" },
   { title: "Pacientes", icon: Users, url: "/dashboard/patients" },
   { title: "Veículos", icon: Ambulance, url: "/dashboard/fleet" },
@@ -102,7 +105,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem className="px-3 pb-2 text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">
-            {state !== "collapsed" && "Versão 1.1.0 Stable"}
+            {state !== "collapsed" && "Versão 1.2.0 Stable"}
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Configurações" asChild>
