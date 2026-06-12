@@ -45,12 +45,16 @@ RETORNE JSON: { assignments: Array<{ vehicleId, route: string[], estimatedDurati
       schemaDescription
     );
 
-    // Validação de Integridade: Verifica se a IA não alucinou IDs
+    // Validação de Integridade: Verifica se a IA não alucinou ou alterou IDs
     if (aiResult.output && aiResult.output.assignments) {
-      const validIds = new Set(input.appointments.map(a => a.id));
+      const validIds = new Set(input.appointments.map(a => a.id.trim()));
+      
       const filteredAssignments = aiResult.output.assignments.map(assign => ({
         ...assign,
-        route: assign.route.filter(id => validIds.has(id))
+        // Limpa possíveis espaços ou aspas adicionadas pela IA e filtra apenas IDs válidos
+        route: assign.route
+          .map(id => id.replace(/['"]/g, '').trim())
+          .filter(id => validIds.has(id))
       })).filter(assign => assign.route.length > 0);
 
       if (filteredAssignments.length > 0) {
@@ -68,14 +72,14 @@ RETORNE JSON: { assignments: Array<{ vehicleId, route: string[], estimatedDurati
     
     return {
       assignments: smartDeterministicGrouping(input.appointments, input.vehicles),
-      optimizationSummary: "Otimização concluída via processamento local de contingência (Agrupamento Geográfico Municipal)."
+      optimizationSummary: "Otimização concluída via processamento municipal de contingência (Agrupamento Geográfico Local)."
     };
   }
 }
 
 /**
  * Algoritmo de Agrupamento Determinístico Geográfico (Fallback de Segurança).
- * Garante que a demo sempre funcione agrupando por Origem e Destino.
+ * Garante que a demo sempre funcione agrupando por Origem e Destino de forma robusta.
  */
 function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[] {
   const availableVehicles = vehicles.filter(v => v.available).length > 0 
@@ -84,28 +88,30 @@ function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[]
     
   const assignments: any[] = [];
   
-  // Agrupa por destino e origem para maximizar eficiência
+  // Agrupa por destino e origem usando uma chave segura
   const groups: Record<string, any[]> = {};
   appointments.forEach(app => {
-    const key = `${app.pickupLocation}-${app.destination}`;
+    // Usamos um separador único para evitar problemas com hifens em nomes de bairros
+    const key = `${app.pickupLocation}||${app.destination}`;
     if (!groups[key]) groups[key] = [];
     groups[key].push(app);
   });
 
   let vehicleIdx = 0;
   Object.entries(groups).forEach(([key, apps]) => {
-    const [pickup, dest] = key.split('-');
-    const vehicle = availableVehicles[vehicleIdx % availableVehicles.length];
+    const [pickup, dest] = key.split('||');
     
-    // Divide os pacientes de acordo com a capacidade do veículo
-    for (let i = 0; i < apps.length; i += (vehicle.capacity || 1)) {
+    // Divide os pacientes de acordo com a capacidade do veículo atual
+    for (let i = 0; i < apps.length; i += (availableVehicles[vehicleIdx % availableVehicles.length].capacity || 1)) {
+      const vehicle = availableVehicles[vehicleIdx % availableVehicles.length];
       const chunk = apps.slice(i, i + (vehicle.capacity || 1));
+      
       assignments.push({
         vehicleId: vehicle.id,
         route: chunk.map(c => c.id),
-        estimatedDurationMinutes: 35,
-        estimatedDistanceKm: 10.5,
-        notes: `Agrupamento Logístico: Rota otimizada de ${pickup} para ${dest}.`
+        estimatedDurationMinutes: 30 + (chunk.length * 5),
+        estimatedDistanceKm: 8.5,
+        notes: `Logística Municipal: Agrupamento geográfico de ${pickup} para ${dest}.`
       });
       vehicleIdx++;
     }
