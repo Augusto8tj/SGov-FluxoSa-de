@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -19,7 +20,8 @@ import {
   History,
   TrendingUp,
   LayoutList,
-  Calendar
+  Calendar,
+  ShieldAlert
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -169,6 +171,19 @@ export default function ReportsPage() {
         </div>
       </div>
 
+      {/* Alerta SOS em destaque se houver um não lido */}
+      {reports.some(r => r.type === 'SOS' && !r.read) && (
+        <div className="p-4 sm:p-6 bg-rose-600 text-white rounded-[1.5rem] sm:rounded-3xl shadow-xl shadow-rose-100 flex items-center gap-4 animate-bounce mx-1">
+          <div className="bg-white/20 p-3 rounded-2xl">
+            <ShieldAlert className="h-8 w-8" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-black uppercase tracking-tighter text-lg">EMERGÊNCIA ATIVA!</h3>
+            <p className="text-xs font-bold text-rose-100 uppercase tracking-widest">Verifique os alertas SOS na lista abaixo imediatamente.</p>
+          </div>
+        </div>
+      )}
+
       {lastAnalysis && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
           <Card className="lg:col-span-2 border-none shadow-xl bg-primary text-white rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden relative">
@@ -270,11 +285,13 @@ export default function ReportsPage() {
                           key={report.id} 
                           className={cn(
                             "group transition-colors",
-                            !report.read ? "bg-primary/[0.03] font-bold" : "hover:bg-muted/10 opacity-70"
+                            report.type === 'SOS' ? "bg-rose-50" : (!report.read ? "bg-primary/[0.03] font-bold" : "hover:bg-muted/10 opacity-70")
                           )}
                         >
                           <TableCell className="pl-4 sm:pl-6 py-3 sm:py-4">
-                            {!report.read ? (
+                            {report.type === 'SOS' ? (
+                              <Badge className="bg-rose-600 text-white border-none text-[8px] uppercase px-1.5 h-4 sm:h-5 animate-pulse">CRÍTICO</Badge>
+                            ) : !report.read ? (
                               <Badge className="bg-primary text-white border-none text-[8px] uppercase px-1.5 h-4 sm:h-5 animate-bounce">Novo</Badge>
                             ) : (
                               <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500 opacity-50" />
@@ -292,21 +309,27 @@ export default function ReportsPage() {
                             {format(new Date(report.timestamp), "dd/MM HH:mm", { locale: ptBR })}
                           </TableCell>
                           <TableCell className="py-3 sm:py-4">
-                            <p className="text-[10px] sm:text-xs truncate max-w-[100px] sm:max-w-[250px] text-muted-foreground italic">
+                            <p className={cn(
+                              "text-[10px] sm:text-xs truncate max-w-[100px] sm:max-w-[250px] italic",
+                              report.type === 'SOS' ? "text-rose-700 font-bold" : "text-muted-foreground"
+                            )}>
                               &quot;{report.content}&quot;
                             </p>
                           </TableCell>
                           <TableCell className="text-right pr-4 sm:pr-6 py-3 sm:py-4">
                             <Button 
-                              variant="ghost" 
+                              variant={report.type === 'SOS' ? "destructive" : "ghost"} 
                               size="sm" 
-                              className="gap-1 sm:gap-2 text-primary font-bold text-[9px] sm:text-[10px] uppercase h-7 sm:h-8 rounded-lg px-2 sm:px-3"
+                              className={cn(
+                                "gap-1 sm:gap-2 font-bold text-[9px] sm:text-[10px] uppercase h-7 sm:h-8 rounded-lg px-2 sm:px-3",
+                                report.type !== 'SOS' && "text-primary"
+                              )}
                               onClick={() => {
                                 setSelectedReport(report);
                                 handleMarkAsRead(report);
                               }}
                             >
-                              <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span className="hidden xs:inline">Abrir</span>
+                              <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span className="hidden xs:inline">{report.type === 'SOS' ? 'SOCORRO' : 'Abrir'}</span>
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -458,18 +481,21 @@ export default function ReportsPage() {
         <DialogContent className="sm:max-w-[500px] w-[95vw] rounded-2xl sm:rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
           {selectedReport && (
             <div className="flex flex-col">
-              <div className="bg-primary p-5 sm:p-6 text-primary-foreground">
+              <div className={cn(
+                "p-5 sm:p-6 text-white",
+                selectedReport.type === 'SOS' ? "bg-rose-600" : "bg-primary"
+              )}>
                 <DialogHeader className="space-y-0 text-left">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="bg-white/20 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl">
-                      <MessageSquare className="h-6 w-6 sm:h-7 sm:w-7" />
+                      {selectedReport.type === 'SOS' ? <ShieldAlert className="h-6 w-6 sm:h-7 sm:w-7" /> : <MessageSquare className="h-6 w-6 sm:h-7 sm:w-7" />}
                     </div>
                     <div>
                       <DialogTitle className="text-lg sm:text-xl font-black tracking-tight leading-none uppercase">
-                        Relato de Campo
+                        {selectedReport.type === 'SOS' ? 'ALERTA SOS CRÍTICO' : 'Relato de Campo'}
                       </DialogTitle>
-                      <DialogDescription className="text-[8px] sm:text-[10px] uppercase font-bold opacity-80 mt-1 tracking-widest text-primary-foreground">
-                        Operação &bull; Rio Claro
+                      <DialogDescription className="text-[8px] sm:text-[10px] uppercase font-bold opacity-80 mt-1 tracking-widest text-white">
+                        {selectedReport.type === 'SOS' ? 'EMERGÊNCIA OPERACIONAL' : 'Operação & Rio Claro'}
                       </DialogDescription>
                     </div>
                   </div>
@@ -491,7 +517,10 @@ export default function ReportsPage() {
                   <h4 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
                     <AlertCircle className="h-4 w-4 text-primary shrink-0" /> Conteúdo do Relatório
                   </h4>
-                  <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl sm:rounded-[2rem] border border-slate-100 italic text-xs sm:text-sm text-slate-700 leading-relaxed shadow-inner min-h-[100px] sm:min-h-[120px]">
+                  <div className={cn(
+                    "p-4 sm:p-5 rounded-2xl sm:rounded-[2rem] border italic text-xs sm:text-sm leading-relaxed shadow-inner min-h-[100px] sm:min-h-[120px]",
+                    selectedReport.type === 'SOS' ? "bg-rose-50 border-rose-100 text-rose-800 font-bold" : "bg-slate-50 border-slate-100 text-slate-700"
+                  )}>
                     &quot;{selectedReport.content}&quot;
                   </div>
                 </div>
@@ -515,7 +544,10 @@ export default function ReportsPage() {
               </div>
 
               <div className="p-4 sm:p-6 bg-slate-50 border-t">
-                <Button className="w-full rounded-xl sm:rounded-2xl h-11 sm:h-12 font-black uppercase text-[10px] sm:text-xs tracking-widest shadow-lg" onClick={() => setSelectedReport(null)}>
+                <Button className={cn(
+                  "w-full rounded-xl sm:rounded-2xl h-11 sm:h-12 font-black uppercase text-[10px] sm:text-xs tracking-widest shadow-lg",
+                  selectedReport.type === 'SOS' ? "bg-rose-600 hover:bg-rose-700" : ""
+                )} onClick={() => setSelectedReport(null)}>
                   Ciente e Arquivar
                 </Button>
               </div>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,7 +20,12 @@ import {
   Fuel,
   Coins,
   FileText,
-  Plus
+  Plus,
+  ShieldAlert,
+  Wrench,
+  Clock,
+  MapPin,
+  Check
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,12 +50,19 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
 import { reportService } from "@/services/report-service";
+import { Separator } from "@/components/ui/separator";
 
 const MOCK_MISSION = [
-  { id: "S1", name: "UBS Lídice", type: 'PICKUP', patient: "Benedito Silva", time: "08:00", address: "Distrito de Lídice, Rio Claro - RJ" },
-  { id: "S2", name: "Hospital Municipal", type: 'DROPOFF', patient: "Benedito Silva", time: "08:45", address: "Centro, Rio Claro - RJ" },
-  { id: "S3", name: "UBS Central", type: 'PICKUP', patient: "Maria de Fátima", time: "09:30", address: "Av. Principal, Centro" },
-  { id: "S4", name: "Clínica Hemodiálise", type: 'DROPOFF', patient: "Maria de Fátima", time: "10:00", address: "Bairro do Sul" },
+  { id: "S1", name: "UBS Lídice", type: 'PICKUP', patient: "Benedito Silva", time: "08:00", address: "Distrito de Lídice, Rio Claro - RJ", boarded: false },
+  { id: "S2", name: "Hospital Municipal", type: 'DROPOFF', patient: "Benedito Silva", time: "08:45", address: "Centro, Rio Claro - RJ", boarded: false },
+  { id: "S3", name: "UBS Central", type: 'PICKUP', patient: "Maria de Fátima", time: "09:30", address: "Av. Principal, Centro", boarded: false },
+  { id: "S4", name: "Clínica Hemodiálise", type: 'DROPOFF', patient: "Maria de Fátima", time: "10:00", address: "Bairro do Sul", boarded: false },
+];
+
+const MOCK_MAINTENANCE = [
+  { id: "M1", type: 'Óleo', date: '2024-05-10', odometer: 12100, description: 'Troca de óleo sintético 5W30 e filtro.' },
+  { id: "M2", type: 'Pneus', date: '2024-04-15', odometer: 11800, description: 'Alinhamento e balanceamento preventivo.' },
+  { id: "M3", type: 'Freios', date: '2024-03-02', odometer: 10500, description: 'Troca de pastilhas dianteiras.' },
 ];
 
 export default function DriverDashboard() {
@@ -69,6 +82,12 @@ export default function DriverDashboard() {
   const [dailyAllowanceValue, setDailyAllowanceValue] = useState("");
   const [isFuelDialogOpen, setIsFuelDialogOpen] = useState(false);
   const [isDailyDialogOpen, setIsDailyDialogOpen] = useState(false);
+
+  // New Features States
+  const [missionStops, setMissionStops] = useState(MOCK_MISSION);
+  const [isSOSDialogOpen, setIsSOSDialogOpen] = useState(false);
+  const [sosReason, setSOSReason] = useState("");
+  const [isSOSSending, setIsSOSSending] = useState(false);
 
   const { toast } = useToast();
   const { logout, user } = useAuth();
@@ -106,6 +125,53 @@ export default function DriverDashboard() {
     }
     setChecklistDone(true);
     toast({ title: "Jornada Iniciada", description: "Manifesto ativo. Boa viagem!" });
+  };
+
+  const handleBoarding = async (stopId: string) => {
+    const stop = missionStops.find(s => s.id === stopId);
+    if (!stop) return;
+
+    try {
+      await reportService.addBoardingLog({
+        requestId: stopId,
+        patientName: stop.patient,
+        timestamp: new Date().toISOString(),
+        lat: -22.72 + (Math.random() * 0.1),
+        lng: -44.13 + (Math.random() * 0.1)
+      });
+
+      setMissionStops(prev => prev.map(s => s.id === stopId ? { ...s, boarded: true } : s));
+      toast({ title: "Confirmado", description: `Check-in de ${stop.patient} realizado.` });
+    } catch {
+      toast({ title: "Erro", description: "Falha ao registrar embarque.", variant: "destructive" });
+    }
+  };
+
+  const handleSOS = async () => {
+    if (!sosReason.trim()) {
+      toast({ title: "Atenção", description: "Descreva brevemente a emergência.", variant: "destructive" });
+      return;
+    }
+
+    setIsSOSSending(true);
+    try {
+      await reportService.addReport({
+        driverId: user?.uid || "DRIVER",
+        driverName: user?.name || user?.email || "Motorista Municipal",
+        vehicleId: "Viatura Local",
+        content: `🚨 ALERTA SOS: ${sosReason}`,
+        timestamp: new Date().toISOString(),
+        type: 'SOS'
+      });
+
+      setIsSOSDialogOpen(false);
+      setSOSReason("");
+      toast({ title: "Alerta Enviado", description: "A Central foi notificada e está enviando suporte.", variant: "destructive" });
+    } catch {
+      toast({ title: "Erro", description: "Falha ao enviar SOS. Tente contato via rádio.", variant: "destructive" });
+    } finally {
+      setIsSOSSending(false);
+    }
   };
 
   const handleFinalizeMission = async () => {
@@ -250,26 +316,61 @@ export default function DriverDashboard() {
         </Card>
       ) : (
         <>
-          <Card className="bg-primary text-primary-foreground border-none shadow-xl rounded-2xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-4 opacity-10"><Ambulance className="h-20 w-20" /></div>
-            <CardContent className="pt-6 relative">
-              <div className="flex items-center gap-4">
-                <div className="bg-white/20 p-3 rounded-xl"><Ambulance className="h-8 w-8" /></div>
-                <div className="flex-1">
-                  <p className="font-black text-lg leading-none uppercase tracking-tighter">Viatura Operacional</p>
-                  <p className="text-[10px] opacity-80 mt-1 uppercase font-bold tracking-widest">Início: {startOdometer} km &bull; 4 Paradas</p>
+          <div className="flex gap-2">
+            <Card className="flex-1 bg-primary text-primary-foreground border-none shadow-xl rounded-2xl overflow-hidden relative">
+              <div className="absolute top-0 right-0 p-4 opacity-10"><Ambulance className="h-20 w-20" /></div>
+              <CardContent className="pt-6 relative">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/20 p-3 rounded-xl"><Ambulance className="h-8 w-8" /></div>
+                  <div className="flex-1">
+                    <p className="font-black text-lg leading-none uppercase tracking-tighter">Viatura Operacional</p>
+                    <p className="text-[10px] opacity-80 mt-1 uppercase font-bold tracking-widest">Início: {startOdometer} km &bull; {missionStops.length} Paradas</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            <Dialog open={isSOSDialogOpen} onOpenChange={setIsSOSDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" className="h-auto px-4 rounded-2xl shadow-xl shadow-rose-100 flex flex-col gap-1 items-center justify-center animate-pulse">
+                  <ShieldAlert className="h-6 w-6" />
+                  <span className="text-[10px] font-black uppercase">SOS</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="rounded-3xl max-w-md w-[95vw]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-rose-600">
+                    <ShieldAlert className="h-5 w-5" /> Alerta de Emergência
+                  </DialogTitle>
+                  <DialogDescription>Use apenas para acidentes ou situações críticas de saúde.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-bold uppercase text-slate-400">Descreva o Incidente</Label>
+                    <Textarea 
+                      placeholder="Ex: Pane mecânica na estrada, Paciente passando mal..." 
+                      className="min-h-[100px] rounded-2xl border-rose-100 focus:ring-rose-500"
+                      value={sosReason}
+                      onChange={(e) => setSOSReason(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="destructive" className="w-full h-12 rounded-xl font-black uppercase tracking-widest" onClick={handleSOS} disabled={isSOSSending}>
+                    {isSOSSending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : "Enviar Alerta Crítico"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
           {/* Seção Administrativa */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <Dialog open={isFuelDialogOpen} onOpenChange={setIsFuelDialogOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="h-16 flex flex-col gap-1 border-dashed border-2 border-primary/20 text-primary hover:bg-primary/5 rounded-2xl">
                   <Fuel className="h-5 w-5" />
-                  <span className="text-[10px] font-black uppercase">Combustível</span>
+                  <span className="text-[8px] font-black uppercase">Abastecer</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="rounded-3xl max-w-md w-[95vw]">
@@ -299,7 +400,7 @@ export default function DriverDashboard() {
               <DialogTrigger asChild>
                 <Button variant="outline" className="h-16 flex flex-col gap-1 border-dashed border-2 border-primary/20 text-primary hover:bg-primary/5 rounded-2xl">
                   <Coins className="h-5 w-5" />
-                  <span className="text-[10px] font-black uppercase">Diárias</span>
+                  <span className="text-[8px] font-black uppercase">Diárias</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="rounded-3xl max-w-md w-[95vw]">
@@ -321,6 +422,44 @@ export default function DriverDashboard() {
                 </div>
                 <DialogFooter>
                   <Button className="w-full h-12 rounded-xl" onClick={handleRequestDaily}>Solicitar Diária</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="h-16 flex flex-col gap-1 border-dashed border-2 border-emerald-500/20 text-emerald-600 hover:bg-emerald-50 rounded-2xl">
+                  <Wrench className="h-5 w-5" />
+                  <span className="text-[8px] font-black uppercase">Histórico</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="rounded-3xl max-w-md w-[95vw] p-0 overflow-hidden">
+                <div className="bg-emerald-600 p-6 text-white">
+                  <DialogHeader className="text-left space-y-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="bg-white/20 p-2 rounded-xl"><Wrench className="h-5 w-5" /></div>
+                      <div>
+                        <DialogTitle className="text-xl font-black uppercase tracking-tighter">Manutenção V1</DialogTitle>
+                        <DialogDescription className="text-emerald-100 text-[10px] uppercase font-bold tracking-widest">Registros de Oficina &bull; PMRC</DialogDescription>
+                      </div>
+                    </div>
+                  </DialogHeader>
+                </div>
+                <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar">
+                  {MOCK_MAINTENANCE.map(m => (
+                    <div key={m.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Badge className="bg-emerald-100 text-emerald-700 border-none font-black text-[9px] uppercase">{m.type}</Badge>
+                        <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1"><Clock className="h-3 w-3" /> {format(new Date(m.date), "dd/MM/yyyy")}</span>
+                      </div>
+                      <p className="text-xs font-medium text-slate-600 italic leading-relaxed">&quot;{m.description}&quot;</p>
+                      <Separator className="my-2" />
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Odômetro: {m.odometer.toLocaleString()} KM</p>
+                    </div>
+                  ))}
+                </div>
+                <DialogFooter className="p-6 bg-slate-50 border-t">
+                  <Button variant="ghost" className="w-full rounded-xl uppercase text-[10px] font-black">Fechar Consulta</Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -361,32 +500,59 @@ export default function DriverDashboard() {
           <div className="space-y-4">
             <h3 className="font-black text-xs text-slate-500 uppercase tracking-widest px-1">Manifesto de Paradas</h3>
             <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-px before:bg-slate-200">
-              {MOCK_MISSION.map((stop) => (
+              {missionStops.map((stop) => (
                 <div key={stop.id} className="relative pl-8">
                   <div className={cn(
                     "absolute left-1.5 top-1 size-3 rounded-full border-2 border-white shadow-sm",
-                    stop.type === 'PICKUP' ? "bg-primary" : "bg-primary/40"
+                    stop.type === 'PICKUP' ? (stop.boarded ? "bg-emerald-500" : "bg-primary") : "bg-primary/40"
                   )} />
-                  <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-xl">
+                  <Card className={cn(
+                    "border-none shadow-sm hover:shadow-md transition-all rounded-xl overflow-hidden",
+                    stop.boarded && "bg-emerald-50/30 ring-1 ring-emerald-100"
+                  )}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline" className="text-[9px] h-4 py-0 uppercase font-black tracking-widest">
-                              {stop.type === 'PICKUP' ? 'Coleta' : 'Entrega'}
-                            </Badge>
-                            <span className="text-[10px] font-black text-slate-400">{stop.time}</span>
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className={cn(
+                                "text-[9px] h-4 py-0 uppercase font-black tracking-widest",
+                                stop.boarded && "border-emerald-200 text-emerald-600"
+                              )}>
+                                {stop.type === 'PICKUP' ? 'Coleta' : 'Entrega'}
+                              </Badge>
+                              <span className="text-[10px] font-black text-slate-400">{stop.time}</span>
+                            </div>
+                            {stop.boarded && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                           </div>
                           <p className="font-black text-slate-800 text-sm uppercase tracking-tighter">{stop.name}</p>
                           <p className="text-xs font-medium text-slate-500 mt-1">Cidadão: {stop.patient}</p>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="mt-4 w-full h-10 gap-2 text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5 rounded-lg"
-                            onClick={() => handleOpenMaps(stop.address)}
-                          >
-                            <Navigation className="h-3 w-3" /> Abrir Trajeto
-                          </Button>
+                          
+                          <div className="grid grid-cols-2 gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="h-10 gap-2 text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5 rounded-lg"
+                              onClick={() => handleOpenMaps(stop.address)}
+                            >
+                              <Navigation className="h-3 w-3" /> Abrir Trajeto
+                            </Button>
+                            {stop.type === 'PICKUP' && (
+                              <Button 
+                                variant={stop.boarded ? "secondary" : "default"}
+                                size="sm" 
+                                className={cn(
+                                  "h-10 gap-2 text-[10px] font-black uppercase tracking-widest rounded-lg",
+                                  stop.boarded ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-primary"
+                                )}
+                                onClick={() => handleBoarding(stop.id)}
+                                disabled={stop.boarded}
+                              >
+                                {stop.boarded ? <Check className="h-3.5 w-3.5" /> : <MapPin className="h-3.5 w-3.5" />}
+                                {stop.boarded ? "Embarcado" : "Check-in"}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </CardContent>

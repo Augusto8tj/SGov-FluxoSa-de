@@ -47,6 +47,14 @@ export interface UBS {
   status?: 'active' | 'inactive';
 }
 
+export interface MaintenanceRecord {
+  id: string;
+  type: 'Óleo' | 'Pneus' | 'Freios' | 'Suspensão' | 'Geral';
+  date: string;
+  description: string;
+  odometer: number;
+}
+
 export interface Vehicle {
   id: string;
   type: 'Ambulância' | 'Van' | 'Sedan' | 'Acessível';
@@ -64,6 +72,8 @@ export interface Vehicle {
   lastSanitization?: string;
   assignedDriverId?: string;
   assignedDriverName?: string;
+
+  maintenanceHistory?: MaintenanceRecord[];
 
   createdAt?: string;
   updatedAt?: string;
@@ -117,4 +127,13 @@ export interface DriverReport {
   content: string;
   timestamp: string;
   read: boolean;
+  type?: 'NORMAL' | 'SOS';
+}
+
+export interface BoardingLog {
+  requestId: string;
+  patientName: string;
+  timestamp: string;
+  lat: number;
+  lng: number;
 }

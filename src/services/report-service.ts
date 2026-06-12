@@ -1,3 +1,4 @@
+
 'use client';
 
 import { db } from "@/lib/firebase";
@@ -12,7 +13,7 @@ import {
   limit,
   writeBatch
 } from "firebase/firestore";
-import { DriverReport } from "@/lib/types";
+import { DriverReport, BoardingLog } from "@/lib/types";
 
 const COLLECTION_NAME = "reports";
 
@@ -25,7 +26,8 @@ const MOCK_REPORTS: DriverReport[] = [
     vehicleId: "V1 (Ambulância)", 
     content: "O odômetro da V1 está apresentando ruído metálico leve após a curva de Lídice. Sugiro revisão preventiva na suspensão antes da próxima escala.", 
     timestamp: new Date().toISOString(), 
-    read: false 
+    read: false,
+    type: 'NORMAL'
   },
   { 
     id: "REP-002", 
@@ -34,7 +36,8 @@ const MOCK_REPORTS: DriverReport[] = [
     vehicleId: "V2 (Van)", 
     content: "Paciente Maria Souza transportada com sucesso. Rota tranquila. O paciente elogiou a agilidade de consulta via Portal do Cidadão.", 
     timestamp: new Date(Date.now() - 3600000).toISOString(), 
-    read: true 
+    read: true,
+    type: 'NORMAL'
   },
   { 
     id: "REP-003", 
@@ -43,7 +46,8 @@ const MOCK_REPORTS: DriverReport[] = [
     vehicleId: "V3 (Acessível)", 
     content: "Atraso de 15 minutos na chegada à UBS Passa Três devido à manutenção na rede elétrica da estrada. Todos os pacientes avisados e seguros.", 
     timestamp: new Date(Date.now() - 7200000).toISOString(), 
-    read: false 
+    read: false,
+    type: 'NORMAL'
   },
   { 
     id: "REP-004", 
@@ -52,7 +56,8 @@ const MOCK_REPORTS: DriverReport[] = [
     vehicleId: "V1 (Ambulância)", 
     content: "Solicito reposição de insumos básicos: luvas descartáveis e máscaras cirúrgicas para o kit de primeiros socorros da viatura V1.", 
     timestamp: new Date(Date.now() - 10800000).toISOString(), 
-    read: true 
+    read: true,
+    type: 'NORMAL'
   },
   { 
     id: "REP-005", 
@@ -61,9 +66,12 @@ const MOCK_REPORTS: DriverReport[] = [
     vehicleId: "V2 (Van)", 
     content: "Checklist de segurança matinal concluído. Veículo totalmente higienizado conforme protocolo PMRC e abastecido para o turno.", 
     timestamp: new Date(Date.now() - 14400000).toISOString(), 
-    read: false 
+    read: false,
+    type: 'NORMAL'
   },
 ];
+
+const BOARDING_LOGS: BoardingLog[] = [];
 
 /**
  * @fileOverview Serviço para gestão de relatórios de campo (feedbacks dos motoristas).
@@ -72,20 +80,30 @@ export const reportService = {
   async addReport(report: Omit<DriverReport, "id" | "read">): Promise<string> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
         const id = `REP-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-        MOCK_REPORTS.unshift({ id, ...report, read: false });
+        MOCK_REPORTS.unshift({ id, ...report, read: false, type: report.type || 'NORMAL' });
         return id;
     }
 
     try {
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...report,
-        read: false
+        read: false,
+        type: report.type || 'NORMAL'
       });
       return docRef.id;
     } catch (error: any) {
       console.error("Error adding report:", error);
       throw new Error("Falha ao enviar relatório para a Secretaria.");
     }
+  },
+
+  async addBoardingLog(log: BoardingLog): Promise<void> {
+    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      BOARDING_LOGS.push(log);
+      return Promise.resolve();
+    }
+    // No Firebase real, gravaria em uma subcoleção de missões ou logs
+    return Promise.resolve();
   },
 
   async getReports(): Promise<DriverReport[]> {
