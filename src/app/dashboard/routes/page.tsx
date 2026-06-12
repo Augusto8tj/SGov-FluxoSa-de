@@ -8,7 +8,6 @@ import {
   Route as RouteIcon,
   Navigation,
   Send,
-  AlertTriangle,
   UserCheck,
   ClipboardList
 } from "lucide-react";
