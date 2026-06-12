@@ -19,12 +19,13 @@ import {
   TrendingUp,
   Award,
   Loader2,
-  Calendar,
+  Calendar as CalendarIcon,
   ThumbsUp,
   ThumbsDown,
   X,
   Check,
-  Printer
+  Printer,
+  Info
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,16 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { cn } from "@/lib/utils";
@@ -60,7 +71,8 @@ export default function DriversManagementPage() {
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [financials, setFinancials] = useState(MOCK_FINANCIAL_REQUESTS);
-  const [loading, setLoading] = useState(false);
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -100,9 +112,69 @@ export default function DriversManagementPage() {
           <p className="text-muted-foreground text-sm">Controle de pessoal, financeiro e conformidade técnica.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="h-11 rounded-xl gap-2 shadow-sm">
-            <Calendar className="h-4 w-4" /> Escala Mensal
-          </Button>
+          <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-11 rounded-xl gap-2 shadow-sm">
+                <CalendarIcon className="h-4 w-4" /> Escala Mensal
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <div className="bg-primary p-6 text-white">
+                <DialogHeader className="text-left space-y-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="bg-white/20 p-2.5 rounded-2xl">
+                      <CalendarIcon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-xl font-black uppercase tracking-tighter">Escala de Plantão</DialogTitle>
+                      <DialogDescription className="text-primary-foreground/70 text-[10px] uppercase font-bold tracking-widest text-white">
+                        Gestão de Disponibilidade &bull; PMRC
+                      </DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+              </div>
+              <div className="p-6 flex flex-col md:flex-row gap-6 bg-white">
+                <div className="flex-1 border rounded-2xl p-2 shadow-inner bg-slate-50 flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    className="rounded-md"
+                  />
+                </div>
+                <div className="w-full md:w-[240px] space-y-4">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <Info className="h-4 w-4 text-primary" /> Condutores no Dia
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-800">Carlos Alberto</span>
+                      <Badge className="bg-emerald-600 text-white text-[8px] uppercase border-none">Titular</Badge>
+                    </div>
+                    <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between">
+                      <span className="text-xs font-bold text-blue-800">Marcos Pereira</span>
+                      <Badge className="bg-blue-600 text-white text-[8px] uppercase border-none">Apoio</Badge>
+                    </div>
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between opacity-50">
+                      <span className="text-xs font-bold text-slate-600">Ricardo Oliveira</span>
+                      <Badge variant="outline" className="text-[8px] uppercase border-slate-300">Folga</Badge>
+                    </div>
+                  </div>
+                  <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
+                    <p className="text-[9px] font-bold text-amber-800 leading-tight">
+                      A escala segue o protocolo de descanso obrigatório de 12/36h para viagens intermunicipais.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <DialogFooter className="p-4 bg-slate-50 border-t">
+                <Button className="w-full rounded-xl uppercase text-[10px] font-black tracking-widest h-11" onClick={() => setIsScheduleOpen(false)}>
+                  Fechar Consulta de Escala
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Button className="h-11 rounded-xl gap-2 shadow-lg">
             <Plus className="h-4 w-4" /> Novo Motorista
           </Button>
