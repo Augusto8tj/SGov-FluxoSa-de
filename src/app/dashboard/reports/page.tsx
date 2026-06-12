@@ -143,68 +143,70 @@ export default function ReportsPage() {
   if (!mounted) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
-            <MessageSquare className="h-8 w-8" /> Relatórios de Campo
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
+        <div className="space-y-1">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+            <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 shrink-0" /> Relatórios de Campo
           </h2>
-          <p className="text-muted-foreground text-sm">Monitoramento e inteligência operacional em tempo real.</p>
+          <p className="text-muted-foreground text-xs sm:text-sm">Monitoramento e inteligência operacional em tempo real.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Button 
             className={cn(
-              "gap-2 h-11 px-6 rounded-xl shadow-lg transition-all",
+              "gap-2 h-10 sm:h-11 px-4 sm:px-6 rounded-xl shadow-lg transition-all flex-1 sm:flex-none text-[10px] sm:text-sm uppercase font-black tracking-widest",
               reports.some(r => !r.read) ? "bg-primary animate-pulse" : "bg-muted-foreground/20 text-muted-foreground"
             )}
             onClick={handleAiAnalysis}
             disabled={isAnalyzing || !reports.some(r => !r.read)}
           >
-            {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4" />}
+            {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4 shrink-0" />}
             Triagem IA {reports.filter(r => !r.read).length > 0 && `(${reports.filter(r => !r.read).length})`}
           </Button>
-          <Button variant="outline" className="gap-2 h-11 px-6 rounded-xl" onClick={loadReports}>
-            <Clock className="h-4 w-4" /> Atualizar
+          <Button variant="outline" className="gap-2 h-10 sm:h-11 px-4 sm:px-6 rounded-xl flex-1 sm:flex-none text-[10px] sm:text-sm font-bold" onClick={loadReports}>
+            <Clock className="h-4 w-4 shrink-0" /> <span className="xs:inline hidden">Atualizar</span>
           </Button>
         </div>
       </div>
 
       {lastAnalysis && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
-          <Card className="lg:col-span-2 border-none shadow-xl bg-primary text-white rounded-[2rem] overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-8 opacity-10"><TrendingUp className="h-32 w-32" /></div>
-            <CardHeader>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+          <Card className="lg:col-span-2 border-none shadow-xl bg-primary text-white rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-4 sm:p-8 opacity-10 pointer-events-none">
+              <TrendingUp className="h-20 w-20 sm:h-32 sm:w-32" />
+            </div>
+            <CardHeader className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 fill-white" />
-                  <CardTitle className="text-lg font-black uppercase tracking-tighter">Briefing IA de Decisão</CardTitle>
+                  <Zap className="h-4 w-4 sm:h-5 sm:w-5 fill-white" />
+                  <CardTitle className="text-sm sm:text-lg font-black uppercase tracking-tighter">Briefing IA de Decisão</CardTitle>
                 </div>
                 <Badge className={cn(
-                  "font-black text-[10px] uppercase border-none px-3",
+                  "font-black text-[8px] sm:text-[10px] uppercase border-none px-2 sm:px-3",
                   lastAnalysis.priorityLevel === 'critical' ? 'bg-rose-500 text-white' : 'bg-white/20 text-white'
                 )}>
-                  Prioridade: {lastAnalysis.priorityLevel}
+                  {lastAnalysis.priorityLevel}
                 </Badge>
               </div>
-              <CardDescription className="text-white/70 text-xs mt-1">Resumo estratégico para o Gabinete do Secretário.</CardDescription>
+              <CardDescription className="text-white/70 text-[10px] sm:text-xs mt-1">Resumo estratégico para o Gabinete.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm font-medium leading-relaxed bg-white/10 p-5 rounded-2xl backdrop-blur-sm border border-white/10">
+            <CardContent className="p-4 sm:p-6 space-y-4">
+              <p className="text-xs sm:text-sm font-medium leading-relaxed bg-white/10 p-4 sm:p-5 rounded-xl sm:rounded-2xl backdrop-blur-sm border border-white/10">
                 &quot;{lastAnalysis.executiveSummary}&quot;
               </p>
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-white/20 w-fit px-3 py-1 rounded">
-                <ShieldCheck className="h-3 w-3" /> Protocolo Nvidia Nemotron Nano
+              <div className="flex items-center gap-2 text-[8px] sm:text-[10px] font-black uppercase tracking-widest bg-white/20 w-fit px-2 sm:px-3 py-1 rounded">
+                <ShieldCheck className="h-3 w-3 shrink-0" /> Protocolo Nvidia Nemotron Nano
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-md rounded-[2rem] bg-card overflow-hidden">
-            <CardHeader className="bg-muted/30 pb-4">
-              <CardTitle className="text-xs uppercase text-muted-foreground font-black tracking-widest flex items-center gap-2">
-                <LayoutList className="h-4 w-4 text-primary" /> Checklist de Providências
+          <Card className="border-none shadow-md rounded-[1.5rem] sm:rounded-[2rem] bg-card overflow-hidden">
+            <CardHeader className="bg-muted/30 p-4 sm:p-6">
+              <CardTitle className="text-[10px] sm:text-xs uppercase text-muted-foreground font-black tracking-widest flex items-center gap-2">
+                <LayoutList className="h-4 w-4 text-primary shrink-0" /> Checklist de Providências
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-3">
                 {lastAnalysis.recommendedActions.map((action, i) => (
                   <div 
@@ -217,8 +219,8 @@ export default function ReportsPage() {
                   >
                     <Checkbox checked={completedTasks.has(action.task)} className="mt-1" />
                     <div className="space-y-0.5">
-                      <p className="text-xs font-bold text-slate-700 leading-tight">{action.task}</p>
-                      <p className="text-[9px] font-black text-primary uppercase tracking-tighter">{action.department}</p>
+                      <p className="text-[11px] sm:text-xs font-bold text-slate-700 leading-tight">{action.task}</p>
+                      <p className="text-[8px] sm:text-[9px] font-black text-primary uppercase tracking-tighter">{action.department}</p>
                     </div>
                   </div>
                 ))}
@@ -229,36 +231,36 @@ export default function ReportsPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
-        <div className="md:col-span-5 space-y-6">
-          <div className="flex items-center gap-2">
+        <div className="md:col-span-5 space-y-4 sm:space-y-6">
+          <div className="flex items-center gap-2 px-1">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Buscar por condutor ou palavra-chave..." 
-                className="pl-10 h-12 bg-card border-none shadow-sm rounded-xl"
+                placeholder="Buscar por condutor..." 
+                className="pl-10 h-11 sm:h-12 bg-card border-none shadow-sm rounded-xl text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl shrink-0"><Filter className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl shrink-0"><Filter className="h-4 w-4" /></Button>
           </div>
 
-          <Card className="border-none shadow-md overflow-hidden bg-card rounded-2xl">
+          <Card className="border-none shadow-md overflow-hidden bg-card rounded-xl sm:rounded-2xl">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-24 gap-4">
-                <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                <p className="text-sm text-muted-foreground font-black uppercase tracking-widest">Sincronizando Relatórios...</p>
+              <div className="flex flex-col items-center justify-center py-20 sm:py-24 gap-4">
+                <Loader2 className="h-8 sm:h-10 w-8 sm:w-10 text-primary animate-spin" />
+                <p className="text-[10px] sm:text-sm text-muted-foreground font-black uppercase tracking-widest">Sincronizando Relatórios...</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto no-scrollbar">
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow className="border-none">
-                      <TableHead className="font-bold">Status</TableHead>
-                      <TableHead className="font-bold">Condutor</TableHead>
-                      <TableHead className="font-bold">Data/Hora</TableHead>
-                      <TableHead className="font-bold">Resumo do Relato</TableHead>
-                      <TableHead className="text-right font-bold">Ação</TableHead>
+                      <TableHead className="font-bold h-10 py-0 pl-4 sm:pl-6 text-[10px] sm:text-xs uppercase">Status</TableHead>
+                      <TableHead className="font-bold h-10 py-0 text-[10px] sm:text-xs uppercase">Condutor</TableHead>
+                      <TableHead className="font-bold h-10 py-0 text-[10px] sm:text-xs uppercase hidden sm:table-cell">Data/Hora</TableHead>
+                      <TableHead className="font-bold h-10 py-0 text-[10px] sm:text-xs uppercase">Resumo</TableHead>
+                      <TableHead className="text-right font-bold h-10 py-0 pr-4 sm:pr-6 text-[10px] sm:text-xs uppercase">Ação</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -271,47 +273,47 @@ export default function ReportsPage() {
                             !report.read ? "bg-primary/[0.03] font-bold" : "hover:bg-muted/10 opacity-70"
                           )}
                         >
-                          <TableCell>
+                          <TableCell className="pl-4 sm:pl-6 py-3 sm:py-4">
                             {!report.read ? (
-                              <Badge className="bg-primary text-white border-none text-[8px] uppercase px-2 h-5 animate-bounce">Novo</Badge>
+                              <Badge className="bg-primary text-white border-none text-[8px] uppercase px-1.5 h-4 sm:h-5 animate-bounce">Novo</Badge>
                             ) : (
-                              <CheckCircle2 className="h-4 w-4 text-emerald-500 opacity-50" />
+                              <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500 opacity-50" />
                             )}
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground uppercase">
+                          <TableCell className="py-3 sm:py-4">
+                            <div className="flex items-center gap-2">
+                              <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-muted flex items-center justify-center text-[10px] sm:text-xs font-bold text-muted-foreground uppercase shrink-0">
                                 {report.driverName[0]}
                               </div>
-                              <span className="text-sm">{report.driverName}</span>
+                              <span className="text-xs sm:text-sm truncate max-w-[80px] sm:max-w-none">{report.driverName.split(' ')[0]}</span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground font-mono">
+                          <TableCell className="text-[10px] sm:text-xs text-muted-foreground font-mono hidden sm:table-cell py-3 sm:py-4">
                             {format(new Date(report.timestamp), "dd/MM HH:mm", { locale: ptBR })}
                           </TableCell>
-                          <TableCell>
-                            <p className="text-xs truncate max-w-[250px] text-muted-foreground italic">
+                          <TableCell className="py-3 sm:py-4">
+                            <p className="text-[10px] sm:text-xs truncate max-w-[100px] sm:max-w-[250px] text-muted-foreground italic">
                               &quot;{report.content}&quot;
                             </p>
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right pr-4 sm:pr-6 py-3 sm:py-4">
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="gap-2 text-primary font-bold text-[10px] uppercase h-8 rounded-lg"
+                              className="gap-1 sm:gap-2 text-primary font-bold text-[9px] sm:text-[10px] uppercase h-7 sm:h-8 rounded-lg px-2 sm:px-3"
                               onClick={() => {
                                 setSelectedReport(report);
                                 handleMarkAsRead(report);
                               }}
                             >
-                              <Eye className="h-3.5 w-3.5" /> Abrir
+                              <Eye className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> <span className="hidden xs:inline">Abrir</span>
                             </Button>
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic">
+                        <TableCell colSpan={5} className="text-center py-20 text-muted-foreground italic text-xs">
                           Nenhum relatório de campo encontrado.
                         </TableCell>
                       </TableRow>
@@ -323,33 +325,33 @@ export default function ReportsPage() {
           </Card>
         </div>
 
-        <div className="md:col-span-2 space-y-6">
-          <Card className="border-none shadow-md rounded-2xl bg-card">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xs uppercase text-muted-foreground font-black tracking-widest flex items-center gap-2">
-                <History className="h-4 w-4 text-primary" /> Histórico de Análises
+        <div className="md:col-span-2 space-y-4 sm:space-y-6">
+          <Card className="border-none shadow-md rounded-xl sm:rounded-2xl bg-card">
+            <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-4">
+              <CardTitle className="text-[10px] sm:text-xs uppercase text-muted-foreground font-black tracking-widest flex items-center gap-2">
+                <History className="h-4 w-4 text-primary shrink-0" /> Histórico de Análises
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
               {analysisHistory.length > 0 ? (
-                analysisHistory.map((hist, i) => (
+                analysisHistory.slice(0, 3).map((hist, i) => (
                   <div key={i} className="p-3 bg-muted/30 rounded-xl space-y-1 group hover:bg-primary/5 transition-colors cursor-pointer" onClick={() => setIsHistoryDialogOpen(true)}>
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-black uppercase text-primary">Análise #{analysisHistory.length - i}</span>
+                      <span className="text-[9px] sm:text-[10px] font-black uppercase text-primary">Análise #{analysisHistory.length - i}</span>
                       <span className="text-[8px] text-muted-foreground font-bold">HOJE</span>
                     </div>
-                    <p className="text-[11px] leading-tight text-slate-600 line-clamp-2 italic">&quot;{hist.executiveSummary}&quot;</p>
+                    <p className="text-[10px] sm:text-[11px] leading-tight text-slate-600 line-clamp-2 italic">&quot;{hist.executiveSummary}&quot;</p>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10 opacity-20">
-                  <BrainCircuit className="h-12 w-12 mx-auto mb-2" />
+                <div className="text-center py-8 sm:py-10 opacity-20">
+                  <BrainCircuit className="h-10 sm:h-12 w-10 sm:w-12 mx-auto mb-2" />
                   <p className="text-[10px] font-black uppercase tracking-widest">Sem Histórico</p>
                 </div>
               )}
               <Button 
                 variant="outline" 
-                className="w-full h-10 rounded-xl border-dashed border-2 text-[10px] font-black uppercase tracking-widest text-slate-500"
+                className="w-full h-10 rounded-xl border-dashed border-2 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-all"
                 onClick={() => setIsHistoryDialogOpen(true)}
               >
                 Ver Todas Análises
@@ -357,10 +359,10 @@ export default function ReportsPage() {
             </CardContent>
           </Card>
 
-          <div className="p-5 bg-blue-50 rounded-3xl border border-dashed border-blue-200">
-            <h4 className="text-[10px] font-black text-blue-700 uppercase tracking-widest mb-2">Suporte à Decisão</h4>
-            <p className="text-[11px] text-blue-600 leading-relaxed font-medium">
-              A IA agrupa relatos por padrões mecânicos, comportamentais ou logísticos, permitindo que o Secretário visualize gargalos operacionais antes que virem crises.
+          <div className="p-4 sm:p-5 bg-blue-50 rounded-[1.5rem] sm:rounded-3xl border border-dashed border-blue-200 mx-1">
+            <h4 className="text-[9px] sm:text-[10px] font-black text-blue-700 uppercase tracking-widest mb-2">Suporte à Decisão</h4>
+            <p className="text-[10px] sm:text-[11px] text-blue-600 leading-relaxed font-medium">
+              A IA agrupa relatos por padrões mecânicos ou logísticos, permitindo visualizar gargalos operacionais antes que virem crises.
             </p>
           </div>
         </div>
@@ -368,49 +370,49 @@ export default function ReportsPage() {
 
       {/* Dialog de Histórico Completo de Análises */}
       <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
-        <DialogContent className="sm:max-w-[700px] w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-          <div className="bg-slate-900 p-6 text-white">
+        <DialogContent className="sm:max-w-[700px] w-[95vw] rounded-2xl sm:rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+          <div className="bg-slate-900 p-4 sm:p-6 text-white">
             <DialogHeader className="space-y-0 text-left">
               <div className="flex items-center gap-3 mb-2">
-                <div className="bg-primary p-2.5 rounded-2xl">
-                  <History className="h-6 w-6" />
+                <div className="bg-primary p-2 sm:p-2.5 rounded-xl sm:rounded-2xl">
+                  <History className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl font-black tracking-tight uppercase">Log de Triagem IA</DialogTitle>
-                  <DialogDescription className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">
-                    Histórico de Briefings Estratégicos &bull; PMRC
+                  <DialogTitle className="text-lg sm:text-xl font-black tracking-tight uppercase">Log de Triagem IA</DialogTitle>
+                  <DialogDescription className="text-[8px] sm:text-[10px] uppercase font-bold text-slate-400 tracking-widest">
+                    Histórico de Briefings &bull; PMRC
                   </DialogDescription>
                 </div>
               </div>
             </DialogHeader>
           </div>
           
-          <ScrollArea className="max-h-[70vh] bg-slate-50">
-            <div className="p-6 space-y-6">
+          <ScrollArea className="max-h-[60vh] sm:max-h-[70vh] bg-slate-50">
+            <div className="p-4 sm:p-6 space-y-6">
               {analysisHistory.length > 0 ? (
                 analysisHistory.map((hist, idx) => (
                   <div key={idx} className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Badge className="bg-primary/10 text-primary border-none text-[10px] font-black uppercase">
+                        <Badge className="bg-primary/10 text-primary border-none text-[8px] sm:text-[10px] font-black uppercase">
                           Sessão #{analysisHistory.length - idx}
                         </Badge>
-                        <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1">
+                        <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold flex items-center gap-1">
                           <Calendar className="h-3 w-3" /> {format(new Date(), "dd/MM/yyyy")}
                         </span>
                       </div>
                       <Badge variant="outline" className={cn(
-                        "text-[9px] font-black uppercase",
+                        "text-[8px] sm:text-[9px] font-black uppercase",
                         hist.priorityLevel === 'critical' ? 'text-rose-600 border-rose-200 bg-rose-50' : 'text-slate-500'
                       )}>
-                        Prioridade {hist.priorityLevel}
+                        {hist.priorityLevel}
                       </Badge>
                     </div>
                     
-                    <div className="bg-white p-5 rounded-2xl border shadow-sm space-y-4">
+                    <div className="bg-white p-4 sm:p-5 rounded-2xl border shadow-sm space-y-4">
                       <div className="space-y-2">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Resumo Executivo</p>
-                        <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
+                        <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Resumo Executivo</p>
+                        <p className="text-xs sm:text-sm font-medium text-slate-700 leading-relaxed italic">
                           &quot;{hist.executiveSummary}&quot;
                         </p>
                       </div>
@@ -418,14 +420,14 @@ export default function ReportsPage() {
                       <Separator />
                       
                       <div className="space-y-3">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Providências Sugeridas</p>
+                        <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-widest">Providências Sugeridas</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {hist.recommendedActions.map((act, i) => (
                             <div key={i} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
-                              <Check className="h-3 w-3 text-emerald-500" />
+                              <Check className="h-3 w-3 text-emerald-500 shrink-0" />
                               <div className="flex-1 min-w-0">
-                                <p className="text-[10px] font-bold text-slate-700 truncate">{act.task}</p>
-                                <p className="text-[8px] font-black text-primary uppercase">{act.department}</p>
+                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-700 truncate">{act.task}</p>
+                                <p className="text-[7px] sm:text-[8px] font-black text-primary uppercase">{act.department}</p>
                               </div>
                             </div>
                           ))}
@@ -438,14 +440,14 @@ export default function ReportsPage() {
               ) : (
                 <div className="py-20 text-center space-y-4 opacity-30">
                   <BrainCircuit className="h-16 w-16 mx-auto text-slate-400" />
-                  <p className="text-sm font-black uppercase tracking-widest">Nenhuma análise realizada nesta sessão</p>
+                  <p className="text-sm font-black uppercase tracking-widest">Nenhuma análise realizada</p>
                 </div>
               )}
             </div>
           </ScrollArea>
           
-          <div className="p-6 bg-white border-t">
-            <Button className="w-full rounded-2xl h-12 font-black uppercase text-xs tracking-widest shadow-lg" onClick={() => setIsHistoryDialogOpen(false)}>
+          <div className="p-4 sm:p-6 bg-white border-t">
+            <Button className="w-full rounded-xl sm:rounded-2xl h-11 sm:h-12 font-black uppercase text-[10px] sm:text-xs tracking-widest shadow-lg" onClick={() => setIsHistoryDialogOpen(false)}>
               Fechar Histórico
             </Button>
           </div>
@@ -453,67 +455,67 @@ export default function ReportsPage() {
       </Dialog>
 
       <Dialog open={!!selectedReport} onOpenChange={(open) => !open && setSelectedReport(null)}>
-        <DialogContent className="sm:max-w-[500px] w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+        <DialogContent className="sm:max-w-[500px] w-[95vw] rounded-2xl sm:rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
           {selectedReport && (
             <div className="flex flex-col">
-              <div className="bg-primary p-6 text-primary-foreground">
+              <div className="bg-primary p-5 sm:p-6 text-primary-foreground">
                 <DialogHeader className="space-y-0 text-left">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-white/20 p-2.5 rounded-2xl">
-                      <MessageSquare className="h-7 w-7" />
+                    <div className="bg-white/20 p-2 sm:p-2.5 rounded-xl sm:rounded-2xl">
+                      <MessageSquare className="h-6 w-6 sm:h-7 sm:w-7" />
                     </div>
                     <div>
-                      <DialogTitle className="text-xl font-black tracking-tight leading-none uppercase">
+                      <DialogTitle className="text-lg sm:text-xl font-black tracking-tight leading-none uppercase">
                         Relato de Campo
                       </DialogTitle>
-                      <DialogDescription className="text-[10px] uppercase font-bold opacity-80 mt-1 tracking-widest text-primary-foreground">
-                        Feedback de Operação &bull; Rio Claro
+                      <DialogDescription className="text-[8px] sm:text-[10px] uppercase font-bold opacity-80 mt-1 tracking-widest text-primary-foreground">
+                        Operação &bull; Rio Claro
                       </DialogDescription>
                     </div>
                   </div>
                 </DialogHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    <span className="text-sm font-bold">{selectedReport.driverName}</span>
+                    <User className="h-4 w-4 shrink-0" />
+                    <span className="text-xs sm:text-sm font-bold">{selectedReport.driverName}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] opacity-80">
-                    <Clock className="h-3.5 w-3.5" />
-                    {format(new Date(selectedReport.timestamp), "eeee, HH:mm", { locale: ptBR })}
+                  <div className="flex items-center gap-2 text-[8px] sm:text-[10px] opacity-80">
+                    <Clock className="h-3.5 w-3.5 shrink-0" />
+                    {format(new Date(selectedReport.timestamp), "HH:mm", { locale: ptBR })}
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 space-y-6 bg-white">
+              <div className="p-5 sm:p-6 space-y-6 bg-white">
                 <div className="space-y-3">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
-                    <AlertCircle className="h-4 w-4 text-primary" /> Conteúdo do Relatório
+                  <h4 className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+                    <AlertCircle className="h-4 w-4 text-primary shrink-0" /> Conteúdo do Relatório
                   </h4>
-                  <div className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 italic text-sm text-slate-700 leading-relaxed shadow-inner min-h-[120px]">
+                  <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl sm:rounded-[2rem] border border-slate-100 italic text-xs sm:text-sm text-slate-700 leading-relaxed shadow-inner min-h-[100px] sm:min-h-[120px]">
                     &quot;{selectedReport.content}&quot;
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-slate-50 rounded-2xl flex flex-col gap-1 border">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Viatura</p>
+                  <div className="p-3 bg-slate-50 rounded-xl sm:rounded-2xl flex flex-col gap-1 border">
+                    <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-tighter">Viatura</p>
                     <div className="flex items-center gap-2">
-                      <Ambulance className="h-3.5 w-3.5 text-primary" />
-                      <span className="text-xs font-bold text-slate-700 uppercase">{selectedReport.vehicleId || "Não Informada"}</span>
+                      <Ambulance className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary shrink-0" />
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-700 uppercase truncate">{selectedReport.vehicleId || "N/A"}</span>
                     </div>
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-2xl flex flex-col gap-1 border">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Triagem</p>
+                  <div className="p-3 bg-slate-50 rounded-xl sm:rounded-2xl flex flex-col gap-1 border">
+                    <p className="text-[8px] sm:text-[9px] font-black text-slate-400 uppercase tracking-tighter">Triagem</p>
                     <div className="flex items-center gap-2">
-                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                      <span className="text-xs font-bold text-slate-700 uppercase">Recebido</span>
+                      <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-emerald-500 shrink-0" />
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-700 uppercase">Recebido</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 bg-slate-50 border-t">
-                <Button className="w-full rounded-2xl h-12 font-black uppercase text-xs tracking-widest shadow-lg" onClick={() => setSelectedReport(null)}>
+              <div className="p-4 sm:p-6 bg-slate-50 border-t">
+                <Button className="w-full rounded-xl sm:rounded-2xl h-11 sm:h-12 font-black uppercase text-[10px] sm:text-xs tracking-widest shadow-lg" onClick={() => setSelectedReport(null)}>
                   Ciente e Arquivar
                 </Button>
               </div>
