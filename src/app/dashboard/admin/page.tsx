@@ -54,10 +54,10 @@ export default function AdminPage() {
     setLoadingData(true);
     try {
       const all = await requestService.getRequests();
-      // Inicialmente mostramos apenas os PENDING para focar na triagem
-      setRequests(all.filter(r => r.status === 'PENDING'));
+      // Mostramos PENDING e os recém APPROVED/DENIED para ver a transição
+      setRequests(all);
     } catch {
-      toast({ title: "Erro", description: "Falha ao sincronizar pedidos pendentes.", variant: "destructive" });
+      toast({ title: "Erro", description: "Falha ao sincronizar pedidos com a central.", variant: "destructive" });
     } finally {
       setLoadingData(false);
     }
@@ -129,7 +129,7 @@ export default function AdminPage() {
 
       await requestService.updateRequest(id, updateData);
       
-      // Atualiza o estado local para refletir a mudança e permitir a transição visual
+      // Atualiza o estado local para refletir a mudança e permitir a transição visual imediata
       setRequests(prev => prev.map(r => r.id === id ? { ...r, ...updateData } : r));
       
       if (action === 'APPROVED') {
@@ -186,7 +186,7 @@ export default function AdminPage() {
         <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/5 p-4 sm:p-6">
           <div>
             <CardTitle className="text-base sm:text-lg">Solicitações Aguardando Decisão</CardTitle>
-            <CardDescription className="text-[10px] sm:text-xs">Triagem técnica para a malha viária municipal.</CardDescription>
+            <CardDescription className="text-[10px] sm:text-xs">Triagem técnica para a malha viária municipal (Exibindo {requests.length} registros).</CardDescription>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><Filter className="h-4 w-4" /></Button>
         </CardHeader>
@@ -209,7 +209,7 @@ export default function AdminPage() {
               <Table>
                 <TableHeader className="bg-muted/30">
                   <TableRow className="border-none hover:bg-transparent">
-                    <TableHead className="font-bold h-10 py-0">Paciente / Origem</TableHead>
+                    <TableHead className="font-bold h-10 py-0 pl-6">Paciente / Origem</TableHead>
                     <TableHead className="font-bold h-10 py-0 hidden sm:table-cell">Prioridade</TableHead>
                     <TableHead className="font-bold h-10 py-0 hidden md:table-cell">Suporte IA</TableHead>
                     <TableHead className="text-right font-bold h-10 py-0 pr-6">Ações de Decisão</TableHead>
@@ -224,7 +224,7 @@ export default function AdminPage() {
                           expandedIds.has(req.id) ? "bg-primary/[0.02] border-b-0" : "hover:bg-muted/5 border-b"
                         )}
                       >
-                        <TableCell className="py-4">
+                        <TableCell className="py-4 pl-6">
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-sm text-slate-800">{req.patientName}</span>
@@ -308,22 +308,20 @@ export default function AdminPage() {
                               </Button>
                             </div>
                           ) : req.status === 'APPROVED' ? (
-                            <div className="flex justify-end items-center gap-2">
+                            <div className="flex justify-end items-center gap-3">
                               <Badge className="bg-emerald-100 text-emerald-700 border-none font-black text-[10px] uppercase h-9 px-3">
                                 APROVADO
                               </Badge>
-                              {req.manifestId && (
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="h-10 rounded-xl gap-2 border-primary/20 text-primary font-black text-[10px] uppercase shadow-sm bg-white"
-                                  asChild
-                                >
-                                  <Link href="/dashboard/manifests">
-                                    <Route className="h-4 w-4" /> VER MANIFESTO
-                                  </Link>
-                                </Button>
-                              )}
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-10 rounded-xl gap-2 border-primary/20 text-primary font-black text-[10px] uppercase shadow-sm bg-white hover:bg-primary/5 transition-all"
+                                asChild
+                              >
+                                <Link href="/dashboard/manifests">
+                                  <Route className="h-4 w-4" /> VER MANIFESTO
+                                </Link>
+                              </Button>
                             </div>
                           ) : (
                             <div className="flex justify-end">
@@ -335,7 +333,7 @@ export default function AdminPage() {
                         </TableCell>
                       </TableRow>
 
-                      {/* Linha de Análise Técnica Integrada */}
+                      {/* Linha de Análise Técnica Integrada (Accordion) */}
                       {expandedIds.has(req.id) && analysis[req.id] && (
                         <TableRow className="bg-primary/[0.02] border-b-2 border-primary/10">
                           <TableCell colSpan={4} className="p-0">
@@ -362,7 +360,7 @@ export default function AdminPage() {
                                     
                                     <div className="bg-primary/[0.03] p-6 rounded-[2rem] border border-primary/5 relative mt-8">
                                       <div className="absolute top-0 left-8 -translate-y-1/2 bg-white px-3 text-[10px] font-black text-primary uppercase tracking-widest whitespace-nowrap">Recomendação Estratégica</div>
-                                      <p className="text-sm font-medium text-slate-600 leading-relaxed italic">
+                                      <p className="text-sm font-medium text-slate-600 leading-relaxed italic whitespace-normal">
                                         &quot;{analysis[req.id]?.recommendation}&quot;
                                       </p>
                                     </div>
@@ -377,7 +375,7 @@ export default function AdminPage() {
                                       {analysis[req.id]?.criticalFactors.map((factor, idx) => (
                                         <div key={idx} className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] text-slate-600 font-bold hover:bg-white hover:border-primary/20 transition-all group">
                                           <div className="size-2.5 rounded-full bg-primary/30 group-hover:scale-125 group-hover:bg-primary transition-all shrink-0" />
-                                          <span className="truncate">{factor}</span>
+                                          <span className="truncate whitespace-normal leading-snug">{factor}</span>
                                         </div>
                                       ))}
                                     </div>
