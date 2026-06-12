@@ -1,4 +1,3 @@
-
 'use client';
 
 import { db } from "@/lib/firebase";
@@ -10,7 +9,8 @@ import {
   doc, 
   query, 
   orderBy,
-  limit 
+  limit,
+  writeBatch
 } from "firebase/firestore";
 import { DriverReport } from "@/lib/types";
 
@@ -69,9 +69,6 @@ const MOCK_REPORTS: DriverReport[] = [
  * @fileOverview Serviço para gestão de relatórios de campo (feedbacks dos motoristas).
  */
 export const reportService = {
-  /**
-   * Envia um novo relatório de campo.
-   */
   async addReport(report: Omit<DriverReport, "id" | "read">): Promise<string> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
         const id = `REP-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -91,9 +88,6 @@ export const reportService = {
     }
   },
 
-  /**
-   * Lista os relatórios para a Secretaria.
-   */
   async getReports(): Promise<DriverReport[]> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
       return [...MOCK_REPORTS];
@@ -109,13 +103,10 @@ export const reportService = {
       } as DriverReport));
     } catch (error: any) {
       console.error("Error fetching reports:", error);
-      return []; // Silencioso para não quebrar a UI
+      return [];
     }
   },
 
-  /**
-   * Marca um relatório como lido/visto pelo Secretário.
-   */
   async markAsRead(id: string): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
         const report = MOCK_REPORTS.find(r => r.id === id);
@@ -129,5 +120,22 @@ export const reportService = {
     } catch (error: any) {
       console.error("Error updating report status:", error);
     }
+  },
+
+  async markManyAsRead(ids: string[]): Promise<void> {
+    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      ids.forEach(id => {
+        const r = MOCK_REPORTS.find(rep => rep.id === id);
+        if (r) r.read = true;
+      });
+      return Promise.resolve();
+    }
+
+    const batch = writeBatch(db);
+    ids.forEach(id => {
+      const ref = doc(db, COLLECTION_NAME, id);
+      batch.update(ref, { read: true });
+    });
+    await batch.commit();
   }
 };
