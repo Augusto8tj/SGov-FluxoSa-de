@@ -24,6 +24,11 @@ export const MOCK_PATIENTS: Patient[] = [
 ];
 
 export const MOCK_REQUESTS: TransportRequest[] = [
+  // NOVOS PEDIDOS PENDENTES PARA DEMONSTRAÇÃO (PAINEL DE COMANDO)
+  { id: "REQ-PEND-001", patientId: "P7", patientName: "Cecília Meireles", ubsId: "UBS Central", pickupLocation: "UBS Central", destinationLocation: "Hospital Municipal", urgencyLevel: "critical", status: "PENDING", requestedTime: new Date().toISOString(), operatorId: "UBS_MGR", createdAt: new Date().toISOString(), patientAccessCode: "405060" },
+  { id: "REQ-PEND-002", patientId: "P13", patientName: "Jorge Amado", ubsId: "UBS Passa Três", pickupLocation: "UBS Passa Três", destinationLocation: "Centro Hemodiálise", urgencyLevel: "high", status: "PENDING", requestedTime: new Date().toISOString(), operatorId: "UBS_MGR", createdAt: new Date().toISOString(), patientAccessCode: "405061" },
+  { id: "REQ-PEND-003", patientId: "P9", patientName: "Clarice Lispector", ubsId: "UBS Lídice", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "PENDING", requestedTime: new Date().toISOString(), operatorId: "UBS_MGR", createdAt: new Date().toISOString(), patientAccessCode: "405062" },
+
   // CLUSTER LÍDICE (5 Pacientes) -> Hospital Municipal
   { id: "REQ-001", patientId: "P1", patientName: "Benedito Silva", ubsId: "UBS Lídice", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "critical", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "102030" },
   { id: "REQ-002", patientId: "P4", patientName: "Ana Oliveira", ubsId: "UBS Lídice", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "102031" },
