@@ -110,7 +110,9 @@ export const requestService = {
   async deleteRequest(id: string): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
       const index = MOCK_REQUESTS.findIndex(r => r.id === id);
-      if (index !== -1) MOCK_REQUESTS.splice(index, 1);
+      if (index !== -1) {
+        MOCK_REQUESTS.splice(index, 1);
+      }
       return Promise.resolve();
     }
 
@@ -129,7 +131,7 @@ export const requestService = {
   async createManifestBatch(assignments: any[]): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
       assignments.forEach((assign) => {
-        const manifestId = `MF-${Date.now().toString().slice(-4)}-${assign.vehicleId.slice(0, 3).toUpperCase()}`;
+        const manifestId = `MF-${Date.now().toString().slice(-4)}-${String(assign.vehicleId).slice(0, 3).toUpperCase()}`;
         assign.route.forEach((requestId: string) => {
           const req = MOCK_REQUESTS.find(r => r.id === requestId.trim());
           if (req) {
@@ -147,13 +149,12 @@ export const requestService = {
     const batch = writeBatch(db);
     
     assignments.forEach((assign) => {
-      const manifestId = `MF-${Date.now().toString().slice(-4)}-${assign.vehicleId.slice(0, 3).toUpperCase()}`;
+      const manifestId = `MF-${Date.now().toString().slice(-4)}-${String(assign.vehicleId).slice(0, 3).toUpperCase()}`;
       assign.route.forEach((requestId: string) => {
         const docRef = doc(db, COLLECTION_NAME, requestId.trim());
         batch.update(docRef, {
           manifestId,
           driverId: assign.driverName,
-          driverName: assign.driverName,
           vehicleId: assign.vehicleType || assign.vehicleId,
           assignedAt: new Date().toISOString(),
           status: 'APPROVED'

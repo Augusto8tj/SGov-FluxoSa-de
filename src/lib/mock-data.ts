@@ -2,7 +2,7 @@ import { Patient, TransportRequest, Vehicle, Driver, UBS } from "./types";
 
 /**
  * @fileOverview Base de dados mock unificada e estratégica para demonstração.
- * 15 Pacientes e 15 Solicitações organizadas em clusters geográficos para testar o Otimizador.
+ * 15 Pacientes e 15 Solicitações organizadas em clusters geográficos para o Otimizador.
  */
 
 export const MOCK_PATIENTS: Patient[] = [
