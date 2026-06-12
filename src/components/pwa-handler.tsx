@@ -1,15 +1,14 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, Bell, X, ShieldCheck } from "lucide-react";
+import { Download, Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 
 /**
  * @fileOverview Gerenciador de Instalação PWA e Notificações.
- * Detecta suporte e oferece a instalação para o usuário.
+ * Utiliza agora os ícones oficiais enviados para a identidade visual.
  */
 export function PwaHandler() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -58,7 +57,7 @@ export function PwaHandler() {
     if (permission === 'granted') {
       new Notification("SGov FluxoSaúde", {
         body: "Notificações ativadas com sucesso! Você receberá alertas de rotas e missões.",
-        icon: "https://picsum.photos/seed/pwa1/192/192"
+        icon: "/icons/icon-192x192.png" // Utilizando o ícone real enviado
       });
       toast({ title: "Notificações Ativas", description: "Você agora receberá alertas em tempo real." });
     }
