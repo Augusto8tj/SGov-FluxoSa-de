@@ -15,7 +15,8 @@ import {
   Lock,
   Printer,
   CalendarDays,
-  Zap
+  KeyRound,
+  UserCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -74,6 +75,47 @@ export default function AdminHelpPage() {
       </h3>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
+        {/* NOVA SEÇÃO: DADOS DE DEMONSTRAÇÃO */}
+        <AccordionItem value="dados-demo" className="border-2 border-emerald-200 rounded-2xl bg-emerald-50/50 px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-emerald-600 p-3 rounded-xl text-white shadow-lg">
+                <UserCircle className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-black text-lg text-emerald-700">Dados para Demonstração</p>
+                <p className="text-sm text-emerald-600/70 font-medium">Credenciais e códigos para o protótipo</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-6 pb-6 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm space-y-3">
+                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest border-b pb-1">Acesso ao Portal do Cidadão</p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold">Benedito Silva (Aprovado):</span>
+                    <Badge className="bg-emerald-100 text-emerald-700 border-none font-mono">102030</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold">Cecília Meireles (Pendente):</span>
+                    <Badge className="bg-amber-100 text-amber-700 border-none font-mono">405060</Badge>
+                  </div>
+                </div>
+                <p className="text-[9px] text-muted-foreground italic">Use estes códigos no menu "Portal do Cidadão" para mostrar o status em tempo real.</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm space-y-3">
+                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest border-b pb-1">Usuários de Teste (Senha: admin123)</p>
+                <div className="space-y-1 text-xs">
+                  <p><b>Secretário:</b> secretario@rioclaro.rj.gov.br</p>
+                  <p><b>UBS:</b> gerente.ubs@rioclaro.rj.gov.br</p>
+                  <p><b>Motorista:</b> motorista@rioclaro.rj.gov.br</p>
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
         <AccordionItem value="fluxo-geral" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -183,9 +225,9 @@ export default function AdminHelpPage() {
                   <Printer className="h-4 w-4" /> Impressão Profissional
                 </p>
                 <ul className="text-xs space-y-2 list-none">
-                  <li className="flex gap-2"><b>&bull; Guias Timbradas:</b> Modelos A4 oficiais para Auxílio Diária e Requisição de Combustível.</li>
-                  <li className="flex gap-2"><b>&bull; Navegação Interna:</b> Fluxo de impressão sem abrir novas abas, mantendo o foco no dashboard.</li>
-                  <li className="flex gap-2"><b>&bull; QR Code Auditor:</b> Espaço reservado para validação digital futura de documentos físicos.</li>
+                  <li><b>&bull; Guias Timbradas:</b> Modelos A4 oficiais para Auxílio Diária e Requisição de Combustível.</li>
+                  <li><b>&bull; Navegação Interna:</b> Fluxo de impressão sem abrir novas abas, mantendo o foco no dashboard.</li>
+                  <li><b>&bull; QR Code Auditor:</b> Espaço reservado para validação digital futura de documentos físicos.</li>
                 </ul>
               </div>
               <div className="space-y-3 p-4 bg-white rounded-2xl shadow-sm border border-primary/10">
@@ -193,9 +235,9 @@ export default function AdminHelpPage() {
                   <CalendarDays className="h-4 w-4" /> Escala e Logística
                 </p>
                 <ul className="text-xs space-y-2 list-none">
-                  <li className="flex gap-2"><b>&bull; Calendário de Plantão:</b> Novo seletor interativo para gestão mensal de disponibilidade dos condutores.</li>
-                  <li className="flex gap-2"><b>&bull; Bloqueio de Conflitos:</b> O Otimizador agora invalida condutores já ocupados em outras missões do mesmo lote.</li>
-                  <li className="flex gap-2"><b>&bull; Protocolo Exceção:</b> O Secretário agora pode autorizar pedidos fora da janela de agendamento padrão.</li>
+                  <li><b>&bull; Calendário de Plantão:</b> Novo seletor interativo para gestão mensal de disponibilidade dos condutores.</li>
+                  <li><b>&bull; Bloqueio de Conflitos:</b> O Otimizador agora invalida condutores já ocupados em outras missões do mesmo lote.</li>
+                  <li><b>&bull; Protocolo Exceção:</b> O Secretário agora pode autorizar pedidos fora da janela de agendamento padrão.</li>
                 </ul>
               </div>
             </div>
@@ -253,9 +295,9 @@ export default function AdminHelpPage() {
               <div className="space-y-3">
                 <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1">Principais Recursos</p>
                 <ul className="text-xs space-y-2 list-none">
-                  <li className="flex gap-2"><b>&bull; Auditoria do Sistema:</b> Logs detalhados de IP, usuário e recurso.</li>
-                  <li className="flex gap-2"><b>&bull; Relatórios de Campo:</b> Visualização central de ocorrências dos motoristas.</li>
-                  <li className="flex gap-2"><b>&bull; Telemetria de Frota:</b> Controle de combustível e odômetro integrado.</li>
+                  <li><b>&bull; Auditoria do Sistema:</b> Logs detalhados de IP, usuário e recurso.</li>
+                  <li><b>&bull; Relatórios de Campo:</b> Visualização central de ocorrências dos motoristas.</li>
+                  <li><b>&bull; Telemetria de Frota:</b> Controle de combustível e odômetro integrado.</li>
                 </ul>
               </div>
             </div>

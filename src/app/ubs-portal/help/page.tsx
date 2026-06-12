@@ -10,7 +10,8 @@ import {
   BrainCircuit,
   AlertTriangle,
   KeyRound,
-  CheckCircle2
+  CheckCircle2,
+  UserCircle
 } from "lucide-react";
 import { 
   Accordion, 
@@ -49,6 +50,37 @@ export default function UbsHelpPage() {
       </h3>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
+        {/* NOVA SEÇÃO: DADOS DE DEMONSTRAÇÃO */}
+        <AccordionItem value="dados-demo" className="border-2 border-emerald-200 rounded-2xl bg-emerald-50/50 px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-emerald-600 p-3 rounded-xl text-white shadow-lg">
+                <UserCircle className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-black text-lg text-emerald-700">Dados para Demonstração</p>
+                <p className="text-sm text-emerald-600/70 font-medium">Códigos de acesso para o protótipo</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm space-y-3">
+              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest border-b pb-1 flex items-center gap-2"><KeyRound className="h-3 w-3" /> Acesso do Cidadão</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                  <span className="text-xs font-bold">Benedito Silva (OK):</span>
+                  <Badge className="bg-emerald-100 text-emerald-700 border-none font-mono">102030</Badge>
+                </div>
+                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                  <span className="text-xs font-bold">Cecília Meireles (Fila):</span>
+                  <Badge className="bg-amber-100 text-amber-700 border-none font-mono">405060</Badge>
+                </div>
+              </div>
+              <p className="text-[9px] text-muted-foreground italic">Forneça estes códigos ao Secretário para testar o Portal do Cidadão.</p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
         <AccordionItem value="cadastro" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -158,9 +190,9 @@ export default function UbsHelpPage() {
                 <CheckCircle2 className="h-3 w-3" /> Melhorias Implementadas
               </p>
               <ul className="text-xs space-y-2 list-none">
-                <li className="flex gap-2"><b>&bull; Bloqueio de Janela:</b> Sistema agora impõe o horário limite de 13:00h para maior controle logístico.</li>
-                <li className="flex gap-2"><b>&bull; Visualizador de Manifesto:</b> Acompanhe em tempo real qual viatura foi designada para cada um dos seus pacientes.</li>
-                <li className="flex gap-2"><b>&bull; Copiar Código:</b> Atalho rápido na lista de manifestos para copiar o código de acesso do paciente.</li>
+                <li><b>&bull; Bloqueio de Janela:</b> Sistema agora impõe o horário limite de 13:00h para maior controle logístico.</li>
+                <li><b>&bull; Visualizador de Manifesto:</b> Acompanhe em tempo real qual viatura foi designada para cada um dos seus pacientes.</li>
+                <li><b>&bull; Copiar Código:</b> Atalho rápido na lista de manifestos para copiar o código de acesso do paciente.</li>
               </ul>
             </div>
           </AccordionContent>
