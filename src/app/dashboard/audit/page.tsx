@@ -41,16 +41,12 @@ const MOCK_AUDIT_LOGS = [
 
 export default function AuditPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [integrityStatus, setIntegrityStatus] = useState("VERIFICANDO");
+  const [integrityStatus, setIntegrityStatus] = useState("VALIDADO");
 
   useEffect(() => {
     setMounted(true);
-    setTimeout(() => {
-      setLoading(false);
-      setIntegrityStatus("VALIDADO");
-    }, 1200);
   }, []);
 
   const filteredLogs = MOCK_AUDIT_LOGS.filter(log => 

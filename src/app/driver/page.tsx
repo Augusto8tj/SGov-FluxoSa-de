@@ -48,7 +48,7 @@ const MOCK_MISSION = [
 
 export default function DriverDashboard() {
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [briefing, setBriefing] = useState<DriverBriefingOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [checklistDone, setChecklistDone] = useState(false);
@@ -62,7 +62,6 @@ export default function DriverDashboard() {
 
   useEffect(() => {
     setMounted(true);
-    setTimeout(() => setLoading(false), 800);
   }, []);
 
   const handleOpenMaps = (address: string) => {

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -48,15 +49,13 @@ export default function LoginPage() {
         description: `Bem-vindo ao sistema, ${foundUser.email.split('@')[0]}.`,
       });
 
-      setTimeout(() => {
-        if (foundUser.role === 'driver') {
-          router.push("/driver");
-        } else if (foundUser.role === 'ubs') {
-          router.push("/ubs-portal");
-        } else {
-          router.push("/dashboard");
-        }
-      }, 500);
+      if (foundUser.role === 'driver') {
+        router.push("/driver");
+      } else if (foundUser.role === 'ubs') {
+        router.push("/ubs-portal");
+      } else {
+        router.push("/dashboard");
+      }
       return;
     }
 
@@ -212,9 +211,6 @@ export default function LoginPage() {
       </div>
 
       <footer className="w-full py-8 flex flex-col items-center gap-4 mt-auto">
-        <Badge className="bg-emerald-500 text-white border-none font-black text-[10px] h-7 px-4 shadow-lg hover:bg-emerald-600 transition-colors">
-          v1.1.0 STABLE
-        </Badge>
         <div className="flex flex-col items-center gap-1.5">
           <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">
             <Heart className="h-3 w-3 text-rose-500 fill-rose-500" /> PMRC &bull; Secretaria de Ordem Pública

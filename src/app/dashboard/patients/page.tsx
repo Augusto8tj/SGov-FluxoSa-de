@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -51,7 +52,7 @@ const MOCK_PATIENTS: Patient[] = [
 ];
 
 export default function PatientsPage() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [patients] = useState<Patient[]>(MOCK_PATIENTS);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -62,22 +63,14 @@ export default function PatientsPage() {
 
   const { toast } = useToast();
 
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 500);
-  }, []);
-
   const handleSave = () => {
     if (!formName || !formCns) {
       toast({ title: "Campos Requeridos", description: "Nome e CNS são necessários.", variant: "destructive" });
       return;
     }
     
-    // Fechar o diálogo ANTES de disparar o toast pesado para evitar travamentos de ponteiro
     setIsDialogOpen(false);
-    
-    setTimeout(() => {
-      toast({ title: "Sucesso", description: "Dados sincronizados com o banco de dados." });
-    }, 100);
+    toast({ title: "Sucesso", description: "Dados sincronizados com o banco de dados." });
   };
 
   const filteredPatients = patients.filter(p => 
