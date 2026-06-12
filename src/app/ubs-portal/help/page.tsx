@@ -8,7 +8,9 @@ import {
   ClipboardList,
   Users,
   BrainCircuit,
-  AlertTriangle
+  AlertTriangle,
+  KeyRound,
+  CheckCircle2
 } from "lucide-react";
 import { 
   Accordion, 
@@ -26,7 +28,7 @@ export default function UbsHelpPage() {
         <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
           <BookOpen className="h-8 w-8" /> Manual da Unidade (UBS)
         </h2>
-        <p className="text-muted-foreground italic">Guia de operação local - Portal da UBS v1.1.0 Stable</p>
+        <p className="text-muted-foreground italic">Guia de operação local - Portal da UBS v1.2.0 Stable</p>
       </div>
 
       <div className="p-6 bg-rose-50 border-2 border-rose-100 rounded-3xl flex flex-col md:flex-row items-center gap-6 shadow-sm">
@@ -36,7 +38,7 @@ export default function UbsHelpPage() {
         <div className="flex-1 text-center md:text-left">
           <h4 className="font-black text-rose-800 uppercase tracking-tighter text-lg">Janela de Agendamento</h4>
           <p className="text-sm text-rose-700 font-medium">
-            O sistema aceita novos pedidos de transporte das <b>08:00 às 13:00</b>. Após este horário, a Secretaria realiza a triagem final e montagem dos manifestos para o dia seguinte.
+            O sistema aceita novos pedidos de transporte das <b>08:00 às 13:00</b>. Após este horário, o botão de confirmação é bloqueado automaticamente para garantir a montagem dos manifestos.
           </p>
         </div>
         <Badge className="bg-rose-600 text-white border-none font-bold hidden md:block">REGRA CRÍTICA</Badge>
@@ -60,11 +62,15 @@ export default function UbsHelpPage() {
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
-            <p className="text-sm">Para solicitar transporte, o paciente deve estar cadastrado na sua UBS no sistema.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <p className="text-sm px-2">Para solicitar transporte, o paciente deve estar cadastrado na sua UBS no sistema.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
               <div className="p-4 bg-slate-50 rounded-xl border">
                 <p className="font-bold text-xs text-emerald-600 uppercase">CNS é Obrigatório</p>
                 <p className="text-xs">O Cartão Nacional de Saúde deve ser inserido sem pontos ou traços para garantir a unicidade do registro.</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-xl border">
+                <p className="font-bold text-xs text-emerald-600 uppercase">Necessidades Especiais</p>
+                <p className="text-xs">Sinalize sempre se o paciente requer maca, cadeira de rodas ou oxigênio para a correta triagem da viatura.</p>
               </div>
             </div>
           </AccordionContent>
@@ -88,8 +94,44 @@ export default function UbsHelpPage() {
               <div>
                 <p className="font-bold text-blue-900 text-sm">Use o Sugestor de Urgência (IA)</p>
                 <p className="text-xs text-blue-800 leading-relaxed">
-                  Ao descrever o quadro do paciente, clique no botão <b>&quot;SUGERIR URGÊNCIA (IA)&quot;</b>.
+                  Ao descrever o quadro do paciente, clique no botão <b>&quot;SUGERIR URGÊNCIA (IA)&quot;</b>. O sistema classificará automaticamente entre Baixa, Média, Alta ou Crítica baseado nos protocolos de triagem municipal.
                 </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4 bg-rose-50 rounded-xl border border-rose-100">
+              <AlertTriangle className="h-5 w-5 text-rose-600 mt-1 shrink-0" />
+              <div>
+                <p className="font-bold text-rose-900 text-sm">Emergências Fora de Horário</p>
+                <p className="text-xs text-rose-800 leading-relaxed">
+                  Se precisar agendar após as 13:00h para casos críticos do dia seguinte, o botão de confirmação estará desativado. Nestes casos, contate o Secretário de Ordem Pública diretamente via rádio ou telefone para autorização manual.
+                </p>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="portal-cidadao" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-indigo-100">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600">
+                <KeyRound className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-bold text-lg">Transparência e Cidadão</p>
+                <p className="text-sm text-muted-foreground">Como o paciente acompanha a viagem</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <p className="text-sm px-2">Cada solicitação gera automaticamente um <b>Código de Acesso de 6 dígitos</b>.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                <p className="font-bold text-xs text-indigo-700 uppercase">Entrega do Código</p>
+                <p className="text-xs">Forneça o código ao paciente no momento do agendamento. Ele pode consultar em <b>rioclaro.rj.gov.br/meu-transporte</b>.</p>
+              </div>
+              <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                <p className="font-bold text-xs text-indigo-700 uppercase">Segurança de Dados</p>
+                <p className="text-xs">O Portal do Cidadão não exibe o nome completo ou o diagnóstico, apenas o status da viatura e o horário previsto.</p>
               </div>
             </div>
           </AccordionContent>
@@ -103,19 +145,36 @@ export default function UbsHelpPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="font-black text-lg text-primary">Novidades da Versão 1.1.0</p>
-                  <Badge variant="outline" className="text-[10px] font-black border-primary text-primary bg-white">ESTÁVEL</Badge>
+                  <p className="font-black text-lg text-primary">Novidades da Versão 1.2.0</p>
+                  <Badge variant="outline" className="text-[10px] font-black border-primary text-primary bg-white">STABLE</Badge>
                 </div>
-                <p className="text-sm text-primary/70 font-medium">Lançamento oficial do SGov FluxoSaúde</p>
+                <p className="text-sm text-primary/70 font-medium">Janela de Horário e Portal do Cidadão v2</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
             <div className="bg-white p-4 rounded-xl border border-primary/10 shadow-inner">
               <p className="text-xs font-bold text-primary uppercase tracking-widest mb-3 flex items-center gap-2">
-                <History className="h-3 w-3" /> Histórico de Avanços
+                <CheckCircle2 className="h-3 w-3" /> Melhorias Implementadas
               </p>
+              <ul className="text-xs space-y-2 list-none">
+                <li className="flex gap-2"><b>&bull; Bloqueio de Janela:</b> Sistema agora impõe o horário limite de 13:00h para maior controle logístico.</li>
+                <li className="flex gap-2"><b>&bull; Visualizador de Manifesto:</b> Acompanhe em tempo real qual viatura foi designada para cada um dos seus pacientes.</li>
+                <li className="flex gap-2"><b>&bull; Copiar Código:</b> Atalho rápido na lista de manifestos para copiar o código de acesso do paciente.</li>
+              </ul>
             </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="changelog-old" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-4">
+            <div className="flex items-center gap-3">
+              <History className="h-4 w-4 text-muted-foreground" />
+              <p className="font-bold text-sm">Histórico: Versão 1.1.0 Stable</p>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-500 text-xs px-2 pb-4">
+            Lançamento oficial com IA Nvidia Nemotron para classificação de urgência e base de cidadãos integrada.
           </AccordionContent>
         </AccordionItem>
       </Accordion>

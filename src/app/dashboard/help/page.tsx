@@ -12,7 +12,10 @@ import {
   BrainCircuit,
   MapPin,
   CheckCircle2,
-  Lock
+  Lock,
+  Printer,
+  CalendarDays,
+  Zap
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -30,7 +33,7 @@ export default function AdminHelpPage() {
         <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
           <BookOpen className="h-8 w-8" /> Manual do Gestor
         </h2>
-        <p className="text-muted-foreground italic">Guia de operação estratégica - PMRC v1.1.0 Stable</p>
+        <p className="text-muted-foreground italic">Guia de operação estratégica - PMRC v1.2.0 Stable</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -47,7 +50,7 @@ export default function AdminHelpPage() {
         <Card className="bg-emerald-50 border-none shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-black uppercase text-emerald-600 tracking-widest flex items-center gap-2">
-              <Fingerprint className="h-4 w-4" /> Auditoria v1.1
+              <Fingerprint className="h-4 w-4" /> Auditoria v1.2
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -144,15 +147,56 @@ export default function AdminHelpPage() {
               </div>
               <div className="p-4 bg-muted/20 rounded-xl space-y-2">
                 <p className="font-bold text-xs uppercase text-primary">Logística Inteligente</p>
-                <p className="text-xs leading-relaxed">No <b>Otimizador de Rotas</b>, a IA cruzará endereços e veículos. Você deve escolher o motorista para cada grupo antes de oficializar os manifestos.</p>
+                <p className="text-xs leading-relaxed">No <b>Otimizador de Rotas</b>, a IA cruzará endereços e veículos. O sistema agora impede que um motorista seja escalado para duas missões simultâneas.</p>
               </div>
               <div className="p-4 bg-muted/20 rounded-xl space-y-2">
                 <p className="font-bold text-xs uppercase text-primary">Auditoria e Segurança</p>
                 <p className="text-xs leading-relaxed">A tela de <b>Auditoria</b> exibe a Cadeia de Custódia. Verifique se o selo de integridade está verde, garantindo que nenhum dado foi alterado indevidamente.</p>
               </div>
               <div className="p-4 bg-muted/20 rounded-xl space-y-2">
-                <p className="font-bold text-xs uppercase text-primary">Gestão de Frota</p>
-                <p className="text-xs leading-relaxed">Cadastre veículos em <b>Frota</b> e acompanhe telemetria básica como combustível e odômetro para prever manutenções.</p>
+                <p className="font-bold text-xs uppercase text-primary">Gestão de Documentos</p>
+                <p className="text-xs leading-relaxed">Em <b>Documentos</b>, gere guias de Diárias e Combustível em formato A4 profissional, prontas para impressão e assinatura física.</p>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="novidades-v1-2" className="border-2 border-primary/20 rounded-2xl bg-primary/5 px-4 shadow-sm overflow-hidden border-primary/40">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-primary p-3 rounded-xl text-white shadow-lg">
+                <Rocket className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="font-black text-lg text-primary">Novidades da Versão 1.2.0</p>
+                  <Badge className="bg-primary text-white border-none text-[10px]">CURRENT</Badge>
+                </div>
+                <p className="text-sm text-primary/70 font-medium">Motor de Documentos & Escala Inteligente</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3 p-4 bg-white rounded-2xl shadow-sm border border-primary/10">
+                <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1 flex items-center gap-2">
+                  <Printer className="h-4 w-4" /> Impressão Profissional
+                </p>
+                <ul className="text-xs space-y-2 list-none">
+                  <li className="flex gap-2"><b>&bull; Guias Timbradas:</b> Modelos A4 oficiais para Auxílio Diária e Requisição de Combustível.</li>
+                  <li className="flex gap-2"><b>&bull; Navegação Interna:</b> Fluxo de impressão sem abrir novas abas, mantendo o foco no dashboard.</li>
+                  <li className="flex gap-2"><b>&bull; QR Code Auditor:</b> Espaço reservado para validação digital futura de documentos físicos.</li>
+                </ul>
+              </div>
+              <div className="space-y-3 p-4 bg-white rounded-2xl shadow-sm border border-primary/10">
+                <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1 flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4" /> Escala e Logística
+                </p>
+                <ul className="text-xs space-y-2 list-none">
+                  <li className="flex gap-2"><b>&bull; Calendário de Plantão:</b> Novo seletor interativo para gestão mensal de disponibilidade dos condutores.</li>
+                  <li className="flex gap-2"><b>&bull; Bloqueio de Conflitos:</b> O Otimizador agora invalida condutores já ocupados em outras missões do mesmo lote.</li>
+                  <li className="flex gap-2"><b>&bull; Protocolo Exceção:</b> O Secretário agora pode autorizar pedidos fora da janela de agendamento padrão.</li>
+                </ul>
               </div>
             </div>
           </AccordionContent>
@@ -197,51 +241,24 @@ export default function AdminHelpPage() {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="changelog-v1-1" className="border-2 border-primary/20 rounded-2xl bg-primary/5 px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-primary p-3 rounded-xl text-white shadow-lg">
-                <Rocket className="h-6 w-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-black text-lg text-primary">Novidades da Versão 1.1.0</p>
-                  <Badge className="bg-primary text-white border-none text-[10px]">NEW</Badge>
-                </div>
-                <p className="text-sm text-primary/70 font-medium">Foco em Segurança e Auditoria</p>
-              </div>
+        <AccordionItem value="changelog-v1-1" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
+          <AccordionTrigger className="hover:no-underline py-4">
+            <div className="flex items-center gap-3">
+              <History className="h-4 w-4 text-muted-foreground" />
+              <p className="font-bold text-sm">Histórico: Versão 1.1.0 Stable</p>
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1">Novas Funcionalidades</p>
+                <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1">Principais Recursos</p>
                 <ul className="text-xs space-y-2 list-none">
                   <li className="flex gap-2"><b>&bull; Auditoria do Sistema:</b> Logs detalhados de IP, usuário e recurso.</li>
                   <li className="flex gap-2"><b>&bull; Relatórios de Campo:</b> Visualização central de ocorrências dos motoristas.</li>
                   <li className="flex gap-2"><b>&bull; Telemetria de Frota:</b> Controle de combustível e odômetro integrado.</li>
                 </ul>
               </div>
-              <div className="space-y-3">
-                <p className="text-xs font-black text-primary uppercase tracking-widest border-b border-primary/10 pb-1">Segurança</p>
-                <ul className="text-xs space-y-2 list-none">
-                  <li className="flex gap-2"><b>&bull; Imutabilidade:</b> Registros de logs protegidos contra edição.</li>
-                  <li className="flex gap-2"><b>&bull; Pseudonimização:</b> Refinamento do mascaramento de nomes na IA.</li>
-                </ul>
-              </div>
             </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="changelog-v1-0" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-4">
-            <div className="flex items-center gap-3">
-              <History className="h-4 w-4 text-muted-foreground" />
-              <p className="font-bold text-sm">Histórico: Versão 1.0.0 Stable</p>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-500 text-xs px-2 pb-4">
-            Lançamento oficial com Portal do Cidadão, IA Nvidia Nemotron, Multi-perfil e tecnologia PWA.
           </AccordionContent>
         </AccordionItem>
       </Accordion>
