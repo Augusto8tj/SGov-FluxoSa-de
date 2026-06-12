@@ -42,7 +42,19 @@ export const MOCK_REQUESTS: TransportRequest[] = [
   { id: "REQ-014", patientId: "P14", patientName: "Érico Veríssimo", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "PENDING", requestedTime: "2024-05-25T15:30:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
   { id: "REQ-015", patientId: "P15", patientName: "Lygia Fagundes", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "PENDING", requestedTime: "2024-05-25T16:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
 
-  // 10 Pedidos Aprovados e Atribuídos a Manifestos (Gestão de Manifestos)
+  // 10 Pedidos Aprovados AGUARDANDO Rota (Para o Otimizador de Rotas)
+  { id: "REQ-201", patientId: "P11", patientName: "Graciliano Ramos", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T08:30:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-202", patientId: "P12", patientName: "Rachel de Queiroz", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Hospital Regional", urgencyLevel: "high", status: "APPROVED", requestedTime: "2024-05-25T09:45:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-203", patientId: "P13", patientName: "Jorge Amado", ubsId: "UBS-02", pickupLocation: "UBS Passa Três", destinationLocation: "Fisioterapia", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T11:15:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-204", patientId: "P14", patientName: "Érico Veríssimo", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "APPROVED", requestedTime: "2024-05-25T15:30:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-205", patientId: "P15", patientName: "Lygia Fagundes", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T16:00:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-206", patientId: "P6", patientName: "Carlos Drummond", ubsId: "UBS-02", pickupLocation: "UBS Passa Três", destinationLocation: "Hospital Municipal", urgencyLevel: "high", status: "APPROVED", requestedTime: "2024-05-25T10:00:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-207", patientId: "P7", patientName: "Cecília Meireles", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Centro Hemodiálise", urgencyLevel: "critical", status: "APPROVED", requestedTime: "2024-05-25T07:30:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-208", patientId: "P8", patientName: "Machado de Assis", ubsId: "UBS-03", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "APPROVED", requestedTime: "2024-05-25T13:00:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-209", patientId: "P9", patientName: "Clarice Lispector", ubsId: "UBS-02", pickupLocation: "UBS Passa Três", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T11:45:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-210", patientId: "P10", patientName: "Guimarães Rosa", ubsId: "UBS-01", pickupLocation: "UBS Central", destinationLocation: "Clínica Especializada", urgencyLevel: "low", status: "APPROVED", requestedTime: "2024-05-25T14:30:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+
+  // 10 Pedidos Aprovados e JÁ ATRIBUÍDOS a Manifestos (Gestão de Manifestos)
   { 
     id: "REQ-101", 
     patientId: "P1", 
@@ -220,6 +232,8 @@ export const MOCK_VEHICLES: Vehicle[] = [
   { id: "V2", type: "Van", licensePlate: "XYZ-5678", capacity: 12, available: true, status: 'AVAILABLE', odometer: 45600, fuelLevel: 40, lastMaintenance: "2024-03-05", nextMaintenance: "2024-07-10", insuranceExpiry: "2024-10-15", lastSanitization: "2024-05-20 06:30" },
   { id: "V3", type: "Acessível", licensePlate: "LMN-3456", capacity: 1, available: true, status: 'AVAILABLE', odometer: 8900, fuelLevel: 95, lastMaintenance: "2024-05-01", nextMaintenance: "2024-08-01", insuranceExpiry: "2025-01-20", lastSanitization: "2024-05-20 08:15" },
   { id: "V4", type: "Sedan", licensePlate: "GHI-9012", capacity: 4, available: true, status: 'AVAILABLE', odometer: 15200, fuelLevel: 100, lastSanitization: "2024-05-25 07:00" },
+  { id: "V5", type: "Ambulância", licensePlate: "PMR-0001", capacity: 2, available: true, status: 'AVAILABLE', odometer: 5000, fuelLevel: 90, lastSanitization: "2024-05-25 07:30" },
+  { id: "V6", type: "Van", licensePlate: "PMR-0002", capacity: 12, available: true, status: 'AVAILABLE', odometer: 12000, fuelLevel: 100, lastSanitization: "2024-05-25 07:15" },
 ];
 
 export const MOCK_DRIVERS: Driver[] = [
@@ -227,6 +241,8 @@ export const MOCK_DRIVERS: Driver[] = [
   { id: "D2", name: "Marcos Pereira", licenseNumber: "987654321", phone: "(19) 98765-4321", available: true, status: 'AVAILABLE' },
   { id: "D3", name: "Ana Cláudia", licenseNumber: "456123789", phone: "(19) 99888-7766", available: true, status: 'AVAILABLE' },
   { id: "D4", name: "Ricardo Oliveira", licenseNumber: "789456123", phone: "(19) 99777-1122", available: true, status: 'AVAILABLE' },
+  { id: "D5", name: "Benedito Ramos", licenseNumber: "112233445", phone: "(19) 99111-2233", available: true, status: 'AVAILABLE' },
+  { id: "D6", name: "Sônia Maria", licenseNumber: "556677889", phone: "(19) 99444-5566", available: true, status: 'AVAILABLE' },
 ];
 
 export const MOCK_UBS: UBS[] = [
