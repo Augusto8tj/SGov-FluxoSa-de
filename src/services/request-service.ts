@@ -19,7 +19,7 @@ const COLLECTION_NAME = "requests";
 
 /**
  * @fileOverview Serviço de gestão de solicitações com suporte a batch para manifestos.
- * Implementa a lógica de filtro status === 'APPROVED' E manifestId ausente conforme backup.
+ * Implementa a lógica de filtro status === 'APPROVED' E manifestId ausente para o Otimizador.
  */
 export const requestService = {
   async getRequests(): Promise<TransportRequest[]> {
@@ -89,7 +89,7 @@ export const requestService = {
 
   async updateRequest(id: string, data: Partial<TransportRequest>): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
-      // Em modo demo, apenas simulamos o sucesso
+      // Em modo demo, apenas simulamos o sucesso (local state update handles the UI)
       return Promise.resolve();
     }
 
@@ -118,21 +118,21 @@ export const requestService = {
    */
   async createManifestBatch(assignments: any[]): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
-      // Simulação para o Secretário no modo demonstração
+      // Simulação para o Secretário no modo demonstração: apenas resolve com sucesso.
       return Promise.resolve();
     }
 
     const batch = writeBatch(db);
     
     assignments.forEach((assign) => {
-      const manifestId = `MF-${Date.now().toString().slice(-6)}-${assign.vehicleId}`;
+      const manifestId = `MF-${Date.now().toString().slice(-4)}-${assign.vehicleId.slice(0, 3).toUpperCase()}`;
       assign.route.forEach((requestId: string) => {
-        // Ignora prefixos REQ- de demonstração se necessário, mas no Firestore real usamos IDs alfanuméricos
-        const docRef = doc(db, COLLECTION_NAME, requestId);
+        const docRef = doc(db, COLLECTION_NAME, requestId.trim());
         batch.update(docRef, {
           manifestId,
           driverId: assign.driverName,
-          vehicleId: assign.vehicleType,
+          driverName: assign.driverName,
+          vehicleId: assign.vehicleType || assign.vehicleId,
           assignedAt: new Date().toISOString(),
           status: 'APPROVED'
         });

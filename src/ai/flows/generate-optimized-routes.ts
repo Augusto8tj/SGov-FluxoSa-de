@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview Fluxo otimizado para geração de rotas.
- * Focado em eficiência de tokens e resiliência de dados.
+ * Focado em eficiência de tokens e resiliência de dados (Híbrido IA + Fallback).
  */
 
 import { aiService } from '@/services/ai-service';
@@ -17,9 +17,6 @@ export type GenerateOptimizedRoutesOutput = {
   optimizationSummary: string;
 };
 
-/**
- * Interface simplificada para economia de tokens na requisição de IA.
- */
 interface MinifiedAppointment {
   id: string;
   pick: string;
@@ -28,9 +25,9 @@ interface MinifiedAppointment {
 
 export async function generateOptimizedRoutes(input: { appointments: any[], vehicles: any[] }): Promise<GenerateOptimizedRoutesOutput> {
   try {
-    // 1. Minificação do input para reduzir sobrecarga de tokens
+    // 1. Preparação: Minificação rigorosa do input
     const minifiedApps: MinifiedAppointment[] = input.appointments.map(a => ({
-      id: a.id.trim(),
+      id: String(a.id).trim(),
       pick: a.pickupLocation,
       dest: a.destination
     }));
@@ -39,18 +36,22 @@ export async function generateOptimizedRoutes(input: { appointments: any[], vehi
       .filter(v => v.available)
       .map(v => ({ id: v.id, cap: v.capacity }));
 
-    const prompt = `TASK: Group appointments into vehicles efficiently.
+    if (minifiedApps.length === 0 || minifiedVehicles.length === 0) {
+      throw new Error("EMPTY_DATA");
+    }
+
+    const prompt = `TASK: You are a logistics expert for Rio Claro city. Group appointments into vehicles efficiently.
 RULES:
-1. Use EXACT IDs from 'apps'.
-2. Group by 'pick' and 'dest' proximity.
-3. Respect vehicle 'cap' (capacity).
-4. Output ONLY pure JSON.
+1. Use EXACT IDs from 'apps' data. NEVER change a digit.
+2. Group by 'pick' (origin) and 'dest' proximity.
+3. Respect vehicle 'cap' (maximum capacity).
+4. Output ONLY pure JSON. No text, no markdown.
 
 DATA:
 - apps: ${JSON.stringify(minifiedApps)}
 - fleet: ${JSON.stringify(minifiedVehicles)}
 
-JSON FORMAT: { "assignments": [{ "vehicleId", "route": [ids], "estimatedDurationMinutes", "estimatedDistanceKm", "notes" }], "optimizationSummary" }`;
+JSON SCHEMA: { "assignments": [{ "vehicleId", "route": [id1, id2], "estimatedDurationMinutes", "estimatedDistanceKm", "notes" }], "optimizationSummary" }`;
 
     const schemaDescription = `{ assignments: Array<{ vehicleId: string, route: string[], estimatedDurationMinutes: number, estimatedDistanceKm: number, notes: string }>, optimizationSummary: string }`;
 
@@ -59,13 +60,13 @@ JSON FORMAT: { "assignments": [{ "vehicleId", "route": [ids], "estimatedDuration
       schemaDescription
     );
 
-    // 2. Validação e Limpeza Rigorosa
+    // 2. Validação e Sanitização Rigorosa
     if (aiResult.output?.assignments) {
-      const validIds = new Set(input.appointments.map(a => a.id.trim()));
+      const validIds = new Set(input.appointments.map(a => String(a.id).trim()));
       
       const filteredAssignments = aiResult.output.assignments.map(assign => ({
         ...assign,
-        // Limpeza de IDs contra "alucinações" ou erros de formatação (aspas/espaços)
+        // Limpeza de IDs contra alucinações ou aspas extras do modelo
         route: assign.route
           .map(id => String(id).replace(/['"]/g, '').trim())
           .filter(id => validIds.has(id))
@@ -86,13 +87,14 @@ JSON FORMAT: { "assignments": [{ "vehicleId", "route": [ids], "estimatedDuration
     
     return {
       assignments: smartDeterministicGrouping(input.appointments, input.vehicles),
-      optimizationSummary: "Otimização concluída via processador local de contingência (Agrupamento Geográfico Municipal)."
+      optimizationSummary: "Otimização concluída via processador geográfico de contingência (Agrupamento Municipal)."
     };
   }
 }
 
 /**
  * Algoritmo de Agrupamento Determinístico Geográfico (Fallback de Segurança).
+ * Agrupa por Origem e Destino exatos para maximizar a lógica da demonstração.
  */
 function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[] {
   const availableVehicles = vehicles.filter(v => v.available);
@@ -101,7 +103,7 @@ function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[]
   const assignments: any[] = [];
   const groups: Record<string, any[]> = {};
 
-  // Agrupamento por chave geográfica
+  // Agrupamento por chave geográfica combinada (Chave: Origem||Destino)
   appointments.forEach(app => {
     const key = `${app.pickupLocation}||${app.destination}`;
     if (!groups[key]) groups[key] = [];
@@ -113,16 +115,17 @@ function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[]
     const vehicle = availableVehicles[vIdx % availableVehicles.length];
     const capacity = vehicle.capacity || 1;
     
+    // Divide os pacientes do grupo em "pedaços" que cabem no veículo
     for (let i = 0; i < apps.length; i += capacity) {
       const chunk = apps.slice(i, i + capacity);
       const currentVehicle = availableVehicles[vIdx % availableVehicles.length];
       
       assignments.push({
         vehicleId: currentVehicle.id,
-        route: chunk.map(c => c.id),
+        route: chunk.map(c => String(c.id).trim()),
         estimatedDurationMinutes: 30 + (chunk.length * 5),
         estimatedDistanceKm: 8.5,
-        notes: `Agrupamento municipal automático por proximidade geográfica.`
+        notes: `Agrupamento automático por setor: ${key.split('||')[0]}.`
       });
       vIdx++;
     }
