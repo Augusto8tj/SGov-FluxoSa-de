@@ -118,24 +118,24 @@ export default function DriversManagementPage() {
                 <CalendarIcon className="h-4 w-4" /> Escala Mensal
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] w-[95vw] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-              <div className="bg-primary p-6 text-white">
+            <DialogContent className="sm:max-w-[650px] w-[95vw] rounded-3xl p-0 overflow-y-auto max-h-[90vh] border-none shadow-2xl no-scrollbar">
+              <div className="bg-primary p-5 sm:p-6 text-white sticky top-0 z-10">
                 <DialogHeader className="text-left space-y-0">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-white/20 p-2.5 rounded-2xl">
-                      <CalendarIcon className="h-6 w-6" />
+                    <div className="bg-white/20 p-2 sm:p-2.5 rounded-2xl">
+                      <CalendarIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                     </div>
                     <div>
-                      <DialogTitle className="text-xl font-black uppercase tracking-tighter">Escala de Plantão</DialogTitle>
-                      <DialogDescription className="text-primary-foreground/70 text-[10px] uppercase font-bold tracking-widest text-white">
+                      <DialogTitle className="text-lg sm:text-xl font-black uppercase tracking-tighter">Escala de Plantão</DialogTitle>
+                      <DialogDescription className="text-primary-foreground/70 text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-white">
                         Gestão de Disponibilidade &bull; PMRC
                       </DialogDescription>
                     </div>
                   </div>
                 </DialogHeader>
               </div>
-              <div className="p-6 flex flex-col md:flex-row gap-6 bg-white">
-                <div className="flex-1 border rounded-2xl p-2 shadow-inner bg-slate-50 flex justify-center">
+              <div className="p-4 sm:p-6 flex flex-col md:flex-row gap-6 bg-white">
+                <div className="w-full flex-1 border rounded-2xl p-2 shadow-inner bg-slate-50 flex justify-center items-center">
                   <Calendar
                     mode="single"
                     selected={date}
@@ -168,8 +168,8 @@ export default function DriversManagementPage() {
                   </div>
                 </div>
               </div>
-              <DialogFooter className="p-4 bg-slate-50 border-t">
-                <Button className="w-full rounded-xl uppercase text-[10px] font-black tracking-widest h-11" onClick={() => setIsScheduleOpen(false)}>
+              <DialogFooter className="p-4 bg-slate-50 border-t sticky bottom-0 z-10">
+                <Button className="w-full rounded-xl uppercase text-[10px] font-black tracking-widest h-12" onClick={() => setIsScheduleOpen(false)}>
                   Fechar Consulta de Escala
                 </Button>
               </DialogFooter>
@@ -189,15 +189,15 @@ export default function DriversManagementPage() {
       </div>
 
       <Tabs defaultValue="roster" className="space-y-6">
-        <TabsList className="bg-muted/50 p-1 rounded-xl">
-          <TabsTrigger value="roster" className="rounded-lg gap-2">Corpo de Condutores</TabsTrigger>
-          <TabsTrigger value="financials" className="rounded-lg gap-2">
+        <TabsList className="bg-muted/50 p-1 rounded-xl w-full sm:w-auto overflow-x-auto no-scrollbar justify-start">
+          <TabsTrigger value="roster" className="rounded-lg gap-2 whitespace-nowrap">Corpo de Condutores</TabsTrigger>
+          <TabsTrigger value="financials" className="rounded-lg gap-2 whitespace-nowrap">
             Solicitações Financeiras 
             {financials.filter(f => f.status === 'PENDING').length > 0 && (
               <Badge className="ml-1 h-5 px-1.5 bg-primary text-white border-none">{financials.filter(f => f.status === 'PENDING').length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="performance" className="rounded-lg gap-2">Produtividade & IA</TabsTrigger>
+          <TabsTrigger value="performance" className="rounded-lg gap-2 whitespace-nowrap">Produtividade & IA</TabsTrigger>
         </TabsList>
 
         <TabsContent value="roster" className="space-y-6 outline-none">
@@ -215,64 +215,66 @@ export default function DriversManagementPage() {
           </div>
 
           <Card className="border-none shadow-md overflow-hidden bg-card rounded-2xl">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow className="border-none">
-                  <TableHead className="font-bold">Motorista</TableHead>
-                  <TableHead className="font-bold">Habilitação (CNH)</TableHead>
-                  <TableHead className="font-bold">Status Atual</TableHead>
-                  <TableHead className="font-bold">Viagens/Dia</TableHead>
-                  <TableHead className="text-right font-bold">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {MOCK_DRIVERS_FULL.map((driver) => (
-                  <TableRow key={driver.id} className="hover:bg-muted/10 transition-colors">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                          {driver.name[0]}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-sm text-slate-700">{driver.name}</span>
-                          <span className="text-[10px] text-muted-foreground font-medium">{driver.phone}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-600">{driver.license}</span>
-                        <span className={cn(
-                          "text-[9px] font-black uppercase tracking-tighter",
-                          new Date(driver.licenseExpiry.split('/').reverse().join('-')) < new Date(Date.now() + 30*24*60*60*1000) 
-                            ? "text-rose-500" : "text-muted-foreground"
-                        )}>
-                          Venc: {driver.licenseExpiry}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={cn(
-                        "text-[9px] font-black uppercase px-2 h-5 border-none",
-                        driver.status === 'ON_ROUTE' ? "bg-blue-100 text-blue-700" : 
-                        driver.status === 'AVAILABLE' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
-                      )}>
-                        {driver.status === 'ON_ROUTE' ? 'Em Rota' : driver.status === 'AVAILABLE' ? 'Disponível' : 'Fora de Serviço'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-3 w-3 text-emerald-500" />
-                        <span className="text-sm font-bold text-slate-700">{driver.tripsToday}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="h-4 w-4" /></Button>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow className="border-none">
+                    <TableHead className="font-bold">Motorista</TableHead>
+                    <TableHead className="font-bold">Habilitação (CNH)</TableHead>
+                    <TableHead className="font-bold">Status Atual</TableHead>
+                    <TableHead className="font-bold">Viagens/Dia</TableHead>
+                    <TableHead className="text-right font-bold">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {MOCK_DRIVERS_FULL.map((driver) => (
+                    <TableRow key={driver.id} className="hover:bg-muted/10 transition-colors">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                            {driver.name[0]}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-sm text-slate-700">{driver.name}</span>
+                            <span className="text-[10px] text-muted-foreground font-medium">{driver.phone}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-slate-600">{driver.license}</span>
+                          <span className={cn(
+                            "text-[9px] font-black uppercase tracking-tighter",
+                            new Date(driver.licenseExpiry.split('/').reverse().join('-')) < new Date(Date.now() + 30*24*60*60*1000) 
+                              ? "text-rose-500" : "text-muted-foreground"
+                          )}>
+                            Venc: {driver.licenseExpiry}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={cn(
+                          "text-[9px] font-black uppercase px-2 h-5 border-none",
+                          driver.status === 'ON_ROUTE' ? "bg-blue-100 text-blue-700" : 
+                          driver.status === 'AVAILABLE' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                        )}>
+                          {driver.status === 'ON_ROUTE' ? 'Em Rota' : driver.status === 'AVAILABLE' ? 'Disponível' : 'Fora de Serviço'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-3 w-3 text-emerald-500" />
+                          <span className="text-sm font-bold text-slate-700">{driver.tripsToday}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="h-4 w-4" /></Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         </TabsContent>
 
@@ -285,7 +287,7 @@ export default function DriversManagementPage() {
                   <div className="flex flex-col sm:flex-row">
                     <div className={cn(
                       "w-full sm:w-2 px-4 sm:px-0",
-                      req.status === 'APPROVED' ? "bg-emerald-500" : req.type === 'DIÁRIA' ? "bg-indigo-500" : "bg-amber-500"
+                      req.status === 'APPROVED' ? "bg-emerald-500" : req.type === 'DIÁRIA' ? "bg-primary" : "bg-amber-500"
                     )} />
                     <CardContent className="p-5 flex-1">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -340,11 +342,11 @@ export default function DriversManagementPage() {
             </div>
 
             <div className="space-y-6">
-              <Card className="border-none shadow-md rounded-2xl bg-indigo-600 text-white overflow-hidden relative">
+              <Card className="border-none shadow-md rounded-2xl bg-primary text-white overflow-hidden relative">
                 <div className="absolute top-0 right-0 p-4 opacity-10"><Coins className="h-24 w-24" /></div>
                 <CardHeader>
                   <CardTitle className="text-lg font-black uppercase tracking-tighter">Budget Diárias</CardTitle>
-                  <CardDescription className="text-indigo-100 text-xs">Mês de Junho/2024</CardDescription>
+                  <CardDescription className="text-primary-foreground/70 text-xs">Mês de Junho/2024</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
