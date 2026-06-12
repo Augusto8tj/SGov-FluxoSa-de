@@ -151,7 +151,7 @@ export default function LoginPage() {
                   >
                     <div className="bg-primary/10 p-1.5 rounded-lg group-hover:bg-primary/20"><ShieldCheck className="h-4 w-4 text-primary" /></div>
                     <div className="text-left leading-none">
-                      <p className="text-xs">Secretário de Saúde</p>
+                      <p className="text-xs">Secretário de Ordem Pública</p>
                       <p className="text-[9px] font-medium text-muted-foreground">Visão Estratégica & IA</p>
                     </div>
                   </Button>
