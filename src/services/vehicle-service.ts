@@ -1,3 +1,4 @@
+
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -7,7 +8,8 @@ import {
   deleteDoc, 
   doc, 
   query, 
-  orderBy 
+  orderBy,
+  getDocsFromCache
 } from "firebase/firestore";
 import { Vehicle } from "@/lib/types";
 import { MOCK_VEHICLES } from "@/lib/mock-data";
@@ -15,17 +17,23 @@ import { MOCK_VEHICLES } from "@/lib/mock-data";
 const COLLECTION_NAME = "vehicles";
 
 /**
- * @fileOverview Serviço de gerenciamento da frota de veículos no Firestore.
- * Com suporte a fallback de demonstração.
+ * @fileOverview Serviço de gerenciamento da frota de veículos no Firestore com modo demo instantâneo.
  */
 export const vehicleService = {
-  /**
-   * Recupera todos os veículos. Retorna mocks se o banco estiver vazio ou falhar.
-   */
   async getVehicles(): Promise<Vehicle[]> {
+    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      return MOCK_VEHICLES;
+    }
+
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("licensePlate", "asc"));
-      const querySnapshot = await getDocs(q);
+      
+      let querySnapshot;
+      try {
+        querySnapshot = await getDocsFromCache(q);
+      } catch {
+        querySnapshot = await getDocs(q);
+      }
       
       if (querySnapshot.empty) {
         return MOCK_VEHICLES;
@@ -36,14 +44,10 @@ export const vehicleService = {
         ...doc.data()
       } as Vehicle));
     } catch (error) {
-      console.warn("Firestore error in vehicleService, falling back to mocks:", error);
       return MOCK_VEHICLES;
     }
   },
 
-  /**
-   * Adiciona um novo veículo à coleção.
-   */
   async addVehicle(vehicle: Omit<Vehicle, "id">): Promise<string> {
     try {
       const now = new Date().toISOString();
@@ -59,9 +63,6 @@ export const vehicleService = {
     }
   },
 
-  /**
-   * Atualiza dados de um veículo existente.
-   */
   async updateVehicle(id: string, data: Partial<Vehicle>): Promise<void> {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
@@ -75,9 +76,6 @@ export const vehicleService = {
     }
   },
 
-  /**
-   * Remove um veículo da frota.
-   */
   async deleteVehicle(id: string): Promise<void> {
     try {
       const docRef = doc(db, COLLECTION_NAME, id);

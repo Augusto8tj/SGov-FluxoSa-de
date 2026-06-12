@@ -19,7 +19,6 @@ import {
   Eye,
   Check,
   X,
-  FileText,
   User,
   Ambulance,
   Navigation,
@@ -81,11 +80,9 @@ export default function RequestsPage() {
   const [requests, setRequests] = useState<TransportRequest[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   
-  // States
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
   
-  // Form State
   const [patientId, setPatientId] = useState("");
   const [patientNotes, setPatientNotes] = useState("");
   const [destination, setDestination] = useState("");
@@ -98,7 +95,10 @@ export default function RequestsPage() {
   const { toast } = useToast();
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    // Carregamento instantâneo se estiver em modo demo
+    const isDemo = typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user");
+    if (!isDemo) setLoading(true);
+
     try {
       const [fetchedRequests, fetchedPatients] = await Promise.all([
         requestService.getRequests(),
@@ -182,7 +182,7 @@ export default function RequestsPage() {
       urgencyLevel: urgency as any,
       status: editingRequest?.status || "PENDING",
       operatorId: "ADMIN",
-      aiRecommendation: patientNotes, // Salva as notas clínicas aqui
+      aiRecommendation: patientNotes,
     };
 
     try {
@@ -256,7 +256,6 @@ export default function RequestsPage() {
           <Plus className="h-4 w-4" /> Novo Pedido
         </Button>
 
-        {/* Dialog Novo/Edição */}
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
           setIsDialogOpen(open);
           if (!open) resetForm();
@@ -475,13 +474,11 @@ export default function RequestsPage() {
                       </TableCell>
                     </TableRow>
 
-                    {/* Linha Expansível: Painel Técnico Acordeon */}
                     {expandedRequestId === req.id && (
                       <TableRow className="bg-primary/[0.02] border-b-2 border-primary/10">
                         <TableCell colSpan={5} className="p-0">
                           <div className="p-4 sm:p-6 animate-in slide-in-from-top-2 duration-300">
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                              {/* Coluna 1: Dados do Trajeto */}
                               <div className="space-y-4 bg-white p-5 rounded-2xl shadow-sm border border-primary/5">
                                 <h4 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
                                   <Navigation className="h-4 w-4" /> Roteirização do Trajeto
@@ -513,7 +510,6 @@ export default function RequestsPage() {
                                 </div>
                               </div>
 
-                              {/* Coluna 2: Logística do Manifesto */}
                               <div className="space-y-4">
                                 <h4 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2 px-1">
                                   <ShieldCheck className="h-4 w-4" /> Logística do Manifesto
@@ -564,7 +560,6 @@ export default function RequestsPage() {
                                 )}
                               </div>
 
-                              {/* Coluna 3: Notas e IA */}
                               <div className="space-y-4 bg-slate-50 p-5 rounded-3xl border border-slate-200/50">
                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                   <ClipboardList className="h-4 w-4" /> Observações Clínicas

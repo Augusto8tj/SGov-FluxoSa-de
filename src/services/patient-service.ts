@@ -8,7 +8,8 @@ import {
   deleteDoc, 
   doc, 
   query, 
-  orderBy 
+  orderBy,
+  getDocsFromCache
 } from "firebase/firestore";
 import { Patient } from "@/lib/types";
 import { MOCK_PATIENTS } from "@/lib/mock-data";
@@ -16,13 +17,23 @@ import { MOCK_PATIENTS } from "@/lib/mock-data";
 const COLLECTION_NAME = "patients";
 
 /**
- * @fileOverview Serviço de gerenciamento de pacientes com suporte a dados mock.
+ * @fileOverview Serviço de gerenciamento de pacientes com suporte instantâneo a modo demo.
  */
 export const patientService = {
   async getPatients(): Promise<Patient[]> {
+    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      return MOCK_PATIENTS;
+    }
+
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("name", "asc"));
-      const querySnapshot = await getDocs(q);
+      
+      let querySnapshot;
+      try {
+        querySnapshot = await getDocsFromCache(q);
+      } catch {
+        querySnapshot = await getDocs(q);
+      }
       
       if (querySnapshot.empty) {
         return MOCK_PATIENTS;
@@ -33,7 +44,6 @@ export const patientService = {
         ...doc.data()
       } as Patient));
     } catch (error) {
-      console.warn("Firestore error, falling back to mocks:", error);
       return MOCK_PATIENTS;
     }
   },

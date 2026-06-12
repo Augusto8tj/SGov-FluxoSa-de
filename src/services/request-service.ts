@@ -10,10 +10,8 @@ import {
   query, 
   orderBy,
   where,
-  Timestamp,
   writeBatch,
-  getDocsFromCache,
-  getDocsFromServer
+  getDocsFromCache
 } from "firebase/firestore";
 import { TransportRequest } from "@/lib/types";
 import { MOCK_REQUESTS } from "@/lib/mock-data";
@@ -22,22 +20,26 @@ const COLLECTION_NAME = "requests";
 
 /**
  * @fileOverview Serviço de gestão de solicitações de transporte no Firestore.
- * Otimizado para demonstrar agilidade no carregamento de dados mock.
+ * Otimizado para retornar dados instantaneamente em modo de demonstração.
  */
 export const requestService = {
   /**
-   * Busca todas as solicitações. Retorna mocks instantaneamente se o banco estiver vazio.
+   * Busca todas as solicitações. Prioriza mocks instantâneos se estiver em modo demo.
    */
   async getRequests(): Promise<TransportRequest[]> {
+    // Checagem de modo demo para retorno instantâneo
+    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      return MOCK_REQUESTS;
+    }
+
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
       
-      // Tenta primeiro carregar do cache para agilidade máxima
+      // Tenta primeiro carregar do cache
       let querySnapshot;
       try {
         querySnapshot = await getDocsFromCache(q);
       } catch {
-        // Se falhar o cache, tenta servidor com timeout curto implícito
         querySnapshot = await getDocs(q);
       }
       
@@ -50,7 +52,6 @@ export const requestService = {
         ...doc.data()
       } as TransportRequest));
     } catch (error) {
-      // Falha rápida redireciona para mocks imediatamente
       return MOCK_REQUESTS;
     }
   },
@@ -59,6 +60,10 @@ export const requestService = {
    * Busca uma solicitação pelo código de acesso do paciente.
    */
   async getByAccessCode(code: string): Promise<TransportRequest | null> {
+    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
+    }
+
     try {
       const q = query(collection(db, COLLECTION_NAME), where("patientAccessCode", "==", code));
       const querySnapshot = await getDocs(q);
@@ -115,16 +120,12 @@ export const requestService = {
     }
   },
 
-  /**
-   * Atualiza múltiplas solicitações para atribuir um manifesto em lote.
-   */
   async createManifestBatch(assignments: any[]): Promise<void> {
     const batch = writeBatch(db);
     
     assignments.forEach((assign) => {
       const manifestId = `MF-${Date.now().toString().slice(-6)}-${assign.vehicleId}`;
       assign.route.forEach((requestId: string) => {
-        // Ignora se for ID de mock que começa com REQ-
         if (requestId.startsWith('REQ-')) return;
         
         const docRef = doc(db, COLLECTION_NAME, requestId);
