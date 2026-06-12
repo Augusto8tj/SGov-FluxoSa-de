@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -41,9 +40,8 @@ const MOCK_AUDIT_LOGS = [
 
 export default function AuditPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [integrityStatus, setIntegrityStatus] = useState("VALIDADO");
+  const integrityStatus = "VALIDADO";
 
   useEffect(() => {
     setMounted(true);
@@ -130,67 +128,60 @@ export default function AuditPage() {
       </div>
 
       <Card className="border-none shadow-md overflow-hidden bg-card rounded-2xl">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <Loader2 className="h-10 w-10 text-primary animate-spin" />
-            <p className="text-sm text-muted-foreground font-black uppercase tracking-widest">Sincronizando Cadeia de Custódia...</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow className="border-none">
-                  <TableHead className="font-bold">Usuário / ID</TableHead>
-                  <TableHead className="font-bold">Ação Realizada</TableHead>
-                  <TableHead className="font-bold">Recurso Afetado</TableHead>
-                  <TableHead className="font-bold">Data & IP</TableHead>
-                  <TableHead className="text-right font-bold">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.map((log) => (
-                  <TableRow key={log.id} className="hover:bg-muted/10 transition-colors group">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                          <User className="h-4 w-4" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-xs">{log.user.split('@')[0]}</span>
-                          <span className="text-[9px] text-muted-foreground uppercase">{log.id}</span>
-                        </div>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader className="bg-muted/30">
+              <TableRow className="border-none">
+                <TableHead className="font-bold">Usuário / ID</TableHead>
+                <TableHead className="font-bold">Ação Realizada</TableHead>
+                <TableHead className="font-bold">Recurso Afetado</TableHead>
+                <TableHead className="font-bold">Data & IP</TableHead>
+                <TableHead className="text-right font-bold">Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredLogs.map((log) => (
+                <TableRow key={log.id} className="hover:bg-muted/10 transition-colors group">
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <User className="h-4 w-4" />
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-xs font-semibold text-slate-700">{log.action}</p>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase">
-                        <Database className="h-3 w-3" /> {log.resource}
-                      </div>
-                    </TableCell>
-                    <TableCell>
                       <div className="flex flex-col">
-                        <span className="text-xs font-bold text-slate-600">
-                          {format(new Date(log.time), "dd/MM HH:mm:ss", { locale: ptBR })}
-                        </span>
-                        <span className="text-[9px] font-mono text-muted-foreground">{log.ip}</span>
+                        <span className="font-bold text-xs">{log.user.split('@')[0]}</span>
+                        <span className="text-[9px] text-muted-foreground uppercase">{log.id}</span>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge className={cn(
-                        "text-[8px] font-black uppercase px-2 h-5 border-none",
-                        log.status === 'SUCCESS' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                      )}>
-                        {log.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-xs font-semibold text-slate-700">{log.action}</p>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground uppercase">
+                      <Database className="h-3 w-3" /> {log.resource}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-600">
+                        {format(new Date(log.time), "dd/MM HH:mm:ss", { locale: ptBR })}
+                      </span>
+                      <span className="text-[9px] font-mono text-muted-foreground">{log.ip}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge className={cn(
+                      "text-[8px] font-black uppercase px-2 h-5 border-none",
+                      log.status === 'SUCCESS' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                    )}>
+                      {log.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
 
       <div className="p-6 bg-slate-100 rounded-[2.5rem] border border-dashed border-slate-300 flex flex-col md:flex-row items-center gap-6">

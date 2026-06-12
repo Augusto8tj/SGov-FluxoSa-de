@@ -19,7 +19,6 @@ export const MOCK_PATIENTS: Patient[] = [
 ];
 
 export const MOCK_REQUESTS: TransportRequest[] = [
-  // PENDENTES (Para o Painel de Comando)
   { id: "REQ-001", patientId: "P1", patientName: "Benedito Silva", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "critical", status: "PENDING", requestedTime: "2024-05-25T08:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString(), aiRecommendation: "Paciente crítico, necessita suporte avançado e monitoramento constante durante o trajeto." },
   { id: "REQ-002", patientId: "P2", patientName: "Maria de Fátima", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Centro Hemodiálise", urgencyLevel: "high", status: "PENDING", requestedTime: "2024-05-25T09:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString(), aiRecommendation: "Sessão recorrente de hemodiálise. Transporte essencial para manutenção da vida." },
   { id: "REQ-003", patientId: "P3", patientName: "José Bonifácio", ubsId: "UBS Passa Três", pickupLocation: "Passa Três", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "PENDING", requestedTime: "2024-05-25T10:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
@@ -27,49 +26,14 @@ export const MOCK_REQUESTS: TransportRequest[] = [
   { id: "REQ-005", patientId: "P5", patientName: "Wilson Oliveira", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Hospital Municipal", urgencyLevel: "high", status: "PENDING", requestedTime: "2024-05-25T11:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString(), aiRecommendation: "Uso de oxigênio portátil relatado. Requer viatura com suporte técnico adequado." },
   { id: "REQ-006", patientId: "P6", patientName: "Carlos Drummond", ubsId: "UBS Passa Três", pickupLocation: "Passa Três", destinationLocation: "Centro Reabilitação", urgencyLevel: "medium", status: "PENDING", requestedTime: "2024-05-25T11:30:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
   { id: "REQ-007", patientId: "P7", patientName: "Cecília Meireles", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Oncologia Regional", urgencyLevel: "high", status: "PENDING", requestedTime: "2024-05-25T13:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString(), aiRecommendation: "Tratamento quimioterápico. Paciente apresenta quadro de debilidade física acentuada." },
-  
-  // APROVADOS SEM ROTA (Para o Otimizador de Rotas)
-  { id: "REQ-201", patientId: "P11", patientName: "Graciliano Ramos", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T08:30:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
-  { id: "REQ-202", patientId: "P12", patientName: "Rachel de Queiroz", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Hospital Municipal", urgencyLevel: "high", status: "APPROVED", requestedTime: "2024-05-25T09:45:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
-  { id: "REQ-203", patientId: "P13", patientName: "Jorge Amado", ubsId: "UBS Passa Três", pickupLocation: "Passa Três", destinationLocation: "Hospital Municipal", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T11:15:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
-  { id: "REQ-204", patientId: "P14", patientName: "Érico Veríssimo", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Hospital Regional", urgencyLevel: "low", status: "APPROVED", requestedTime: "2024-05-25T15:30:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
-  { id: "REQ-205", patientId: "P15", patientName: "Lygia Fagundes", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T16:00:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
-  
-  // MANIFESTOS ATIVOS (Para Gestão de Manifestos)
-  { 
-    id: "REQ-101", 
-    patientId: "P1", 
-    patientName: "Machado de Assis", 
-    ubsId: "UBS Central", 
-    pickupLocation: "Centro", 
-    destinationLocation: "Hospital Municipal", 
-    urgencyLevel: "medium", 
-    status: "APPROVED", 
-    requestedTime: "2024-05-25T08:00:00Z", 
-    operatorId: "ADMIN", 
-    createdAt: new Date().toISOString(),
-    manifestId: "MF-2024-001",
-    driverId: "Carlos Alberto Silva",
-    vehicleId: "Ambulância (V1)",
-    patientAccessCode: "102938"
-  },
-  { 
-    id: "REQ-102", 
-    patientId: "P2", 
-    patientName: "Clarice Lispector", 
-    ubsId: "UBS Central", 
-    pickupLocation: "Centro", 
-    destinationLocation: "Centro Hemodiálise", 
-    urgencyLevel: "high", 
-    status: "APPROVED", 
-    requestedTime: "2024-05-25T08:15:00Z", 
-    operatorId: "ADMIN", 
-    createdAt: new Date().toISOString(),
-    manifestId: "MF-2024-001",
-    driverId: "Carlos Alberto Silva",
-    vehicleId: "Ambulância (V1)",
-    patientAccessCode: "554433"
-  },
+  { id: "REQ-008", patientId: "P8", patientName: "Machado de Assis", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "medium", status: "PENDING", requestedTime: "2024-05-25T14:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
+  { id: "REQ-009", patientId: "P9", patientName: "Clarice Lispector", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Maternidade Municipal", urgencyLevel: "medium", status: "PENDING", requestedTime: "2024-05-25T14:30:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
+  { id: "REQ-010", patientId: "P10", patientName: "Guimarães Rosa", ubsId: "UBS Passa Três", pickupLocation: "Passa Três", destinationLocation: "Geriatria Especializada", urgencyLevel: "low", status: "PENDING", requestedTime: "2024-05-25T15:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
+  { id: "REQ-011", patientId: "P11", patientName: "Graciliano Ramos", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Exames de Imagem", urgencyLevel: "low", status: "PENDING", requestedTime: "2024-05-25T15:30:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
+  { id: "REQ-012", patientId: "P12", patientName: "Rachel de Queiroz", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Clínica de Olhos", urgencyLevel: "low", status: "PENDING", requestedTime: "2024-05-25T16:00:00Z", operatorId: "UBS_MGR", createdAt: new Date().toISOString() },
+  { id: "REQ-013", patientId: "P13", patientName: "Jorge Amado", ubsId: "UBS Passa Três", pickupLocation: "Passa Três", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "APPROVED", requestedTime: "2024-05-25T08:30:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString(), manifestId: "MF-DEMO-01", driverId: "Carlos Silva", vehicleId: "Ambulância V1" },
+  { id: "REQ-014", patientId: "P14", patientName: "Érico Veríssimo", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "COMPLETED", requestedTime: "2024-05-24T10:00:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString() },
+  { id: "REQ-015", patientId: "P15", patientName: "Lygia Fagundes", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Fisioterapia", urgencyLevel: "low", status: "APPROVED", requestedTime: "2024-05-25T11:00:00Z", operatorId: "ADMIN", createdAt: new Date().toISOString(), manifestId: "MF-DEMO-02", driverId: "Marcos Pereira", vehicleId: "Van V2" },
 ];
 
 export const MOCK_VEHICLES: Vehicle[] = [

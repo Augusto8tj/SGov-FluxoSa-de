@@ -30,7 +30,7 @@ import {
   TableHead, 
   TableHeader, 
   TableRow 
-} from "@/table";
+} from "@/components/ui/table";
 import { provideDecisionSupportForApprovals, ProvideDecisionSupportOutput } from "@/ai/flows/provide-decision-support-for-approvals";
 import { useToast } from "@/hooks/use-toast";
 import { StatsCard } from "@/components/dashboard/stats-card";
