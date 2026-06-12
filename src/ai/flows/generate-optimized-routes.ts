@@ -25,7 +25,7 @@ interface MinifiedAppointment {
 
 export async function generateOptimizedRoutes(input: { appointments: any[], vehicles: any[] }): Promise<GenerateOptimizedRoutesOutput> {
   try {
-    // 1. Preparação: Minificação rigorosa do input
+    // 1. Preparação: Minificação rigorosa do input para economizar tokens e evitar confusão de campos
     const minifiedApps: MinifiedAppointment[] = input.appointments.map(a => ({
       id: String(a.id).trim(),
       pick: a.pickupLocation,
@@ -40,18 +40,18 @@ export async function generateOptimizedRoutes(input: { appointments: any[], vehi
       throw new Error("EMPTY_DATA");
     }
 
-    const prompt = `TASK: You are a logistics expert for Rio Claro city. Group appointments into vehicles efficiently.
+    const prompt = `TASK: You are a senior logistics expert for Rio Claro city. Group sanitary transport appointments into available vehicles.
 RULES:
-1. Use EXACT IDs from 'apps' data. NEVER change a digit.
-2. Group by 'pick' (origin) and 'dest' proximity.
-3. Respect vehicle 'cap' (maximum capacity).
-4. Output ONLY pure JSON. No text, no markdown.
+1. Use EXACT IDs from 'apps' data. NEVER alter the ID string (e.g., REQ-001 must stay REQ-001).
+2. Group by geographic proximity of 'pick' (origin) and 'dest' (destination).
+3. Respect vehicle 'cap' (maximum capacity). Do not exceed it.
+4. Output ONLY pure JSON. No markdown, no conversational text.
 
 DATA:
 - apps: ${JSON.stringify(minifiedApps)}
 - fleet: ${JSON.stringify(minifiedVehicles)}
 
-JSON SCHEMA: { "assignments": [{ "vehicleId", "route": [id1, id2], "estimatedDurationMinutes", "estimatedDistanceKm", "notes" }], "optimizationSummary" }`;
+JSON SCHEMA: { "assignments": [{ "vehicleId": "V1", "route": ["REQ-001", "REQ-002"], "estimatedDurationMinutes": 30, "estimatedDistanceKm": 8.5, "notes": "Agrupamento por bairro." }], "optimizationSummary": "String" }`;
 
     const schemaDescription = `{ assignments: Array<{ vehicleId: string, route: string[], estimatedDurationMinutes: number, estimatedDistanceKm: number, notes: string }>, optimizationSummary: string }`;
 
@@ -60,13 +60,13 @@ JSON SCHEMA: { "assignments": [{ "vehicleId", "route": [id1, id2], "estimatedDur
       schemaDescription
     );
 
-    // 2. Validação e Sanitização Rigorosa
+    // 2. Validação e Sanitização Rigorosa dos IDs
     if (aiResult.output?.assignments) {
       const validIds = new Set(input.appointments.map(a => String(a.id).trim()));
       
       const filteredAssignments = aiResult.output.assignments.map(assign => ({
         ...assign,
-        // Limpeza de IDs contra alucinações ou aspas extras do modelo
+        // Limpeza profunda de IDs contra alucinações ou artefatos do modelo
         route: assign.route
           .map(id => String(id).replace(/['"]/g, '').trim())
           .filter(id => validIds.has(id))
@@ -83,7 +83,7 @@ JSON SCHEMA: { "assignments": [{ "vehicleId", "route": [id1, id2], "estimatedDur
     throw new Error("IA_INVALID_RESPONSE");
 
   } catch (error) {
-    console.warn("Optimizer: Acionando Fallback Local Eficiente.", error);
+    console.warn("Optimizer: Acionando Fallback Local Determinístico.", error);
     
     return {
       assignments: smartDeterministicGrouping(input.appointments, input.vehicles),
@@ -94,7 +94,7 @@ JSON SCHEMA: { "assignments": [{ "vehicleId", "route": [id1, id2], "estimatedDur
 
 /**
  * Algoritmo de Agrupamento Determinístico Geográfico (Fallback de Segurança).
- * Agrupa por Origem e Destino exatos para maximizar a lógica da demonstração.
+ * Agrupa por Origem e Destino exatos para garantir que a demonstração nunca falhe.
  */
 function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[] {
   const availableVehicles = vehicles.filter(v => v.available);
@@ -112,6 +112,7 @@ function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[]
 
   let vIdx = 0;
   Object.entries(groups).forEach(([key, apps]) => {
+    // Busca o veículo atual disponível
     const vehicle = availableVehicles[vIdx % availableVehicles.length];
     const capacity = vehicle.capacity || 1;
     

@@ -19,7 +19,7 @@ const COLLECTION_NAME = "requests";
 
 /**
  * @fileOverview Serviço de gestão de solicitações com suporte a batch para manifestos.
- * Implementa a lógica de filtro status === 'APPROVED' E manifestId ausente para o Otimizador.
+ * Implementa simulação de persistência para o modo demonstração.
  */
 export const requestService = {
   async getRequests(): Promise<TransportRequest[]> {
@@ -89,7 +89,10 @@ export const requestService = {
 
   async updateRequest(id: string, data: Partial<TransportRequest>): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
-      // Em modo demo, apenas simulamos o sucesso (local state update handles the UI)
+      const index = MOCK_REQUESTS.findIndex(r => r.id === id);
+      if (index !== -1) {
+        MOCK_REQUESTS[index] = { ...MOCK_REQUESTS[index], ...data, updatedAt: new Date().toISOString() };
+      }
       return Promise.resolve();
     }
 
@@ -105,6 +108,12 @@ export const requestService = {
   },
 
   async deleteRequest(id: string): Promise<void> {
+    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      const index = MOCK_REQUESTS.findIndex(r => r.id === id);
+      if (index !== -1) MOCK_REQUESTS.splice(index, 1);
+      return Promise.resolve();
+    }
+
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
       await deleteDoc(docRef);
@@ -114,11 +123,24 @@ export const requestService = {
   },
 
   /**
-   * Oficializa múltiplos manifestos em uma única transação Firestore.
+   * Oficializa múltiplos manifestos em uma única transação.
+   * Em modo demo, atualiza o array MOCK_REQUESTS em memória para que a fila de espera reflita as mudanças.
    */
   async createManifestBatch(assignments: any[]): Promise<void> {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
-      // Simulação para o Secretário no modo demonstração: apenas resolve com sucesso.
+      assignments.forEach((assign) => {
+        const manifestId = `MF-${Date.now().toString().slice(-4)}-${assign.vehicleId.slice(0, 3).toUpperCase()}`;
+        assign.route.forEach((requestId: string) => {
+          const req = MOCK_REQUESTS.find(r => r.id === requestId.trim());
+          if (req) {
+            req.manifestId = manifestId;
+            req.driverId = assign.driverName;
+            req.vehicleId = assign.vehicleType || assign.vehicleId;
+            req.assignedAt = new Date().toISOString();
+            req.status = 'APPROVED';
+          }
+        });
+      });
       return Promise.resolve();
     }
 
