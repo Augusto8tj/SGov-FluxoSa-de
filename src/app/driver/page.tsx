@@ -14,19 +14,27 @@ import {
   Heart,
   Star,
   ShieldCheck,
-  Loader2
+  Loader2,
+  Gauge,
+  Fuel,
+  Coins,
+  FileText,
+  Plus
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { 
   Dialog, 
   DialogContent, 
   DialogFooter, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger 
+  DialogTrigger,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { generateDriverBriefing, DriverBriefingOutput } from "@/ai/flows/generate-driver-briefing-flow";
@@ -51,9 +59,17 @@ export default function DriverDashboard() {
   const [checklistDone, setChecklistDone] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [feedbackNote, setFeedbackNote] = useState("");
+  const [startOdometer, setStartOdometer] = useState("");
+  const [endOdometer, setEndOdometer] = useState("");
   const [isSendingFeedback, setIsSendingFeedback] = useState(false);
   const [missionComplete, setMissionComplete] = useState(false);
   
+  // Requisition States
+  const [fuelValue, setFuelValue] = useState("");
+  const [dailyAllowanceValue, setDailyAllowanceValue] = useState("");
+  const [isFuelDialogOpen, setIsFuelDialogOpen] = useState(false);
+  const [isDailyDialogOpen, setIsDailyDialogOpen] = useState(false);
+
   const { toast } = useToast();
   const { logout, user } = useAuth();
 
@@ -83,9 +99,23 @@ export default function DriverDashboard() {
     }
   };
 
+  const handleStartManifest = () => {
+    if (!startOdometer) {
+      toast({ title: "Atenção", description: "Informe a quilometragem inicial.", variant: "destructive" });
+      return;
+    }
+    setChecklistDone(true);
+    toast({ title: "Jornada Iniciada", description: "Manifesto ativo. Boa viagem!" });
+  };
+
   const handleFinalizeMission = async () => {
-    if (!feedbackNote.trim()) {
-      toast({ title: "Atenção", description: "Por favor, relate como foi o seu turno.", variant: "destructive" });
+    if (!endOdometer || !feedbackNote.trim()) {
+      toast({ title: "Atenção", description: "Informe a quilometragem final e relate o turno.", variant: "destructive" });
+      return;
+    }
+
+    if (Number(endOdometer) <= Number(startOdometer)) {
+      toast({ title: "Erro", description: "A quilometragem final deve ser maior que a inicial.", variant: "destructive" });
       return;
     }
 
@@ -95,7 +125,7 @@ export default function DriverDashboard() {
         driverId: user?.uid || "DRIVER",
         driverName: user?.name || user?.email || "Motorista Municipal",
         vehicleId: "Viatura Local",
-        content: feedbackNote,
+        content: `KM Final: ${endOdometer}. Relato: ${feedbackNote}`,
         timestamp: new Date().toISOString()
       });
 
@@ -106,6 +136,18 @@ export default function DriverDashboard() {
     } finally {
       setIsSendingFeedback(false);
     }
+  };
+
+  const handleRequestFuel = () => {
+    toast({ title: "Requisição Enviada", description: `Pedido de R$ ${fuelValue} em combustível encaminhado para aprovação.` });
+    setIsFuelDialogOpen(false);
+    setFuelValue("");
+  };
+
+  const handleRequestDaily = () => {
+    toast({ title: "Diária Solicitada", description: `Requisição de diária enviada com sucesso.` });
+    setIsDailyDialogOpen(false);
+    setDailyAllowanceValue("");
   };
 
   if (!mounted) return null;
@@ -157,7 +199,7 @@ export default function DriverDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Minha Jornada</h2>
@@ -176,14 +218,32 @@ export default function DriverDashboard() {
             </CardTitle>
             <CardDescription className="text-primary/70 text-xs">Verificação obrigatória antes da partida.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {["Combustível", "Sistema de Freios", "Equipamentos Clínicos", "Cintos de Segurança"].map((item, i) => (
-              <div key={i} className="flex items-center space-x-3 p-2 bg-white/50 rounded-lg">
-                <Checkbox id={`check-${i}`} className="h-5 w-5" />
-                <label htmlFor={`check-${i}`} className="text-sm font-bold text-slate-700">{item}</label>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3">
+              {["Pneus", "Sistema de Freios", "Equipamentos Clínicos", "Higienização"].map((item, i) => (
+                <div key={i} className="flex items-center space-x-3 p-3 bg-white/50 rounded-xl border border-primary/5">
+                  <Checkbox id={`check-${i}`} className="h-5 w-5" />
+                  <label htmlFor={`check-${i}`} className="text-sm font-bold text-slate-700">{item}</label>
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-2 mt-4 pt-4 border-t border-primary/10">
+              <Label htmlFor="odo-start" className="text-[10px] font-black uppercase text-primary">Quilometragem Inicial (Odômetro)</Label>
+              <div className="relative">
+                <Gauge className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                <Input 
+                  id="odo-start" 
+                  type="number" 
+                  placeholder="Ex: 12450" 
+                  className="pl-10 h-12 bg-white rounded-xl focus:ring-primary"
+                  value={startOdometer}
+                  onChange={(e) => setStartOdometer(e.target.value)}
+                />
               </div>
-            ))}
-            <Button className="w-full mt-4 h-12 shadow-lg font-black uppercase text-xs tracking-widest" onClick={() => setChecklistDone(true)}>
+            </div>
+
+            <Button className="w-full mt-2 h-14 shadow-lg font-black uppercase text-xs tracking-widest rounded-2xl" onClick={handleStartManifest}>
               Iniciar Manifesto
             </Button>
           </CardContent>
@@ -195,13 +255,76 @@ export default function DriverDashboard() {
             <CardContent className="pt-6 relative">
               <div className="flex items-center gap-4">
                 <div className="bg-white/20 p-3 rounded-xl"><Ambulance className="h-8 w-8" /></div>
-                <div>
+                <div className="flex-1">
                   <p className="font-black text-lg leading-none uppercase tracking-tighter">Viatura Operacional</p>
-                  <p className="text-[10px] opacity-80 mt-1 uppercase font-bold tracking-widest">Rio Claro &bull; 4 Paradas Ativas</p>
+                  <p className="text-[10px] opacity-80 mt-1 uppercase font-bold tracking-widest">Início: {startOdometer} km &bull; 4 Paradas</p>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Seção Administrativa */}
+          <div className="grid grid-cols-2 gap-3">
+            <Dialog open={isFuelDialogOpen} onOpenChange={setIsFuelDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="h-16 flex flex-col gap-1 border-dashed border-2 border-primary/20 text-primary hover:bg-primary/5 rounded-2xl">
+                  <Fuel className="h-5 w-5" />
+                  <span className="text-[10px] font-black uppercase">Combustível</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="rounded-3xl max-w-md w-[95vw]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Fuel className="h-5 w-5 text-primary" /> Requisição de Abastecimento
+                  </DialogTitle>
+                  <DialogDescription>Solicite autorização para abastecer a viatura.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="grid gap-2">
+                    <Label>Valor Estimado / Litros</Label>
+                    <Input placeholder="Ex: R$ 200,00" value={fuelValue} onChange={(e) => setFuelValue(e.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Posto Conveniado</Label>
+                    <Input placeholder="Ex: Posto Central PMRC" />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button className="w-full h-12 rounded-xl" onClick={handleRequestFuel}>Enviar Requisição</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Dialog open={isDailyDialogOpen} onOpenChange={setIsDailyDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="h-16 flex flex-col gap-1 border-dashed border-2 border-primary/20 text-primary hover:bg-primary/5 rounded-2xl">
+                  <Coins className="h-5 w-5" />
+                  <span className="text-[10px] font-black uppercase">Diárias</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="rounded-3xl max-w-md w-[95vw]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-primary" /> Requisição de Diária
+                  </DialogTitle>
+                  <DialogDescription>Solicite o auxílio para viagens de longa distância.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="grid gap-2">
+                    <Label>Motivo da Diária</Label>
+                    <Input placeholder="Ex: Viagem Intermunicipal / RJ" value={dailyAllowanceValue} onChange={(e) => setDailyAllowanceValue(e.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Duração Prevista</Label>
+                    <Input placeholder="Ex: 12 horas" />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button className="w-full h-12 rounded-xl" onClick={handleRequestDaily}>Solicitar Diária</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between px-1">
@@ -282,16 +405,34 @@ export default function DriverDashboard() {
             <DialogContent className="sm:max-w-md w-[95vw] rounded-3xl">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-xl font-black tracking-tighter">
-                  <MessageSquare className="h-6 w-6 text-primary" /> Relatório de Viagem
+                  <FileText className="h-6 w-6 text-primary" /> Relatório de Viagem
                 </DialogTitle>
+                <DialogDescription>Confirme os dados de telemetria e o relato operacional.</DialogDescription>
               </DialogHeader>
-              <div className="py-4">
-                <Textarea 
-                  placeholder="Relate como foi o turno..."
-                  className="min-h-[120px] focus:ring-primary rounded-2xl"
-                  value={feedbackNote}
-                  onChange={(e) => setFeedbackNote(e.target.value)}
-                />
+              <div className="space-y-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="odo-end" className="text-xs font-black uppercase text-slate-400">Quilometragem Final (Odômetro)</Label>
+                  <div className="relative">
+                    <Gauge className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                    <Input 
+                      id="odo-end" 
+                      type="number" 
+                      placeholder="Ex: 12580" 
+                      className="pl-10 h-12 rounded-xl"
+                      value={endOdometer}
+                      onChange={(e) => setEndOdometer(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label className="text-xs font-black uppercase text-slate-400">Resumo da Missão</Label>
+                  <Textarea 
+                    placeholder="Relate ocorrências, falhas mecânicas ou elogios..."
+                    className="min-h-[120px] focus:ring-primary rounded-2xl"
+                    value={feedbackNote}
+                    onChange={(e) => setFeedbackNote(e.target.value)}
+                  />
+                </div>
               </div>
               <DialogFooter>
                 <Button 
