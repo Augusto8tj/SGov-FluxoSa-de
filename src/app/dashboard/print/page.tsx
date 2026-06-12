@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { Printer, Download, ArrowLeft, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import Image from "next/image";
 
 function PrintContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const type = searchParams.get("type") || "daily";
   const driver = searchParams.get("driver") || "Condutor Não Identificado";
   const value = searchParams.get("value") || "R$ 0,00";
@@ -32,8 +33,8 @@ function PrintContent() {
     <div className="min-h-screen bg-slate-50 p-0 sm:p-10 flex flex-col items-center">
       {/* Botões de Ação (Escondidos na Impressão) */}
       <div className="fixed top-6 right-6 flex gap-3 print:hidden z-50">
-        <Button variant="outline" className="rounded-full shadow-lg bg-white" onClick={() => window.close()}>
-          <ArrowLeft className="h-4 w-4 mr-2" /> Fechar
+        <Button variant="outline" className="rounded-full shadow-lg bg-white" onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
         </Button>
         <Button className="rounded-full shadow-lg" onClick={() => window.print()}>
           <Printer className="h-4 w-4 mr-2" /> Imprimir Documento

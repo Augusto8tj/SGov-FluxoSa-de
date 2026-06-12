@@ -56,6 +56,7 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 
 const MOCK_FINANCIAL_REQUESTS = [
   { id: "REQ-F1", driver: "Carlos Alberto Silva", type: "DIÁRIA", value: "R$ 150,00", reason: "Viagem Intermunicipal (Rio de Janeiro)", date: "12/06/2024", status: "PENDING" },
@@ -76,6 +77,7 @@ export default function DriversManagementPage() {
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -99,7 +101,7 @@ export default function DriversManagementPage() {
       value: req.value,
       date: req.date
     });
-    window.open(`/dashboard/print?${params.toString()}`, '_blank');
+    router.push(`/dashboard/print?${params.toString()}`);
   };
 
   if (!mounted) return null;

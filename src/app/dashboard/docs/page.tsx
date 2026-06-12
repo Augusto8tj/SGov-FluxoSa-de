@@ -27,6 +27,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 const MOCK_DOCS = [
   { id: "DOC-2024-001", type: "DIÁRIA", name: "Pedido de Diária - Carlos Silva", date: "12/06/2024", status: "READY", driver: "Carlos Alberto Silva", value: "R$ 150,00" },
@@ -38,6 +39,7 @@ const MOCK_DOCS = [
 export default function DocumentManagementPage() {
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -52,7 +54,7 @@ export default function DocumentManagementPage() {
       value: doc.value,
       date: doc.date
     });
-    window.open(`/dashboard/print?${params.toString()}`, '_blank');
+    router.push(`/dashboard/print?${params.toString()}`);
   };
 
   if (!mounted) return null;
