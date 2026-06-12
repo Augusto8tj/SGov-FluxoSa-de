@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   Route, 
   Search, 
@@ -15,7 +15,11 @@ import {
   CheckCircle2,
   Navigation,
   ExternalLink,
-  Users
+  Users,
+  ChevronDown,
+  ChevronUp,
+  ClipboardList,
+  Activity
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,12 +37,14 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { TransportRequest } from "@/lib/types";
 import { requestService } from "@/services/request-service";
+import { Separator } from "@/components/ui/separator";
 
 export default function GlobalManifestsPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [manifests, setManifests] = useState<TransportRequest[]>([]);
+  const [expandedRequestId, setExpandedRequestId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const loadManifests = useCallback(async () => {
@@ -59,6 +65,10 @@ export default function GlobalManifestsPage() {
     setMounted(true);
     loadManifests();
   }, [loadManifests]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedRequestId(expandedRequestId === id ? null : id);
+  };
 
   const filteredManifests = manifests.filter(m => 
     m.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -149,55 +159,123 @@ export default function GlobalManifestsPage() {
                   <TableHead className="font-bold">Condutor Escalado</TableHead>
                   <TableHead className="font-bold">Paciente & Destino</TableHead>
                   <TableHead className="font-bold">Data & Hora</TableHead>
-                  <TableHead className="text-right font-bold">Status</TableHead>
+                  <TableHead className="text-right font-bold">Status / Detalhes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredManifests.length > 0 ? (
                   filteredManifests.map((item) => (
-                    <TableRow key={item.id} className="hover:bg-muted/10 group transition-colors">
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <Badge className="bg-primary/10 text-primary border-none font-black text-[10px] h-6 px-3 w-fit">
-                            {item.manifestId}
-                          </Badge>
-                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-                            <Ambulance className="h-3 w-3" /> {item.vehicleId || "Viatura Local"}
+                    <React.Fragment key={item.id}>
+                      <TableRow 
+                        className={cn(
+                          "hover:bg-muted/10 group transition-colors",
+                          expandedRequestId === item.id && "bg-primary/[0.02]"
+                        )}
+                      >
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <Badge className="bg-primary/10 text-primary border-none font-black text-[10px] h-6 px-3 w-fit">
+                              {item.manifestId}
+                            </Badge>
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+                              <Ambulance className="h-3 w-3" /> {item.vehicleId || "Viatura Local"}
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
-                            <User className="h-4 w-4" />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
+                              <User className="h-4 w-4" />
+                            </div>
+                            <span className="text-xs font-bold text-slate-700">{item.driverId || "Plantão Logística"}</span>
                           </div>
-                          <span className="text-xs font-bold text-slate-700">{item.driverId || "Plantão Logística"}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-0.5">
-                          <p className="font-black text-xs text-slate-800 uppercase">{item.patientName}</p>
-                          <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-medium">
-                            <MapPin className="h-2.5 w-2.5" /> {item.destinationLocation}
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-0.5">
+                            <p className="font-black text-xs text-slate-800 uppercase">{item.patientName}</p>
+                            <div className="flex items-center gap-1.5 text-[9px] text-muted-foreground font-medium">
+                              <MapPin className="h-2.5 w-2.5" /> {item.destinationLocation}
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600">
-                          <Clock className="h-3.5 w-3.5 text-primary" />
-                          {new Date(item.requestedTime).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Badge className={cn(
-                          "text-[9px] font-black uppercase h-6 px-3 border-none",
-                          item.status === 'APPROVED' ? "bg-emerald-100 text-emerald-700" : 
-                          item.status === 'COMPLETED' ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
-                        )}>
-                          {item.status === 'APPROVED' ? 'Ativo' : item.status === 'COMPLETED' ? 'Finalizado' : 'Pendente'}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-600">
+                            <Clock className="h-3.5 w-3.5 text-primary" />
+                            {new Date(item.requestedTime).toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Badge className={cn(
+                              "text-[9px] font-black uppercase h-6 px-3 border-none",
+                              item.status === 'APPROVED' ? "bg-emerald-100 text-emerald-700" : 
+                              item.status === 'COMPLETED' ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"
+                            )}>
+                              {item.status === 'APPROVED' ? 'Ativo' : item.status === 'COMPLETED' ? 'Finalizado' : 'Pendente'}
+                            </Badge>
+                            <Button 
+                              variant={expandedRequestId === item.id ? "default" : "ghost"}
+                              size="icon"
+                              className={cn(
+                                "h-8 w-8 rounded-full transition-all",
+                                expandedRequestId === item.id ? "bg-primary shadow-lg" : "text-primary hover:bg-primary/10"
+                              )}
+                              onClick={() => toggleExpand(item.id)}
+                            >
+                              {expandedRequestId === item.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+
+                      {/* Acordeon: Relação de Passageiros do Manifesto */}
+                      {expandedRequestId === item.id && (
+                        <TableRow className="bg-primary/[0.02] border-b-2 border-primary/10">
+                          <TableCell colSpan={5} className="p-0">
+                            <div className="p-6 animate-in slide-in-from-top-2 duration-300">
+                              <div className="bg-white rounded-[2rem] border border-primary/10 shadow-sm overflow-hidden">
+                                <div className="bg-muted/30 px-6 py-3 flex items-center justify-between border-b">
+                                  <div className="flex items-center gap-2">
+                                    <ClipboardList className="h-4 w-4 text-primary" />
+                                    <h4 className="text-[10px] font-black text-primary uppercase tracking-widest">Relação de Passageiros do Manifesto {item.manifestId}</h4>
+                                  </div>
+                                  <Badge variant="outline" className="text-[9px] font-black border-primary/20 text-primary uppercase">
+                                    {manifests.filter(m => m.manifestId === item.manifestId).length} Pacientes no Veículo
+                                  </Badge>
+                                </div>
+                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  {manifests
+                                    .filter(m => m.manifestId === item.manifestId)
+                                    .map((p, idx) => (
+                                      <div key={idx} className="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-primary/20 transition-colors">
+                                        <div className="bg-white p-2.5 rounded-xl shadow-sm group-hover:text-primary transition-colors">
+                                          <User className="h-4 w-4" />
+                                        </div>
+                                        <div className="space-y-1">
+                                          <p className="text-xs font-black text-slate-700 uppercase leading-none">{p.patientName}</p>
+                                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold">
+                                            <MapPin className="h-3 w-3 text-rose-500" /> {p.destinationLocation}
+                                          </div>
+                                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium">
+                                            <Clock className="h-3 w-3 text-primary" /> {new Date(p.requestedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}h
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                                <div className="bg-slate-50 px-6 py-3 flex items-center gap-4 border-t">
+                                  <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase">
+                                    <Activity className="h-3.5 w-3.5" /> Logística Municipal Rio Claro
+                                  </div>
+                                  <Separator orientation="vertical" className="h-3" />
+                                  <span className="text-[9px] font-medium text-slate-500 italic">Manifesto oficializado via Otimizador de Rotas IA</span>
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
                   ))
                 ) : (
                   <TableRow>
