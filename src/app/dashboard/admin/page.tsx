@@ -54,7 +54,6 @@ export default function AdminPage() {
     setLoadingData(true);
     try {
       const all = await requestService.getRequests();
-      // Mostramos PENDING e os recém APPROVED/DENIED para ver a transição
       setRequests(all);
     } catch {
       toast({ title: "Erro", description: "Falha ao sincronizar pedidos com a central.", variant: "destructive" });
@@ -228,7 +227,7 @@ export default function AdminPage() {
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-sm text-slate-800">{req.patientName}</span>
-                              <Badge className="sm:hidden text-[8px] h-4 uppercase font-black px-1.5" variant={req.urgencyLevel === 'critical' ? 'destructive' : 'default'}>
+                              <Badge className="sm:hidden text-[8px] h-auto uppercase font-black px-1.5 leading-snug" variant={req.urgencyLevel === 'critical' ? 'destructive' : 'default'}>
                                 {req.urgencyLevel}
                               </Badge>
                             </div>
@@ -242,7 +241,7 @@ export default function AdminPage() {
                           <Badge 
                             variant={req.urgencyLevel === 'critical' ? 'destructive' : req.urgencyLevel === 'high' ? 'destructive' : 'default'} 
                             className={cn(
-                              "text-[10px] font-black uppercase px-3",
+                              "text-[10px] font-black uppercase px-3 h-auto leading-snug",
                               req.urgencyLevel === 'critical' && req.status === 'PENDING' && "animate-pulse"
                             )}
                           >
@@ -309,7 +308,7 @@ export default function AdminPage() {
                             </div>
                           ) : req.status === 'APPROVED' ? (
                             <div className="flex justify-end items-center gap-3">
-                              <Badge className="bg-emerald-100 text-emerald-700 border-none font-black text-[10px] uppercase h-9 px-3">
+                              <Badge className="bg-emerald-100 text-emerald-700 border-none font-black text-[10px] uppercase h-9 px-3 flex items-center">
                                 APROVADO
                               </Badge>
                               <Button 
@@ -325,7 +324,7 @@ export default function AdminPage() {
                             </div>
                           ) : (
                             <div className="flex justify-end">
-                              <Badge variant="outline" className="text-rose-600 border-rose-200 bg-rose-50 font-black text-[10px] uppercase h-9 px-3">
+                              <Badge variant="outline" className="text-rose-600 border-rose-200 bg-rose-50 font-black text-[10px] uppercase h-9 px-3 flex items-center">
                                 NEGADO
                               </Badge>
                             </div>
@@ -347,7 +346,7 @@ export default function AdminPage() {
                                         <BrainCircuit className="h-7 w-7" />
                                       </div>
                                       <div className="flex-1 space-y-2">
-                                        <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.2em] leading-tight">Parecer Técnico</h4>
+                                        <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.2em] leading-snug">Parecer Técnico</h4>
                                         <Badge className={cn(
                                           "text-[10px] font-black uppercase py-1.5 px-3 border-none h-auto whitespace-normal text-left leading-snug",
                                           analysis[req.id]?.suggestedAction === 'approve' ? 'bg-emerald-100 text-emerald-700' :
@@ -360,7 +359,7 @@ export default function AdminPage() {
                                     
                                     <div className="bg-primary/[0.03] p-6 rounded-[2rem] border border-primary/5 relative mt-8">
                                       <div className="absolute top-0 left-8 -translate-y-1/2 bg-white px-3 text-[10px] font-black text-primary uppercase tracking-widest whitespace-nowrap">Recomendação Estratégica</div>
-                                      <p className="text-sm font-medium text-slate-600 leading-relaxed italic whitespace-normal">
+                                      <p className="text-sm font-medium text-slate-600 leading-snug italic whitespace-normal">
                                         &quot;{analysis[req.id]?.recommendation}&quot;
                                       </p>
                                     </div>
@@ -375,7 +374,7 @@ export default function AdminPage() {
                                       {analysis[req.id]?.criticalFactors.map((factor, idx) => (
                                         <div key={idx} className="flex items-center gap-3 px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] text-slate-600 font-bold hover:bg-white hover:border-primary/20 transition-all group">
                                           <div className="size-2.5 rounded-full bg-primary/30 group-hover:scale-125 group-hover:bg-primary transition-all shrink-0" />
-                                          <span className="truncate whitespace-normal leading-snug">{factor}</span>
+                                          <span className="whitespace-normal leading-snug">{factor}</span>
                                         </div>
                                       ))}
                                     </div>
@@ -409,7 +408,7 @@ export default function AdminPage() {
         </div>
         <div className="flex-1 text-center md:text-left space-y-1.5">
           <h4 className="font-black text-lg sm:text-xl text-blue-800 uppercase tracking-tighter">Workflow de Triagem Aumentada</h4>
-          <p className="text-[12px] sm:text-sm text-blue-600 leading-relaxed max-w-3xl font-medium">
+          <p className="text-[12px] sm:text-sm text-blue-600 leading-snug max-w-3xl font-medium">
             O Painel de Comando cruza a gravidade relatada pela UBS com a disponibilidade da frota para sugerir a melhor decisão. Utilize a IA para garantir que casos de Hemodiálise, Oncologia e Pós-operatórios tenham a prioridade correta garantida pelo protocolo municipal.
           </p>
         </div>

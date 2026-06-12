@@ -98,6 +98,11 @@ export const requestService = {
   },
 
   async updateRequest(id: string, data: Partial<TransportRequest>): Promise<void> {
+    // Modo Demo: Sucesso silencioso para permitir atualização da UI sem erros de Firestore
+    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+      return Promise.resolve();
+    }
+
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
       await updateDoc(docRef, {
