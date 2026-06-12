@@ -101,6 +101,7 @@ export default function RequestsPage() {
   
   const [editingRequest, setEditingRequest] = useState<TransportRequest | null>(null);
   const [isClassifying, setIsClassifying] = useState(false);
+  const [isWithinWindow, setIsWithinWindow] = useState(false);
   
   const { toast } = useToast();
 
@@ -121,6 +122,11 @@ export default function RequestsPage() {
 
   useEffect(() => {
     setMounted(true);
+    const checkTime = () => {
+      const hour = new Date().getHours();
+      setIsWithinWindow(hour >= 8 && hour < 13);
+    };
+    checkTime();
     loadData();
   }, [loadData]);
 
@@ -438,11 +444,19 @@ export default function RequestsPage() {
                 </div>
               </div>
             </div>
-            <DialogFooter className="gap-2 sm:gap-0 mt-2">
-              <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={handleSave} className="bg-primary shadow-lg shadow-primary/20">
-                {editingRequest ? "Salvar" : "Confirmar"}
-              </Button>
+            <DialogFooter className="gap-2 sm:gap-0 mt-2 flex flex-col sm:flex-row items-center w-full">
+              {!isWithinWindow && !editingRequest && (
+                <div className="flex items-center gap-2 text-[10px] font-black text-rose-600 uppercase bg-rose-50 px-3 py-2 rounded-lg border border-rose-100 mb-2 sm:mb-0 sm:mr-auto animate-pulse">
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  <span>Autorização de Emergência (Fora de Horário)</span>
+                </div>
+              )}
+              <div className="flex gap-2 w-full sm:w-auto justify-end">
+                <Button variant="ghost" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
+                <Button onClick={handleSave} className="bg-primary shadow-lg shadow-primary/20">
+                  {editingRequest ? "Salvar" : "Confirmar"}
+                </Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -667,7 +681,7 @@ export default function RequestsPage() {
                                 )}
                               </div>
 
-                              <div className="space-y-4 bg-slate-50 p-5 rounded-3xl border border-slate-200/50">
+                              <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200/50">
                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                   <ClipboardList className="h-4 w-4" /> Observações Clínicas
                                 </h4>

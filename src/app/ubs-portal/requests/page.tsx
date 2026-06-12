@@ -112,8 +112,11 @@ export default function UbsRequestsPage() {
 
   useEffect(() => {
     setMounted(true);
-    const hour = new Date().getHours();
-    setIsWithinWindow(hour >= 8 && hour < 13);
+    const checkTime = () => {
+      const hour = new Date().getHours();
+      setIsWithinWindow(hour >= 8 && hour < 13);
+    };
+    checkTime();
     loadData();
   }, [loadData]);
 
@@ -422,11 +425,23 @@ export default function UbsRequestsPage() {
                   </div>
                 </div>
               </div>
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl">Cancelar</Button>
-                <Button onClick={handleSave} className="rounded-xl bg-primary shadow-lg shadow-primary/20">
-                  {editingRequest ? "Salvar" : "Confirmar Pedido"}
-                </Button>
+              <DialogFooter className="gap-2 sm:gap-0 flex flex-col sm:flex-row items-center w-full">
+                {!isWithinWindow && !editingRequest && (
+                  <div className="flex items-center gap-2 text-[10px] font-bold text-rose-600 bg-rose-50 p-2 rounded-lg border border-rose-100 mb-2 sm:mb-0 sm:mr-auto">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>Janela Fechada. Emergências: Contate o Secretário.</span>
+                  </div>
+                )}
+                <div className="flex gap-2 w-full sm:w-auto justify-end">
+                  <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl">Cancelar</Button>
+                  <Button 
+                    onClick={handleSave} 
+                    className="rounded-xl bg-primary shadow-lg shadow-primary/20"
+                    disabled={!isWithinWindow && !editingRequest}
+                  >
+                    {editingRequest ? "Salvar" : "Confirmar Pedido"}
+                  </Button>
+                </div>
               </DialogFooter>
             </DialogContent>
           </Dialog>
