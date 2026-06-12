@@ -19,21 +19,21 @@ export const MOCK_PATIENTS: Patient[] = [
 ];
 
 export const MOCK_REQUESTS: TransportRequest[] = [
-  // --- CLUSTER 1: Lídice -> Hospital Municipal (5 Pacientes) ---
+  // --- CLUSTER 1: Lídice -> Hospital Municipal (Elegíveis para Otimizador) ---
   { id: "REQ-001", patientId: "P1", patientName: "Benedito Silva", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "critical", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "102030" },
   { id: "REQ-002", patientId: "P4", patientName: "Ana Oliveira", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "102031" },
   { id: "REQ-003", patientId: "P8", patientName: "Machado de Assis", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "medium", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "102032" },
   { id: "REQ-004", patientId: "P11", patientName: "Graciliano Ramos", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "102033" },
   { id: "REQ-005", patientId: "P15", patientName: "Lygia Fagundes", ubsId: "UBS Lídice", pickupLocation: "Lídice", destinationLocation: "Hospital Municipal", urgencyLevel: "low", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "102034" },
 
-  // --- CLUSTER 2: Centro -> Hemodiálise (5 Pacientes) ---
+  // --- CLUSTER 2: Centro -> Hemodiálise ---
   { id: "REQ-006", patientId: "P2", patientName: "Maria de Fátima", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Centro de Hemodiálise", urgencyLevel: "high", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "203040" },
   { id: "REQ-007", patientId: "P5", patientName: "Wilson Oliveira", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Centro de Hemodiálise", urgencyLevel: "high", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "203041" },
   { id: "REQ-008", patientId: "P7", patientName: "Cecília Meireles", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Centro de Hemodiálise", urgencyLevel: "high", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "203042" },
   { id: "REQ-009", patientId: "P9", patientName: "Clarice Lispector", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Centro de Hemodiálise", urgencyLevel: "medium", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "203043" },
   { id: "REQ-010", patientId: "P12", patientName: "Rachel de Queiroz", ubsId: "UBS Central", pickupLocation: "Centro", destinationLocation: "Centro de Hemodiálise", urgencyLevel: "low", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "203044" },
 
-  // --- CLUSTER 3: Passa Três -> Hospital Regional (5 Pacientes) ---
+  // --- CLUSTER 3: Passa Três -> Hospital Regional ---
   { id: "REQ-011", patientId: "P3", patientName: "José Bonifácio", ubsId: "UBS Passa Três", pickupLocation: "Passa Três", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "304050" },
   { id: "REQ-012", patientId: "P6", patientName: "Carlos Drummond", ubsId: "UBS Passa Três", pickupLocation: "Passa Três", destinationLocation: "Hospital Regional", urgencyLevel: "medium", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "304051" },
   { id: "REQ-013", patientId: "P10", patientName: "Guimarães Rosa", ubsId: "UBS Passa Três", pickupLocation: "Passa Três", destinationLocation: "Hospital Regional", urgencyLevel: "low", status: "APPROVED", requestedTime: new Date().toISOString(), operatorId: "ADMIN", createdAt: new Date().toISOString(), patientAccessCode: "304052" },
