@@ -1,3 +1,4 @@
+
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -13,7 +14,7 @@ import {
   getDocsFromCache
 } from "firebase/firestore";
 import { TransportRequest } from "@/lib/types";
-import { MOCK_REQUESTS } from "@/lib/mock-data";
+import { MOCK_REQUESTS, MOCK_VEHICLES } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "requests";
 
@@ -132,12 +133,15 @@ export const requestService = {
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
       assignments.forEach((assign) => {
         const manifestId = `MF-${Date.now().toString().slice(-4)}-${String(assign.vehicleId).slice(0, 3).toUpperCase()}`;
+        const vehicleInfo = MOCK_VEHICLES.find(v => v.id === assign.vehicleId);
+
         assign.route.forEach((requestId: string) => {
           const req = MOCK_REQUESTS.find(r => r.id === requestId.trim());
           if (req) {
             req.manifestId = manifestId;
             req.driverId = assign.driverName;
             req.vehicleId = assign.vehicleType || assign.vehicleId;
+            req.vehiclePlate = vehicleInfo?.licensePlate || "PMRC-000";
             req.assignedAt = new Date().toISOString();
             req.status = 'APPROVED';
           }
@@ -150,12 +154,14 @@ export const requestService = {
     
     assignments.forEach((assign) => {
       const manifestId = `MF-${Date.now().toString().slice(-4)}-${String(assign.vehicleId).slice(0, 3).toUpperCase()}`;
+      // Nota: Em um sistema real, aqui buscaríamos a placa da coleção de veículos antes de rodar o batch
       assign.route.forEach((requestId: string) => {
         const docRef = doc(db, COLLECTION_NAME, requestId.trim());
         batch.update(docRef, {
           manifestId,
           driverId: assign.driverName,
           vehicleId: assign.vehicleType || assign.vehicleId,
+          // vehiclePlate seria passado aqui após busca prévia
           assignedAt: new Date().toISOString(),
           status: 'APPROVED'
         });

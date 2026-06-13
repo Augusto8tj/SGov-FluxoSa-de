@@ -108,6 +108,7 @@ export interface TransportRequest {
   
   driverId?: string;
   vehicleId?: string;
+  vehiclePlate?: string;
   assignedAt?: string;
   manifestId?: string;
   

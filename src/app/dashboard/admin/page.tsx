@@ -131,6 +131,7 @@ export default function AdminPage() {
       if (action === 'APPROVED') {
         updateData.manifestId = `MF-${id.split('-').pop()}`;
         updateData.vehicleId = "Viatura Local (Simulada)";
+        updateData.vehiclePlate = "PMRC-000";
         updateData.driverId = "Plantão Logística";
         updateData.assignedAt = new Date().toISOString();
       }
@@ -405,7 +406,7 @@ export default function AdminPage() {
                                   <div className="bg-slate-50 px-8 py-3.5 flex items-center justify-between border-t">
                                     <div className="flex items-center gap-2">
                                       <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proteção de Dados &bull; Nvidia Nemotron Nano</span>
+                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proteção de Dados & bull; Nvidia Nemotron Nano</span>
                                     </div>
                                     <Button variant="ghost" size="sm" onClick={() => toggleExpand(req.id)} className="text-[10px] font-black text-primary uppercase">Fechar Painel</Button>
                                   </div>
