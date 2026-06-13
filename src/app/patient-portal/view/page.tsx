@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -110,7 +109,7 @@ export default function PatientManifestView() {
                   <div className="flex flex-col">
                     <p className="text-sm font-black text-slate-700">{request.vehicleId || "Designada"}</p>
                     {request.vehiclePlate && (
-                      <Badge variant="outline" className="w-fit mt-1 font-mono text-[9px] border-primary/20 text-primary bg-white px-1.5 h-4">
+                      <Badge variant="outline" className="w-fit mt-1 font-mono text-xs border-primary/20 text-primary bg-white px-2.5 h-6">
                         PLACA: {request.vehiclePlate}
                       </Badge>
                     )}
