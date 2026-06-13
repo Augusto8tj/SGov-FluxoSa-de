@@ -88,6 +88,7 @@ export default function RequestsPage() {
   
   const [patientId, setPatientId] = useState("");
   const [patientNotes, setPatientNotes] = useState("");
+  const [pickupLocation, setPickupLocation] = useState("");
   const [destination, setDestination] = useState("");
   const [urgency, setUrgency] = useState<string>("low");
   
@@ -131,6 +132,7 @@ export default function RequestsPage() {
 
   const resetForm = () => {
     setPatientId("");
+    setPickupLocation("");
     setDestination("");
     setPatientNotes("");
     setUrgency("low");
@@ -190,8 +192,8 @@ export default function RequestsPage() {
   };
 
   const handleSave = async () => {
-    if (!patientId || !destination) {
-      toast({ title: "Erro", description: "Paciente e Destino são obrigatórios.", variant: "destructive" });
+    if (!patientId || !destination || !pickupLocation) {
+      toast({ title: "Erro", description: "Paciente, Origem e Destino são obrigatórios.", variant: "destructive" });
       return;
     }
 
@@ -200,7 +202,7 @@ export default function RequestsPage() {
       patientId,
       patientName: patient?.name || "Paciente",
       ubsId: editingRequest?.ubsId || "UBS-01",
-      pickupLocation: editingRequest?.pickupLocation || "UBS Central",
+      pickupLocation: pickupLocation,
       destinationLocation: destination,
       requestedTime: scheduledTime || new Date().toISOString(),
       urgencyLevel: urgency as any,
@@ -240,7 +242,8 @@ export default function RequestsPage() {
 
   const filteredRequests = requests.filter(req => 
     req.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.destinationLocation.toLowerCase().includes(searchTerm.toLowerCase())
+    req.destinationLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    req.pickupLocation.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getUrgencyBadge = (level: string) => {
@@ -306,17 +309,32 @@ export default function RequestsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="dest">Destino do Transporte</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="dest"
-                    placeholder="Ex: Hospital Municipal..." 
-                    className="pl-10 h-11" 
-                    value={destination} 
-                    onChange={(e) => setDestination(e.target.value)} 
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="pickup">Local de Embarque (Origem)</Label>
+                  <div className="relative">
+                    <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      id="pickup"
+                      placeholder="Ex: UBS Central..." 
+                      className="pl-10 h-11" 
+                      value={pickupLocation} 
+                      onChange={(e) => setPickupLocation(e.target.value)} 
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="dest">Destino do Transporte</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      id="dest"
+                      placeholder="Ex: Hospital Municipal..." 
+                      className="pl-10 h-11" 
+                      value={destination} 
+                      onChange={(e) => setDestination(e.target.value)} 
+                    />
+                  </div>
                 </div>
               </div>
               <div className="grid gap-2">
@@ -464,7 +482,7 @@ export default function RequestsPage() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Buscar por paciente ou destino..." 
+          placeholder="Buscar por paciente, origem ou destino..." 
           className="pl-10 h-12 bg-card border-none shadow-sm" 
           value={searchTerm} 
           onChange={(e) => setSearchTerm(e.target.value)} 
@@ -483,7 +501,7 @@ export default function RequestsPage() {
               <TableHeader className="bg-muted/40">
                 <TableRow className="border-none hover:bg-transparent">
                   <TableHead className="min-w-[180px] font-bold">Paciente</TableHead>
-                  <TableHead className="min-w-[150px] font-bold">Destino / Horário</TableHead>
+                  <TableHead className="min-w-[150px] font-bold">Trajeto / Horário</TableHead>
                   <TableHead className="font-bold">Prioridade</TableHead>
                   <TableHead className="font-bold">Status</TableHead>
                   <TableHead className="text-right font-bold">Painel / Ações</TableHead>
@@ -507,8 +525,8 @@ export default function RequestsPage() {
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1.5 text-xs text-foreground/80">
-                            <MapPin className="h-3 w-3 text-primary/60 shrink-0" />
-                            <span className="truncate max-w-[140px]">{req.destinationLocation}</span>
+                            <Navigation className="h-3 w-3 text-primary/60 shrink-0" />
+                            <span className="truncate max-w-[140px]">{req.pickupLocation} → {req.destinationLocation}</span>
                           </div>
                           <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                             <Clock className="h-3 w-3" />
@@ -570,6 +588,7 @@ export default function RequestsPage() {
                               <DropdownMenuItem onClick={() => { 
                                 setEditingRequest(req); 
                                 setPatientId(req.patientId); 
+                                setPickupLocation(req.pickupLocation);
                                 setDestination(req.destinationLocation); 
                                 setUrgency(req.urgencyLevel); 
                                 setScheduledTime(req.requestedTime);
@@ -609,7 +628,7 @@ export default function RequestsPage() {
                                       <div className="size-2 rounded-full bg-primary" />
                                     </div>
                                     <div className="space-y-0.5">
-                                      <p className="text-[9px] font-black text-primary uppercase tracking-tighter leading-none">Origem (Coleta)</p>
+                                      <p className="text-[9px] font-black text-primary uppercase tracking-tighter leading-none">Origem (Embarque)</p>
                                       <p className="text-sm font-bold text-slate-700">{req.pickupLocation}</p>
                                     </div>
                                   </div>

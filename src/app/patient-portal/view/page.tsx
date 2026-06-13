@@ -10,7 +10,9 @@ import {
   ArrowLeft, 
   Info,
   PhoneCall,
-  ShieldCheck
+  ShieldCheck,
+  Navigation,
+  MapPin
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,6 +100,35 @@ export default function PatientManifestView() {
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
+          
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 px-1">
+              <Navigation className="h-4 w-4 text-primary" /> Roteiro da Viagem
+            </h4>
+            <div className="space-y-4 relative before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+              <div className="flex items-start gap-4 relative">
+                <div className="mt-1 size-10 rounded-2xl bg-primary/10 flex items-center justify-center z-10 shrink-0 border border-primary/20 shadow-sm">
+                  <Navigation className="size-5 text-primary" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black text-primary uppercase tracking-tighter leading-none">Local de Embarque</p>
+                  <p className="text-base font-black text-slate-700 leading-tight">{request.pickupLocation}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-4 relative">
+                <div className="mt-1 size-10 rounded-2xl bg-rose-50 flex items-center justify-center z-10 shrink-0 border border-rose-100 shadow-sm">
+                  <MapPin className="size-5 text-rose-500" />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-[10px] font-black text-rose-500 uppercase tracking-tighter leading-none">Destino Final</p>
+                  <p className="text-base font-black text-slate-700 leading-tight">{request.destinationLocation}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="bg-slate-50" />
+
           {request.status === 'APPROVED' ? (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
@@ -126,12 +157,12 @@ export default function PatientManifestView() {
 
               <div className="space-y-4">
                 <div className="flex items-center gap-3 px-2">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    <Clock className="h-4 w-4" />
+                  <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+                    <Clock className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Horário de Saída</p>
-                    <p className="text-base font-black text-slate-700">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Horário Previsto de Saída</p>
+                    <p className="text-lg font-black text-slate-700">
                       {new Date(request.requestedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}h
                     </p>
                   </div>
@@ -140,13 +171,13 @@ export default function PatientManifestView() {
             </div>
           ) : (
             <div className="py-6 text-center space-y-4">
-              <div className="bg-amber-50 h-16 w-16 rounded-full flex items-center justify-center mx-auto text-amber-600">
+              <div className="bg-amber-50 h-16 w-16 rounded-full flex items-center justify-center mx-auto text-amber-600 shadow-inner">
                 <Clock className="h-8 w-8 animate-pulse" />
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-bold text-slate-700 leading-tight">Aguardando Triagem Logística</p>
                 <p className="text-xs text-slate-500 leading-relaxed max-w-[200px] mx-auto">
-                  A Secretaria de Saúde está definindo o melhor veículo para o seu trajeto.
+                  A Secretaria de Saúde está definindo o melhor veículo e condutor para o seu embarque em <span className="font-bold text-slate-700">{request.pickupLocation}</span>.
                 </p>
               </div>
             </div>
@@ -181,7 +212,7 @@ export default function PatientManifestView() {
             <div className="bg-slate-50 p-4 rounded-2xl space-y-3">
               <div className="flex gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                <p className="text-[11px] font-medium text-slate-600">Esteja no ponto de embarque com 15 minutos de antecedência.</p>
+                <p className="text-[11px] font-medium text-slate-600">Esteja no local de embarque (<span className="font-bold">{request.pickupLocation}</span>) com 15 minutos de antecedência.</p>
               </div>
               <div className="flex gap-2">
                 <div className="h-1.5 w-1.5 rounded-full bg-primary mt-1.5 shrink-0" />

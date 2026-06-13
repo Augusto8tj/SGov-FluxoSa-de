@@ -16,7 +16,8 @@ import {
   XCircle,
   MoreVertical,
   Edit,
-  Trash2
+  Trash2,
+  Navigation
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,7 @@ export default function UbsRequestsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [patientId, setPatientId] = useState("");
   const [patientNotes, setPatientNotes] = useState("");
+  const [pickupLocation, setPickupLocation] = useState("");
   const [destination, setDestination] = useState("");
   const [urgency, setUrgency] = useState<string>("low");
   
@@ -122,6 +124,7 @@ export default function UbsRequestsPage() {
 
   const resetForm = () => {
     setPatientId("");
+    setPickupLocation("");
     setDestination("");
     setPatientNotes("");
     setUrgency("low");
@@ -163,8 +166,8 @@ export default function UbsRequestsPage() {
   };
 
   const handleSave = async () => {
-    if (!patientId || !destination) {
-      toast({ title: "Erro", description: "Paciente e Destino são obrigatórios.", variant: "destructive" });
+    if (!patientId || !destination || !pickupLocation) {
+      toast({ title: "Erro", description: "Paciente, Origem e Destino são obrigatórios.", variant: "destructive" });
       return;
     }
 
@@ -173,7 +176,7 @@ export default function UbsRequestsPage() {
       patientId,
       patientName: patient?.name || "Paciente",
       ubsId: "UBS-01",
-      pickupLocation: "UBS Central",
+      pickupLocation: pickupLocation,
       destinationLocation: destination,
       requestedTime: scheduledTime || new Date().toISOString(),
       urgencyLevel: urgency as any,
@@ -209,7 +212,8 @@ export default function UbsRequestsPage() {
 
   const filteredRequests = requests.filter(req => 
     req.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    req.destinationLocation.toLowerCase().includes(searchTerm.toLowerCase())
+    req.destinationLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    req.pickupLocation.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getUrgencyBadge = (level: string) => {
@@ -288,17 +292,32 @@ export default function UbsRequestsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="dest">Destino</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                      id="dest"
-                      placeholder="Local de atendimento" 
-                      className="pl-10 h-11 rounded-xl" 
-                      value={destination} 
-                      onChange={(e) => setDestination(e.target.value)} 
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="pickup">Local de Embarque (Origem)</Label>
+                    <div className="relative">
+                      <Navigation className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="pickup"
+                        placeholder="Ex: UBS Central..." 
+                        className="pl-10 h-11 rounded-xl" 
+                        value={pickupLocation} 
+                        onChange={(e) => setPickupLocation(e.target.value)} 
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="dest">Destino do Transporte</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        id="dest"
+                        placeholder="Local de atendimento" 
+                        className="pl-10 h-11 rounded-xl" 
+                        value={destination} 
+                        onChange={(e) => setDestination(e.target.value)} 
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="grid gap-2">
@@ -464,7 +483,7 @@ export default function UbsRequestsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
-            placeholder="Buscar por paciente ou destino..." 
+            placeholder="Buscar por paciente, origem ou destino..." 
             className="pl-10 h-11 bg-card border-none shadow-sm rounded-xl"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -485,7 +504,7 @@ export default function UbsRequestsPage() {
               <TableHeader className="bg-muted/30">
                 <TableRow className="border-none">
                   <TableHead className="font-bold">Paciente</TableHead>
-                  <TableHead className="font-bold">Destino / Horário</TableHead>
+                  <TableHead className="font-bold">Trajeto / Horário</TableHead>
                   <TableHead className="font-bold">Urgência</TableHead>
                   <TableHead className="font-bold">Status</TableHead>
                   <TableHead className="text-right font-bold">Ação</TableHead>
@@ -504,7 +523,7 @@ export default function UbsRequestsPage() {
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <MapPin className="h-3 w-3" /> {req.destinationLocation}
+                            <Navigation className="h-3 w-3" /> {req.pickupLocation} → {req.destinationLocation}
                           </div>
                           <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                             <Clock className="h-3 w-3" /> {isValid(parseISO(req.requestedTime)) ? format(parseISO(req.requestedTime), "HH:mm") : "00:00"}
@@ -522,6 +541,7 @@ export default function UbsRequestsPage() {
                             <DropdownMenuItem onClick={() => {
                               setEditingRequest(req);
                               setPatientId(req.patientId);
+                              setPickupLocation(req.pickupLocation);
                               setDestination(req.destinationLocation);
                               setUrgency(req.urgencyLevel);
                               setScheduledTime(req.requestedTime);
