@@ -8,7 +8,6 @@ import {
   Clock, 
   CheckCircle2, 
   ArrowLeft, 
-  Loader2,
   Info,
   PhoneCall,
   ShieldCheck
@@ -23,7 +22,6 @@ import { Separator } from "@/components/ui/separator";
 
 export default function PatientManifestView() {
   const [request, setRequest] = useState<TransportRequest | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -43,8 +41,6 @@ export default function PatientManifestView() {
         }
       } catch {
         router.push("/patient-portal");
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -58,15 +54,6 @@ export default function PatientManifestView() {
       return p[0] + "*".repeat(p.length - 1);
     }).join(" ");
   };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="text-xs font-black uppercase text-muted-foreground tracking-widest">Localizando Viagem...</p>
-      </div>
-    );
-  }
 
   if (!request) return null;
 

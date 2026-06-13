@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, Loader2, BrainCircuit, User, Key, Hospital, BadgeCheck, Heart, Ambulance } from "lucide-react";
+import { ShieldCheck, BrainCircuit, User, Key, Hospital, BadgeCheck, Heart, Ambulance } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,6 @@ import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
@@ -20,7 +19,6 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
     const lowerEmail = email.toLowerCase();
     const demoUsers = [
@@ -61,7 +59,6 @@ export default function LoginPage() {
       description: "Utilize as credenciais de demonstração abaixo.",
       variant: "destructive"
     });
-    setLoading(false);
   };
 
   const fillCredentials = (type: 'admin' | 'ubs' | 'driver') => {
@@ -195,8 +192,8 @@ export default function LoginPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4 pb-8">
-              <Button type="submit" className="w-full h-12 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 rounded-xl" disabled={loading}>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ShieldCheck className="h-4 w-4 mr-2" />}
+              <Button type="submit" className="w-full h-12 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 rounded-xl">
+                <ShieldCheck className="h-4 w-4 mr-2" />
                 Entrar no Sistema
               </Button>
               <div className="flex items-center justify-center gap-2 text-[10px] text-muted-foreground uppercase tracking-widest font-black opacity-40">

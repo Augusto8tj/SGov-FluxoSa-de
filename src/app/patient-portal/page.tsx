@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { 
   KeyRound, 
   Search, 
-  Loader2, 
   HelpCircle, 
   ShieldCheck,
   Ambulance,
@@ -20,7 +19,6 @@ import { requestService } from "@/services/request-service";
 
 export default function PatientPortalLogin() {
   const [code, setCode] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -31,7 +29,6 @@ export default function PatientPortalLogin() {
       return;
     }
 
-    setLoading(true);
     try {
       const request = await requestService.getByAccessCode(code);
       if (request) {
@@ -42,8 +39,6 @@ export default function PatientPortalLogin() {
       }
     } catch {
       toast({ title: "Erro no Sistema", description: "Tente novamente em instantes.", variant: "destructive" });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -85,9 +80,9 @@ export default function PatientPortalLogin() {
             <Button 
               type="submit" 
               className="w-full h-14 rounded-2xl text-base font-black uppercase tracking-widest shadow-lg shadow-primary/20"
-              disabled={loading || code.length < 6}
+              disabled={code.length < 6}
             >
-              {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Search className="h-5 w-5 mr-2" />}
+              <Search className="h-5 w-5 mr-2" />
               Consultar Viagem
             </Button>
           </form>
