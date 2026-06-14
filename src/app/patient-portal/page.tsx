@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -30,6 +31,7 @@ export default function PatientPortalLogin() {
     }
 
     try {
+      // Busca instantânea priorizando dados mock no serviço
       const request = await requestService.getByAccessCode(code);
       if (request) {
         sessionStorage.setItem("patient_access_code", code);
@@ -74,6 +76,7 @@ export default function PatientPortalLogin() {
                   className="h-20 text-4xl text-center font-black tracking-[0.5em] pl-12 rounded-2xl bg-slate-50 focus-visible:ring-primary/20 border-none shadow-inner"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                  autoFocus
                 />
               </div>
             </div>

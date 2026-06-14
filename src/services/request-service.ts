@@ -52,8 +52,12 @@ export const requestService = {
   },
 
   async getByAccessCode(code: string): Promise<TransportRequest | null> {
+    // Check mock first for instant response in demo environment
+    const mockMatch = MOCK_REQUESTS.find(r => r.patientAccessCode === code);
+    if (mockMatch) return mockMatch;
+
     if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
-      return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
+      return null;
     }
 
     try {
@@ -61,12 +65,13 @@ export const requestService = {
       const querySnapshot = await getDocs(q);
       
       if (querySnapshot.empty) {
-        return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
+        return null;
       }
 
       const docData = querySnapshot.docs[0];
       return { id: docData.id, ...docData.data() } as TransportRequest;
     } catch {
+      // Final fallback to mock if firebase fails
       return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
     }
   },
