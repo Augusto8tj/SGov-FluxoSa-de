@@ -79,7 +79,7 @@ export default function DashboardPage() {
         currentHour: new Date().getHours()
       });
       setAiBriefing(result);
-      toast({ title: "Briefing Atualizado", description: "IA gerou novos insights estratégicos." });
+      toast({ title: "Resumo Atualizado", description: "IA gerou novos insights estratégicos." });
     } catch {
       toast({ variant: "destructive", title: "IA: Falha na Conexão", description: "Verificando chaves de API..." });
     } finally {
@@ -114,7 +114,7 @@ export default function DashboardPage() {
             disabled={loadingAi}
           >
             <BrainCircuit className={cn("h-4 w-4 text-primary", loadingAi && "animate-pulse")} />
-            <span className="text-xs font-semibold">{loadingAi ? "Analisando..." : "Briefing de IA"}</span>
+            <span className="text-xs font-semibold">{loadingAi ? "Analisando..." : "Resumo da IA"}</span>
           </Button>
           <div className="shrink-0">
             {isWithinWindow ? (
