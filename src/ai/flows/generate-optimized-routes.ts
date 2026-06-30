@@ -1,7 +1,8 @@
+
 'use server';
 /**
  * @fileOverview Fluxo otimizado para geração de rotas.
- * Focado em eficiência de tokens e resiliência de dados (Híbrido IA + Fallback Geográfico).
+ * Focado em eficiência extrema de tokens para evitar lentidão e timeouts.
  */
 
 import { aiService } from '@/services/ai-service';
@@ -19,39 +20,36 @@ export type GenerateOptimizedRoutesOutput = {
 
 interface MinifiedAppointment {
   id: string;
-  pick: string;
-  dest: string;
+  p: string; // pickup
+  d: string; // destination
 }
 
 export async function generateOptimizedRoutes(input: { appointments: any[], vehicles: any[] }): Promise<GenerateOptimizedRoutesOutput> {
   try {
-    // 1. Preparação: Minificação rigorosa do input
-    const minifiedApps: MinifiedAppointment[] = input.appointments.map(a => ({
+    // 1. Minificação agressiva para acelerar o processamento da IA
+    const apps: MinifiedAppointment[] = input.appointments.map(a => ({
       id: String(a.id).trim(),
-      pick: String(a.pickupLocation || 'UBS Local').trim(),
-      dest: String(a.destination || 'Hospital').trim()
+      p: String(a.pickupLocation || 'UBS').trim(),
+      d: String(a.destination || 'Hospital').trim()
     }));
 
-    const minifiedVehicles = input.vehicles
+    const fleet = input.vehicles
       .filter(v => v.available)
       .map(v => ({ id: v.id, cap: v.capacity }));
 
-    if (minifiedApps.length === 0 || minifiedVehicles.length === 0) {
+    if (apps.length === 0 || fleet.length === 0) {
       throw new Error("EMPTY_DATA");
     }
 
-    const prompt = `TASK: You are a senior logistics expert for Rio Claro city. Group sanitary transport appointments into available vehicles.
-RULES:
-1. Use EXACT IDs from 'apps' data. NEVER alter the ID string (e.g., REQ-001 must stay REQ-001).
-2. Group by geographic proximity of 'pick' (origin) and 'dest' (destination).
-3. Respect vehicle 'cap' (maximum capacity). Do not exceed it.
-4. Output ONLY pure JSON. No markdown, no conversational text.
-
+    const prompt = `LOGISTICS TASK: Group ${apps.length} appointments into ${fleet.length} vehicles.
 DATA:
-- apps: ${JSON.stringify(minifiedApps)}
-- fleet: ${JSON.stringify(minifiedVehicles)}
-
-JSON SCHEMA: { "assignments": [{ "vehicleId": "V1", "route": ["REQ-001", "REQ-002"], "estimatedDurationMinutes": 30, "estimatedDistanceKm": 8.5, "notes": "Agrupamento por bairro." }], "optimizationSummary": "String" }`;
+- apps: ${JSON.stringify(apps)}
+- vehicles: ${JSON.stringify(fleet)}
+RULES:
+1. Group by proximity of 'p' (origin) and 'd' (dest).
+2. Respect vehicle 'cap'.
+3. Use exact IDs.
+4. Output ONLY JSON. NO TEXT.`;
 
     const schemaDescription = `{ assignments: Array<{ vehicleId: string, route: string[], estimatedDurationMinutes: number, estimatedDistanceKm: number, notes: string }>, optimizationSummary: string }`;
 
@@ -60,7 +58,7 @@ JSON SCHEMA: { "assignments": [{ "vehicleId": "V1", "route": ["REQ-001", "REQ-00
       schemaDescription
     );
 
-    // 2. Validação e Sanitização dos IDs de retorno
+    // 2. Validação e Fallback Imediato se a IA falhar ou der timeout
     if (aiResult.output?.assignments) {
       const validIds = new Set(input.appointments.map(a => String(a.id).trim()));
       
@@ -79,21 +77,21 @@ JSON SCHEMA: { "assignments": [{ "vehicleId": "V1", "route": ["REQ-001", "REQ-00
       }
     }
 
-    throw new Error("IA_INVALID_RESPONSE");
+    throw new Error("IA_SLOW_OR_INVALID");
 
   } catch (error) {
-    console.warn("Optimizer: Acionando Fallback Local Determinístico.", error);
+    console.warn("Optimizer: Acionando Algoritmo de Contingência Local (Ultra-rápido).");
     
     return {
       assignments: smartDeterministicGrouping(input.appointments, input.vehicles),
-      optimizationSummary: "Otimização concluída via processador geográfico de contingência (Agrupamento Municipal)."
+      optimizationSummary: "Otimização concluída instantaneamente via Processador de Contingência Municipal."
     };
   }
 }
 
 /**
  * Algoritmo de Agrupamento Determinístico Geográfico (Fallback de Segurança).
- * Agrupa por Origem e Destino exatos.
+ * Garante resposta instantânea se a rede ou a IA falharem.
  */
 function smartDeterministicGrouping(appointments: any[], vehicles: any[]): any[] {
   const availableVehicles = vehicles.filter(v => v.available);
