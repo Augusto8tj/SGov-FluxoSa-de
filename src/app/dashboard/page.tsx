@@ -10,7 +10,11 @@ import {
   BrainCircuit,
   Zap,
   ArrowRight,
-  Loader2
+  Loader2,
+  Rocket,
+  Building,
+  UserCheck,
+  Check
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -37,8 +41,8 @@ import { TransportRequest } from "@/lib/types";
 import Link from "next/link";
 
 /**
- * @fileOverview Dashboard principal otimizado para carregamento instantâneo.
- * Removido o loader de tela cheia para permitir que a interface renderize enquanto os dados chegam.
+ * @fileOverview Dashboard principal otimizado para o lançamento Beta.
+ * Inclui guia de implantação passo a passo para o Secretário.
  */
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
@@ -47,7 +51,7 @@ export default function DashboardPage() {
   const [aiBriefing, setAiBriefing] = useState<SystemInsightsOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   
-  // Real Data States iniciados com valores vazios para evitar undefined errors
+  // Real Data States
   const [requests, setRequests] = useState<TransportRequest[]>([]);
   const [patientCount, setPatientCount] = useState(0);
   const [vehicleCount, setVehicleCount] = useState(0);
@@ -113,7 +117,7 @@ export default function DashboardPage() {
         criticalPatientsCount: criticalCount,
         currentHour: new Date().getHours()
       });
-      setAiBriefing(result);
+      setAiReport(result);
       toast({ title: "Resumo Atualizado", description: "IA gerou novos insights a partir dos dados do Firestore." });
     } catch {
       toast({ variant: "destructive", title: "IA: Falha na Conexão", description: "Verifique os limites da API." });
@@ -158,31 +162,67 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {aiBriefing && (
-        <Card className="border-l-4 border-l-primary bg-primary/5 border-none shadow-sm animate-in fade-in slide-in-from-top-2">
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-xs sm:text-sm font-bold text-primary flex items-center gap-2 uppercase tracking-tighter">
-                <Zap className="h-4 w-4 fill-primary shrink-0" /> Insights Estratégicos
-              </CardTitle>
-              <Badge className={cn(
-                "text-[9px] sm:text-[10px]",
-                aiBriefing.alertLevel === 'critical' ? 'bg-destructive/10 text-destructive' : 
-                aiBriefing.alertLevel === 'warning' ? 'bg-accent/20 text-accent-foreground' : 'bg-primary/10 text-primary'
+      {/* GUIA DE IMPLANTAÇÃO BETA (SECRETÁRIO) */}
+      <Card className="border-2 border-emerald-200 bg-emerald-50/50 shadow-none rounded-[2rem] overflow-hidden">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Rocket className="h-5 w-5 text-emerald-600" />
+            <CardTitle className="text-sm font-black uppercase text-emerald-700 tracking-tighter">Roteiro de Implantação Beta</CardTitle>
+          </div>
+          <CardDescription className="text-emerald-600/70 text-xs font-medium">Siga estes passos para iniciar a operação real em Rio Claro.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link href="/dashboard/ubs" className="group">
+              <div className={cn(
+                "p-4 rounded-2xl border transition-all flex items-start gap-3",
+                unitCount > 0 ? "bg-white border-emerald-100 opacity-60" : "bg-white border-emerald-200 shadow-md group-hover:border-emerald-400"
               )}>
-                {aiBriefing.alertLevel.toUpperCase()}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-xs sm:text-sm leading-relaxed text-foreground/90">{aiBriefing.briefing}</p>
-            <div className="flex items-start sm:items-center gap-2 text-[10px] sm:text-xs font-bold text-primary bg-background w-full sm:w-fit px-3 py-2 rounded-lg border border-primary/10 shadow-sm">
-              <ArrowRight className="h-3 w-3 mt-0.5 sm:mt-0 shrink-0" /> 
-              <span>Prioridade: {aiBriefing.priorityAction}</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                <div className={cn("p-2 rounded-xl shrink-0", unitCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-emerald-600 text-white")}>
+                  {unitCount > 0 ? <Check className="h-4 w-4" /> : <Building className="h-4 w-4" />}
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase text-emerald-700 tracking-widest leading-none mb-1">Passo 1</p>
+                  <p className="text-xs font-bold text-slate-800">Cadastrar UBSs</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Defina as unidades oficiais do município.</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/dashboard/fleet" className="group">
+              <div className={cn(
+                "p-4 rounded-2xl border transition-all flex items-start gap-3",
+                vehicleCount > 0 ? "bg-white border-emerald-100 opacity-60" : "bg-white border-emerald-200 shadow-md group-hover:border-emerald-400"
+              )}>
+                <div className={cn("p-2 rounded-xl shrink-0", vehicleCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-emerald-600 text-white")}>
+                  {vehicleCount > 0 ? <Check className="h-4 w-4" /> : <Ambulance className="h-4 w-4" />}
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase text-emerald-700 tracking-widest leading-none mb-1">Passo 2</p>
+                  <p className="text-xs font-bold text-slate-800">Carga de Frota</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Registre os veículos e seus odômetros.</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/dashboard/drivers" className="group">
+              <div className={cn(
+                "p-4 rounded-2xl border transition-all flex items-start gap-3",
+                vehicleCount === 0 ? "opacity-50 grayscale pointer-events-none" : "bg-white border-emerald-200 shadow-md group-hover:border-emerald-400"
+              )}>
+                <div className="bg-emerald-600 text-white p-2 rounded-xl shrink-0">
+                  <UserCheck className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase text-emerald-700 tracking-widest leading-none mb-1">Passo 3</p>
+                  <p className="text-xs font-bold text-slate-800">Condutores</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Credencie os motoristas para as rotas.</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <StatsCard title="Pendentes" value={pendingRequestsCount} icon={Clock} description="Aguardando" />

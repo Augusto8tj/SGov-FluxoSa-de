@@ -13,7 +13,11 @@ import {
   AlertTriangle,
   History,
   MapPin,
-  Loader2
+  Loader2,
+  Rocket,
+  ClipboardPlus,
+  Key,
+  Check
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -50,7 +54,6 @@ export default function UbsDashboard() {
         patientService.getPatients()
       ]);
 
-      // Filtro para esta UBS (Simulado como UBS-01 para o portal ou vindo do perfil)
       const ubsId = user?.unitId || "UBS-01";
       const myRequests = reqs.filter(r => r.ubsId === ubsId || r.operatorId === "UBS_MGR");
       
@@ -68,7 +71,6 @@ export default function UbsDashboard() {
     const checkTime = () => {
       const now = new Date();
       const hour = now.getHours();
-      // Janela de operação: 08:00 às 13:00
       setIsWithinWindow(hour >= 8 && hour < 13);
     };
     
@@ -129,6 +131,69 @@ export default function UbsDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* GUIA DE IMPLANTAÇÃO BETA (UBS) */}
+      <Card className="border-2 border-indigo-200 bg-indigo-50/50 shadow-none rounded-[2rem] overflow-hidden">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Rocket className="h-5 w-5 text-indigo-600" />
+            <CardTitle className="text-sm font-black uppercase text-indigo-700 tracking-tighter">Guia da Unidade: Início Real</CardTitle>
+          </div>
+          <CardDescription className="text-indigo-600/70 text-xs font-medium">Siga estes passos para os primeiros agendamentos reais da UBS.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Link href="/ubs-portal/patients" className="group">
+              <div className={cn(
+                "p-4 rounded-2xl border transition-all flex items-start gap-3",
+                patientCount > 0 ? "bg-white border-indigo-100 opacity-60" : "bg-white border-indigo-200 shadow-md group-hover:border-indigo-400"
+              )}>
+                <div className={cn("p-2 rounded-xl shrink-0", patientCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-indigo-600 text-white")}>
+                  {patientCount > 0 ? <Check className="h-4 w-4" /> : <Users className="h-4 w-4" />}
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase text-indigo-700 tracking-widest leading-none mb-1">Passo 1</p>
+                  <p className="text-xs font-bold text-slate-800">Base de Cidadãos</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Cadastre os moradores da sua área (CNS).</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link href={isWithinWindow ? "/ubs-portal/requests" : "#"} className={cn("group", !isWithinWindow && "pointer-events-none")}>
+              <div className={cn(
+                "p-4 rounded-2xl border transition-all flex items-start gap-3",
+                requests.length > 0 ? "bg-white border-indigo-100 opacity-60" : "bg-white border-indigo-200 shadow-md group-hover:border-indigo-400",
+                !isWithinWindow && "opacity-50 grayscale"
+              )}>
+                <div className={cn("p-2 rounded-xl shrink-0", requests.length > 0 ? "bg-emerald-100 text-emerald-600" : "bg-indigo-600 text-white")}>
+                  {requests.length > 0 ? <Check className="h-4 w-4" /> : <ClipboardPlus className="h-4 w-4" />}
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase text-indigo-700 tracking-widest leading-none mb-1">Passo 2</p>
+                  <p className="text-xs font-bold text-slate-800">Primeiros Pedidos</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Faça os agendamentos das 08h às 13h.</p>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/ubs-portal/manifests" className="group">
+              <div className={cn(
+                "p-4 rounded-2xl border transition-all flex items-start gap-3",
+                requests.filter(r => r.status === 'APPROVED').length === 0 ? "opacity-50 grayscale pointer-events-none" : "bg-white border-indigo-200 shadow-md group-hover:border-indigo-400"
+              )}>
+                <div className="bg-indigo-600 text-white p-2 rounded-xl shrink-0">
+                  <Key className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase text-indigo-700 tracking-widest leading-none mb-1">Passo 3</p>
+                  <p className="text-xs font-bold text-slate-800">Entregar Códigos</p>
+                  <p className="text-[10px] text-slate-500 mt-1">Forneça o código aos pacientes aprovados.</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       {!isWithinWindow && (
         <Card className="bg-rose-50 border-rose-200 border-2 shadow-none">
