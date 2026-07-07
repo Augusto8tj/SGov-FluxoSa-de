@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   ShieldCheck, 
   BrainCircuit, 
@@ -76,6 +76,21 @@ export default function AdminPage() {
     setMounted(true);
     loadPendingRequests();
   }, [loadPendingRequests]);
+
+  // Cálculos Reais para os StatsCards
+  const stats = useMemo(() => {
+    const pending = requests.filter(r => r.status === 'PENDING').length;
+    const approved = requests.filter(r => r.status === 'APPROVED' || r.status === 'COMPLETED').length;
+    const denied = requests.filter(r => r.status === 'DENIED').length;
+    const critical = requests.filter(r => r.urgencyLevel === 'critical' && r.status === 'PENDING').length;
+    
+    const totalProcessed = approved + denied;
+    const rate = totalProcessed > 0 
+      ? `${Math.round((approved / totalProcessed) * 100)}%` 
+      : "---";
+
+    return { pending, rate, critical };
+  }, [requests]);
 
   const toggleExpand = (id: string) => {
     const newExpanded = new Set(expandedIds);
@@ -190,10 +205,10 @@ export default function AdminPage() {
       </div>
 
       <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-4">
-        <StatsCard title="Pendentes" value={requests.filter(r => r.status === 'PENDING').length} icon={Zap} description="Aguardando Triagem" />
-        <StatsCard title="Taxa Aprovação" value="92%" icon={CheckCircle} description="Média Mensal" />
+        <StatsCard title="Pendentes" value={stats.pending} icon={Zap} description="Aguardando Triagem" />
+        <StatsCard title="Taxa Aprovação" value={stats.rate} icon={CheckCircle} description="Decisões Reais" />
         <StatsCard title="IA Ativa" value="SIM" icon={BrainCircuit} description="Nvidia Nemotron" />
-        <StatsCard title="Alertas" value={requests.filter(r => r.urgencyLevel === 'critical' && r.status === 'PENDING').length} icon={AlertTriangle} description="Casos Críticos" />
+        <StatsCard title="Alertas" value={stats.critical} icon={AlertTriangle} description="Casos Críticos" />
       </div>
 
       <Card className="border-none shadow-sm overflow-hidden bg-card rounded-2xl sm:rounded-3xl">
