@@ -1,3 +1,4 @@
+
 "use client";
 
 import { 
@@ -16,7 +17,8 @@ import {
   UserCircle,
   Zap,
   Activity,
-  FileText
+  FileText,
+  Rocket
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -76,42 +78,36 @@ export default function AdminHelpPage() {
       </h3>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
-        {/* SEÇÃO: DADOS DE DEMONSTRAÇÃO */}
-        <AccordionItem value="dados-demo" className="border-2 border-emerald-200 rounded-2xl bg-emerald-50/50 px-4 shadow-sm overflow-hidden">
+        {/* SEÇÃO: PROTOCOLO DE LANÇAMENTO BETA */}
+        <AccordionItem value="protocolo-beta" className="border-2 border-primary/20 rounded-2xl bg-primary/[0.02] px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
-              <div className="bg-emerald-600 p-3 rounded-xl text-white shadow-lg">
-                <UserCircle className="h-6 w-6" />
+              <div className="bg-primary p-3 rounded-xl text-white shadow-lg">
+                <Rocket className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-black text-lg text-emerald-700">Dados para Demonstração</p>
-                <p className="text-sm text-emerald-600/70 font-medium">Credenciais e códigos para o protótipo</p>
+                <p className="font-black text-lg text-primary">Protocolo de Lançamento Beta</p>
+                <p className="text-sm text-primary/70 font-medium">Siga estes passos para iniciar a operação real</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-6 pb-6 pt-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm space-y-3">
-                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest border-b pb-1">Acesso ao Portal do Cidadão</p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold">Benedito Silva (Aprovado):</span>
-                    <Badge className="bg-emerald-100 text-emerald-700 border-none font-mono">102030</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold">Cecília Meireles (Pendente):</span>
-                    <Badge className="bg-amber-100 text-amber-700 border-none font-mono">405060</Badge>
-                  </div>
-                </div>
-                <p className="text-[9px] text-muted-foreground italic">Use estes códigos no menu &quot;Portal do Cidadão&quot; para mostrar o status em tempo real.</p>
+              <div className="p-4 bg-white rounded-xl border border-primary/10 shadow-sm space-y-2">
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b pb-1">1. Configuração de Base</p>
+                <p className="text-xs leading-relaxed">Cadastre primeiro as <b>Unidades (UBS)</b> no menu Configurações. Isso permitirá que os pedidos sejam vinculados corretamente a cada localidade de Rio Claro.</p>
               </div>
-              <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm space-y-3">
-                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest border-b pb-1">Usuários de Teste (Senha: admin123)</p>
-                <div className="space-y-1 text-xs">
-                  <p><b>Secretário:</b> secretario@rioclaro.rj.gov.br</p>
-                  <p><b>UBS:</b> gerente.ubs@rioclaro.rj.gov.br</p>
-                  <p><b>Motorista:</b> motorista@rioclaro.rj.gov.br</p>
-                </div>
+              <div className="p-4 bg-white rounded-xl border border-primary/10 shadow-sm space-y-2">
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b pb-1">2. Cadastro de Frota e Equipe</p>
+                <p className="text-xs leading-relaxed">Insira os <b>Veículos</b> e <b>Motoristas</b> oficiais. Certifique-se de preencher o odômetro inicial para que a telemetria de manutenção funcione.</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-primary/10 shadow-sm space-y-2">
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b pb-1">3. Início dos Agendamentos</p>
+                <p className="text-xs leading-relaxed">Instrua os Gerentes de UBS a cadastrarem os cidadãos (<b>CNS obrigatório</b>) e criarem as solicitações até as 13:00h.</p>
+              </div>
+              <div className="p-4 bg-white rounded-xl border border-primary/10 shadow-sm space-y-2">
+                <p className="text-[10px] font-black text-primary uppercase tracking-widest border-b pb-1">4. Otimização e Manifesto</p>
+                <p className="text-xs leading-relaxed">No final do dia, use o <b>Otimizador de Rotas</b> para agrupar os pedidos e oficializar os manifestos que aparecerão nos celulares dos condutores.</p>
               </div>
             </div>
           </AccordionContent>
@@ -176,131 +172,6 @@ export default function AdminHelpPage() {
                   Cada guia impressa contém um ID de documento e um HASH de integridade, permitindo que a Controladoria Municipal valide a autenticidade do documento físico futuramente.
                 </p>
               </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="fluxo-geral" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
-                <MapPin className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">Fluxo Operacional de Dados</p>
-                <p className="text-sm text-muted-foreground">O caminho da solicitação até o paciente</p>
-              </div>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-8 pb-6 pt-2">
-            <div className="relative space-y-8 before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
-              <div className="flex gap-4 relative pl-1">
-                <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold z-10 shrink-0">1</div>
-                <div>
-                  <p className="font-bold text-primary uppercase text-xs">Entrada (UBS)</p>
-                  <p className="text-sm">O Gerente da UBS cadastra o cidadão e cria o pedido de transporte até as 13:00h.</p>
-                </div>
-              </div>
-              <div className="flex gap-4 relative pl-1">
-                <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold z-10 shrink-0">2</div>
-                <div>
-                  <p className="font-bold text-primary uppercase text-xs">Triagem (Secretaria)</p>
-                  <p className="text-sm">O Secretário aprova o pedido no <b>Painel de Comando</b>, podendo usar a IA para classificar a urgência.</p>
-                </div>
-              </div>
-              <div className="flex gap-4 relative pl-1">
-                <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold z-10 shrink-0">3</div>
-                <div>
-                  <p className="font-bold text-primary uppercase text-xs">Otimização (Logística)</p>
-                  <p className="text-sm">A IA agrupa pacientes no <b>Otimizador de Rotas</b>. O Secretário designa o condutor e cria o <b>Manifesto</b>.</p>
-                </div>
-              </div>
-              <div className="flex gap-4 relative pl-1">
-                <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold z-10 shrink-0">4</div>
-                <div>
-                  <p className="font-bold text-primary uppercase text-xs">Execução (Motorista)</p>
-                  <p className="text-sm">O motorista recebe a rota no celular, faz o checklist e inicia o transporte.</p>
-                </div>
-              </div>
-              <div className="flex gap-4 relative pl-1">
-                <div className="size-8 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold z-10 shrink-0">5</div>
-                <div>
-                  <p className="font-bold text-emerald-600 uppercase text-xs">Transparência (Cidadão)</p>
-                  <p className="text-sm">O paciente usa seu código de 6 dígitos no <b>Portal do Cidadão</b> para ver qual viatura irá buscá-lo.</p>
-                </div>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="guia-secretario" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-primary/10 p-3 rounded-xl text-primary">
-                <ShieldCheck className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">Guia do Secretário / Admin</p>
-                <p className="text-sm text-muted-foreground">Gestão estratégica e aprovações</p>
-              </div>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-muted/20 rounded-xl space-y-2">
-                <p className="font-bold text-xs uppercase text-primary">Triagem Técnica</p>
-                <p className="text-xs leading-relaxed">Acesse o <b>Painel de Comando</b> para visualizar pedidos pendentes. Use o botão &quot;Analisar com IA&quot; para obter um parecer clínico sem expor nomes reais.</p>
-              </div>
-              <div className="p-4 bg-muted/20 rounded-xl space-y-2">
-                <p className="font-bold text-xs uppercase text-primary">Logística Inteligente</p>
-                <p className="text-xs leading-relaxed">No <b>Otimizador de Rotas</b>, a IA cruzará endereços e veículos. O sistema agora impede que um motorista seja escalado para duas missões simultâneas.</p>
-              </div>
-              <div className="p-4 bg-muted/20 rounded-xl space-y-2">
-                <p className="font-bold text-xs uppercase text-primary">Auditoria e Segurança</p>
-                <p className="text-xs leading-relaxed">A tela de <b>Auditoria</b> exibe a Cadeia de Custódia. Verifique se o selo de integridade está verde, garantindo que nenhum dado foi alterado indevidamente.</p>
-              </div>
-              <div className="p-4 bg-muted/20 rounded-xl space-y-2">
-                <p className="font-bold text-xs uppercase text-primary">Gestão de Documentos</p>
-                <p className="text-xs leading-relaxed">Em <b>Documentos</b>, gere guias de Diárias e Combustível em formato A4 profissional, prontas para impressão e assinatura física.</p>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="guia-ia" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-primary/30">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-amber-100 p-3 rounded-xl text-amber-600">
-                <BrainCircuit className="h-6 w-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-bold text-lg">IA e Sigilo de Dados</p>
-                  <Badge className="bg-amber-600 text-white text-[10px]">IMPORTANTE</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">Como o Nvidia Nemotron processa as informações</p>
-              </div>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
-            <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
-              <Lock className="h-5 w-5 text-amber-600 mt-1 shrink-0" />
-              <div className="space-y-2">
-                <p className="font-bold text-amber-900 text-sm">Protocolo de Privacidade e LGPD</p>
-                <p className="text-xs text-amber-800 leading-relaxed">
-                  Para estar em conformidade com a LGPD, o SGov FluxoSaúde <b>nunca</b> envia nomes de pacientes ou documentos para os servidores de IA. O sistema processa apenas metadados técnicos.
-                  <br/><br/>
-                  <b>Sigilo do Condutor:</b> Seguindo normas de Ordem Pública, o Portal do Cidadão nunca exibe o contato pessoal (telefone) dos motoristas, centralizando o suporte via Central de Regulação (192).
-                </p>
-              </div>
-            </div>
-            <div className="space-y-2 px-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Funcionalidades de IA Ativas:</p>
-              <ul className="text-xs space-y-2 list-none">
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Classificação de Urgência (UBS/Secretaria)</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Agrupamento de Manifestos (Logística)</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Análise de Relatórios de Campo (Briefing Executivo)</li>
-              </ul>
             </div>
           </AccordionContent>
         </AccordionItem>

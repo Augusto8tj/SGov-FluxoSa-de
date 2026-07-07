@@ -1,3 +1,4 @@
+
 "use client";
 
 import { 
@@ -55,33 +56,27 @@ export default function UbsHelpPage() {
       </h3>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
-        {/* SEÇÃO: DADOS DE DEMONSTRAÇÃO */}
-        <AccordionItem value="dados-demo" className="border-2 border-emerald-200 rounded-2xl bg-emerald-50/50 px-4 shadow-sm overflow-hidden">
+        {/* SEÇÃO: INICIANDO NO BETA REAL */}
+        <AccordionItem value="inicio-beta" className="border-2 border-emerald-200 rounded-2xl bg-emerald-50/50 px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
               <div className="bg-emerald-600 p-3 rounded-xl text-white shadow-lg">
-                <UserCircle className="h-6 w-6" />
+                <Rocket className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-black text-lg text-emerald-700">Dados para Demonstração</p>
-                <p className="text-sm text-emerald-600/70 font-medium">Códigos de acesso para o protótipo</p>
+                <p className="font-black text-lg text-emerald-700">Como Começar no Teste Beta</p>
+                <p className="text-sm text-emerald-600/70 font-medium">Guia para os primeiros agendamentos reais</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
             <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm space-y-3">
-              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest border-b pb-1 flex items-center gap-2"><KeyRound className="h-3 w-3" /> Acesso do Cidadão</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-                  <span className="text-xs font-bold">Benedito Silva (Aprovado):</span>
-                  <Badge className="bg-emerald-100 text-emerald-700 border-none font-mono">102030</Badge>
-                </div>
-                <div className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-                  <span className="text-xs font-bold">Cecília Meireles (Pendente):</span>
-                  <Badge className="bg-amber-100 text-amber-700 border-none font-mono">405060</Badge>
-                </div>
+              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest border-b pb-1 flex items-center gap-2">Passos Iniciais</p>
+              <div className="space-y-3 text-xs leading-relaxed">
+                <p>1. <b>Cadastro de Cidadãos</b>: Acesse "Meus Pacientes" e cadastre os moradores da sua área. O número do CNS é obrigatório para garantir a integridade do banco de dados municipal.</p>
+                <p>2. <b>Local de Embarque</b>: Ao solicitar transporte, seja específico sobre o ponto de encontro (Ex: Portaria Leste, Farmácia Municipal, etc). Isso reduz o tempo de busca do motorista.</p>
+                <p>3. <b>Código do Cidadão</b>: Ao finalizar o pedido, anote o código de 6 dígitos gerado e entregue ao paciente. Ele servirá para consulta no Portal do Cidadão.</p>
               </div>
-              <p className="text-[9px] text-muted-foreground italic">Use estes códigos para demonstrar ao paciente como ele pode acompanhar sua viagem em tempo real.</p>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -112,33 +107,6 @@ export default function UbsHelpPage() {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="cadastro" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600">
-                <Users className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">Base de Cidadãos</p>
-                <p className="text-sm text-muted-foreground">Como manter o prontuário digital em dia</p>
-              </div>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
-            <p className="text-sm px-2">Para solicitar transporte, o paciente deve estar cadastrado na sua UBS no sistema.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-              <div className="p-4 bg-slate-50 rounded-xl border">
-                <p className="font-bold text-xs text-emerald-600 uppercase">CNS é Obrigatório</p>
-                <p className="text-xs">O Cartão Nacional de Saúde deve ser inserido corretamente para garantir a unicidade do registro municipal.</p>
-              </div>
-              <div className="p-4 bg-slate-50 rounded-xl border">
-                <p className="font-bold text-xs text-emerald-600 uppercase">Necessidades Especiais</p>
-                <p className="text-xs">Sinalize sempre se o paciente requer maca, cadeira de rodas ou acompanhante para a correta triagem da viatura pela Secretaria.</p>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
         <AccordionItem value="ia-sigilo" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-amber-100">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -160,58 +128,6 @@ export default function UbsHelpPage() {
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-amber-600" />
                 <p className="text-[10px] font-black uppercase text-amber-700">Privacidade Garantida pela PMRC</p>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="solicitacao" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
-                <ClipboardList className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">Solicitando Transporte</p>
-                <p className="text-sm text-muted-foreground">Regras de envio para a Secretaria</p>
-              </div>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-start gap-3">
-              <BrainCircuit className="h-5 w-5 text-blue-600 mt-1 shrink-0" />
-              <div>
-                <p className="font-bold text-blue-900 text-sm">Use o Sugestor de Urgência (IA)</p>
-                <p className="text-xs text-blue-800 leading-relaxed">
-                  Ao descrever o quadro do paciente, clique no botão <b>&quot;SUGERIR URGÊNCIA (IA)&quot;</b>. O sistema classificará automaticamente entre Baixa, Média, Alta ou Crítica baseado nos protocolos de triagem municipal.
-                </p>
-              </div>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="portal-cidadao" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-indigo-100">
-          <AccordionTrigger className="hover:no-underline py-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600">
-                <KeyRound className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-bold text-lg">Transparência e Cidadão</p>
-                <p className="text-sm text-muted-foreground">Como o paciente acompanha a viagem</p>
-              </div>
-            </div>
-          </AccordionTrigger>
-          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
-            <p className="text-sm px-2">Cada solicitação gera automaticamente um <b>Código de Acesso de 6 dígitos</b>.</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                <p className="font-bold text-xs text-indigo-700 uppercase">Entrega do Código</p>
-                <p className="text-xs">Forneça o código ao paciente no momento do agendamento. Ele pode consultar em <b>rioclaro.rj.gov.br/meu-transporte</b> ou usando o código de teste demo.</p>
-              </div>
-              <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                <p className="font-bold text-xs text-indigo-700 uppercase">Segurança de Dados</p>
-                <p className="text-xs">O Portal do Cidadão não exibe o nome completo ou o diagnóstico, apenas o status da viatura, placa do veículo e o horário previsto.</p>
               </div>
             </div>
           </AccordionContent>
