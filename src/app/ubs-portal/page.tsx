@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   ClipboardList, 
   Users, 
@@ -12,7 +12,8 @@ import {
   Zap,
   AlertTriangle,
   History,
-  MapPin
+  MapPin,
+  Loader2
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -22,13 +23,45 @@ import { summarizeUbsDemand, UbsDemandOutput } from "@/ai/flows/summarize-ubs-de
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
+import { requestService } from "@/services/request-service";
+import { patientService } from "@/services/patient-service";
+import { useAuth } from "@/hooks/use-auth";
+import { TransportRequest } from "@/lib/types";
 
 export default function UbsDashboard() {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isWithinWindow, setIsWithinWindow] = useState(false);
   const [aiReport, setAiReport] = useState<UbsDemandOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
+  
+  // Real Data States
+  const [requests, setRequests] = useState<TransportRequest[]>([]);
+  const [patientCount, setPatientCount] = useState(0);
+  
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  const loadRealData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [reqs, pats] = await Promise.all([
+        requestService.getRequests(),
+        patientService.getPatients()
+      ]);
+
+      // Filtro para esta UBS (Simulado como UBS-01 para o portal ou vindo do perfil)
+      const ubsId = user?.unitId || "UBS-01";
+      const myRequests = reqs.filter(r => r.ubsId === ubsId || r.operatorId === "UBS_MGR");
+      
+      setRequests(myRequests);
+      setPatientCount(pats.length);
+    } catch (error) {
+      console.error("Erro ao carregar dados da UBS:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     setMounted(true);
@@ -40,18 +73,22 @@ export default function UbsDashboard() {
     };
     
     checkTime();
+    loadRealData();
     const interval = setInterval(checkTime, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadRealData]);
 
   const handleGenerateReport = async () => {
     setLoadingAi(true);
     try {
+      const pendingCount = requests.filter(r => r.status === 'PENDING').length;
+      const urgentCount = requests.filter(r => r.urgencyLevel === 'critical' || r.urgencyLevel === 'high').length;
+
       const result = await summarizeUbsDemand({
         ubsName: "UBS Central",
-        pendingRequests: 8,
-        urgentCases: 2,
-        commonDestinations: ["Hospital Municipal", "Centro de Hemodiálise"]
+        pendingRequests: pendingCount,
+        urgentCases: urgentCount,
+        commonDestinations: Array.from(new Set(requests.map(r => r.destinationLocation))).slice(0, 3)
       });
       setAiReport(result);
       toast({ title: "Análise Concluída", description: "Resumo estratégico gerado para sua unidade." });
@@ -63,6 +100,10 @@ export default function UbsDashboard() {
   };
 
   if (!mounted) return null;
+
+  const pendingRequestsCount = requests.filter(r => r.status === 'PENDING').length;
+  const approvedRequestsCount = requests.filter(r => r.status === 'APPROVED').length;
+  const upcomingTrips = requests.filter(r => r.status === 'APPROVED' || r.status === 'PENDING').slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -103,126 +144,137 @@ export default function UbsDashboard() {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <StatsCard 
-          title="Nossos Pedidos" 
-          value="12" 
-          icon={ClipboardList} 
-          description="Total na fila"
-        />
-        <StatsCard 
-          title="Em Análise" 
-          value="8" 
-          icon={Clock} 
-          description="Na Secretaria"
-          className="border-b-4 border-b-amber-500"
-        />
-        <StatsCard 
-          title="Confirmados" 
-          value="4" 
-          icon={CheckCircle2} 
-          description="Aguardando Veículo"
-          className="border-b-4 border-b-emerald-500"
-        />
-        <StatsCard 
-          title="Nossa Base" 
-          value="342" 
-          icon={Users} 
-          description="Cidadãos Cadastrados"
-        />
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-7">
-        <div className="md:col-span-4 space-y-6">
-          <Card className="border-none shadow-sm bg-primary/5">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <div className="flex items-center gap-2">
-                <BrainCircuit className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Resumo Inteligente da Demanda</CardTitle>
-              </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs font-bold text-primary"
-                onClick={handleGenerateReport}
-                disabled={loadingAi}
-              >
-                {loadingAi ? "Analisando..." : "Gerar Análise"}
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {aiReport ? (
-                <div className="space-y-4 animate-in fade-in">
-                  <p className="text-sm leading-relaxed text-slate-700">{aiReport.summary}</p>
-                  <div className="flex items-start gap-2 bg-white p-3 rounded-lg border border-primary/10">
-                    <Zap className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <p className="text-xs font-semibold text-primary">Dica: {aiReport.recommendation}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="py-8 text-center">
-                  <p className="text-xs text-muted-foreground italic">Clique em &quot;Gerar Análise&quot; para entender a situação do transporte da unidade hoje.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Pacientes da Unidade</CardTitle>
-              <CardDescription>Gerencie o cadastro de cidadãos para agilizar pedidos.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full justify-start gap-4 h-16 rounded-xl border-dashed" asChild>
-                <Link href="/ubs-portal/patients">
-                  <div className="bg-emerald-50 p-2 rounded-lg text-emerald-600">
-                    <Users className="h-6 w-6" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-bold">Base de Cidadãos</p>
-                    <p className="text-[10px] text-muted-foreground uppercase">Sincronizar CNS e Prontuário</p>
-                  </div>
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground font-black uppercase tracking-widest">Sincronizando Dados Reais...</p>
         </div>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-4">
+            <StatsCard 
+              title="Nossos Pedidos" 
+              value={requests.length} 
+              icon={ClipboardList} 
+              description="Total na fila"
+            />
+            <StatsCard 
+              title="Em Análise" 
+              value={pendingRequestsCount} 
+              icon={Clock} 
+              description="Na Secretaria"
+              className="border-b-4 border-b-amber-500"
+            />
+            <StatsCard 
+              title="Confirmados" 
+              value={approvedRequestsCount} 
+              icon={CheckCircle2} 
+              description="Aguardando Veículo"
+              className="border-b-4 border-b-emerald-500"
+            />
+            <StatsCard 
+              title="Nossa Base" 
+              value={patientCount} 
+              icon={Users} 
+              description="Cidadãos Cadastrados"
+            />
+          </div>
 
-        <div className="md:col-span-3">
-          <Card className="border-none shadow-sm h-full flex flex-col">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2">
-                <History className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">Próximos Embarques</CardTitle>
-              </div>
-              <CardDescription className="text-xs">Pacientes da unidade com transporte agendado.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 flex-1">
-              {[
-                { name: "Maria Aparecida Silva", destination: "Hospital Municipal", time: "09:00", status: "Confirmado" },
-                { name: "João Pedro Santos", destination: "Hemodiálise", time: "10:30", status: "A caminho" },
-                { name: "Tereza Souza", destination: "UBS Central", time: "11:15", status: "Aguardando" },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors border">
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold">{item.name}</p>
-                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-medium">
-                      <MapPin className="h-3 w-3" /> {item.destination} &bull; {item.time}
+          <div className="grid gap-6 md:grid-cols-7">
+            <div className="md:col-span-4 space-y-6">
+              <Card className="border-none shadow-sm bg-primary/5">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <div className="flex items-center gap-2">
+                    <BrainCircuit className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-lg">Resumo Inteligente da Demanda</CardTitle>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-xs font-bold text-primary"
+                    onClick={handleGenerateReport}
+                    disabled={loadingAi}
+                  >
+                    {loadingAi ? "Analisando..." : "Gerar Análise"}
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {aiReport ? (
+                    <div className="space-y-4 animate-in fade-in">
+                      <p className="text-sm leading-relaxed text-slate-700">{aiReport.summary}</p>
+                      <div className="flex items-start gap-2 bg-white p-3 rounded-lg border border-primary/10">
+                        <Zap className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <p className="text-xs font-semibold text-primary">Dica: {aiReport.recommendation}</p>
+                      </div>
                     </div>
+                  ) : (
+                    <div className="py-8 text-center">
+                      <p className="text-xs text-muted-foreground italic">Clique em &quot;Gerar Análise&quot; para entender a situação do transporte da unidade hoje.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="border-none shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-lg">Pacientes da Unidade</CardTitle>
+                  <CardDescription>Gerencie o cadastro de cidadãos para agilizar pedidos.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button variant="outline" className="w-full justify-start gap-4 h-16 rounded-xl border-dashed" asChild>
+                    <Link href="/ubs-portal/patients">
+                      <div className="bg-emerald-50 p-2 rounded-lg text-emerald-600">
+                        <Users className="h-6 w-6" />
+                      </div>
+                      <div className="text-left">
+                        <p className="text-sm font-bold">Base de Cidadãos</p>
+                        <p className="text-[10px] text-muted-foreground uppercase">Sincronizar CNS e Prontuário</p>
+                      </div>
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="md:col-span-3">
+              <Card className="border-none shadow-sm h-full flex flex-col">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-2">
+                    <History className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-lg">Próximos Embarques</CardTitle>
                   </div>
-                  <Badge variant="outline" className={cn(
-                    "text-[9px] h-5 font-bold",
-                    item.status === 'Confirmado' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : 
-                    item.status === 'A caminho' ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-amber-50 text-amber-700 border-amber-200"
-                  )}>
-                    {item.status.toUpperCase()}
-                  </Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+                  <CardDescription className="text-xs">Pacientes da unidade com transporte agendado.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 flex-1">
+                  {upcomingTrips.length > 0 ? (
+                    upcomingTrips.map((item, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors border">
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold">{item.patientName}</p>
+                          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-medium">
+                            <MapPin className="h-3 w-3" /> {item.destinationLocation} &bull; {new Date(item.requestedTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}h
+                          </div>
+                        </div>
+                        <Badge variant="outline" className={cn(
+                          "text-[9px] h-5 font-bold",
+                          item.status === 'APPROVED' ? "bg-emerald-50 text-emerald-700 border-emerald-200" : 
+                          item.status === 'PENDING' ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-slate-50 text-slate-700 border-slate-200"
+                        )}>
+                          {item.status === 'APPROVED' ? 'CONFIRMADO' : item.status === 'PENDING' ? 'EM ANÁLISE' : item.status}
+                        </Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-10 opacity-30 italic text-sm">
+                      Sem embarques previstos.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
