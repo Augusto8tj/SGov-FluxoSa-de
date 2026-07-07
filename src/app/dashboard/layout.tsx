@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/dashboard/app-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ThemeSelector } from "@/components/theme-selector";
+import { ImplementationGuide } from "@/components/implementation-guide";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,7 +13,7 @@ import { Loader2 } from "lucide-react";
 
 /**
  * @fileOverview Layout principal do Dashboard.
- * Adicionado controle de montagem para evitar erros de hidratação entre o estado de loading e o conteúdo.
+ * Adicionado suporte ao roteiro de implantação no cabeçalho.
  */
 
 export default function DashboardLayout({
@@ -34,7 +35,6 @@ export default function DashboardLayout({
     }
   }, [user, loading, router, isMounted]);
 
-  // Enquanto não estiver montado ou estiver validando, mostramos um estado consistente
   if (!isMounted || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -61,6 +61,7 @@ export default function DashboardLayout({
             </h1>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-4 shrink-0">
+            <ImplementationGuide />
             <ThemeSelector />
             <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-[10px] sm:text-xs shrink-0 uppercase shadow-inner">
               {user.email?.[0] || 'U'}

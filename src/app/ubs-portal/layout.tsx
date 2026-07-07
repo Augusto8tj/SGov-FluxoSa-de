@@ -5,14 +5,14 @@ import { UbsSidebar } from "@/components/ubs/ubs-sidebar";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { ThemeSelector } from "@/components/theme-selector";
+import { ImplementationGuide } from "@/components/implementation-guide";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 /**
- * @fileOverview Layout do Portal UBS.
- * Adicionado controle de montagem para garantir consistência na hidratação.
+ * @fileOverview Layout do Portal UBS com roteiro de suporte no cabeçalho.
  */
 
 export default function UbsLayout({
@@ -60,6 +60,7 @@ export default function UbsLayout({
             </h1>
           </div>
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <ImplementationGuide />
             <ThemeSelector />
             <div className="flex flex-col items-end text-right">
               <p className="text-[10px] sm:text-xs font-bold leading-none">{user.email?.split('@')[0]}</p>

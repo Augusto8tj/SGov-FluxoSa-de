@@ -11,31 +11,14 @@ import {
   BrainCircuit, 
   Zap,
   AlertTriangle,
-  History,
   MapPin,
   Loader2,
-  Rocket,
-  ClipboardPlus,
-  Key,
-  Check,
-  Info,
-  ChevronRight,
-  ChevronLeft,
-  ShieldCheck,
-  Lightbulb
+  Info
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { summarizeUbsDemand, UbsDemandOutput } from "@/ai/flows/summarize-ubs-demand-flow";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -44,7 +27,6 @@ import { requestService } from "@/services/request-service";
 import { patientService } from "@/services/patient-service";
 import { useAuth } from "@/hooks/use-auth";
 import { TransportRequest } from "@/lib/types";
-import { Separator } from "@/components/ui/separator";
 
 export default function UbsDashboard() {
   const [mounted, setMounted] = useState(false);
@@ -52,7 +34,6 @@ export default function UbsDashboard() {
   const [isWithinWindow, setIsWithinWindow] = useState(false);
   const [aiReport, setAiReport] = useState<UbsDemandOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
-  const [guideStep, setGuideStep] = useState(1);
   
   // Real Data States
   const [requests, setRequests] = useState<TransportRequest[]>([]);
@@ -74,9 +55,6 @@ export default function UbsDashboard() {
       
       setRequests(myRequests);
       setPatientCount(pats.length);
-
-      // Ajusta passo do guia
-      if (pats.length > 0 && myRequests.length === 0) setGuideStep(2);
     } catch (error) {
       console.error("Erro ao carregar dados da UBS:", error);
     } finally {
@@ -133,118 +111,6 @@ export default function UbsDashboard() {
           <p className="text-muted-foreground">Gestão de transporte para a UBS Central - Rio Claro, RJ.</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* BOTÃO DE DICA UBS */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg h-10 px-4 rounded-xl gap-2 font-black uppercase text-[10px] tracking-widest">
-                <Lightbulb className="h-4 w-4" /> Dica da Unidade
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-              <div className="bg-amber-500 p-6 text-white">
-                <DialogHeader className="text-left space-y-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-white/20 p-2.5 rounded-2xl">
-                      <Lightbulb className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <DialogTitle className="text-xl font-black uppercase tracking-tighter">Roteiro Local</DialogTitle>
-                      <DialogDescription className="text-amber-100 text-[10px] uppercase font-bold tracking-widest">
-                        Passo {guideStep} de 2 & bull; UBS Central
-                      </DialogDescription>
-                    </div>
-                  </div>
-                </DialogHeader>
-              </div>
-              <div className="p-8 space-y-8 bg-white min-h-[300px] flex flex-col">
-                
-                {guideStep === 1 && (
-                  <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                    <div className="space-y-2">
-                      <Badge className="bg-amber-100 text-amber-700 border-none px-3 h-6 mb-2">ETAPA 1: CADASTRO</Badge>
-                      <h3 className="text-2xl font-black text-slate-800 leading-tight">Alimentar Base de Cidadãos</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        Antes de pedir transporte, cadastre os moradores da sua unidade com o número do <b>CNS oficial</b>.
-                      </p>
-                    </div>
-                    <div className={cn("p-4 rounded-2xl border flex items-center gap-4 transition-all", patientCount > 0 ? "bg-emerald-50 border-emerald-200" : "bg-slate-50")}>
-                      <div className={cn("p-3 rounded-xl shrink-0", patientCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-primary/10 text-primary")}>
-                        {patientCount > 0 ? <Check className="h-5 w-5" /> : <Users className="h-5 w-5" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-700">{patientCount} Cidadãos na sua base</p>
-                        <p className="text-[10px] text-slate-500 uppercase font-bold">{patientCount > 0 ? "Pronto para Agendar" : "Ação Necessária"}</p>
-                      </div>
-                      {patientCount === 0 && (
-                        <Button size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase" asChild>
-                          <Link href="/ubs-portal/patients">Ir para base</Link>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {guideStep === 2 && (
-                  <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                    <div className="space-y-2">
-                      <Badge className="bg-amber-100 text-amber-700 border-none px-3 h-6 mb-2">ETAPA 2: AGENDAMENTO</Badge>
-                      <h3 className="text-2xl font-black text-slate-800 leading-tight">Primeiros Pedidos Reais</h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        Realize as solicitações entre <b>08h e 13h</b>. Informe o local de embarque exato (ex: Portaria B) para o motorista.
-                      </p>
-                    </div>
-                    <div className={cn("p-4 rounded-2xl border flex items-center gap-4 transition-all", requests.length > 0 ? "bg-emerald-50 border-emerald-200" : "bg-slate-50")}>
-                      <div className={cn("p-3 rounded-xl shrink-0", requests.length > 0 ? "bg-emerald-100 text-emerald-600" : "bg-primary/10 text-primary")}>
-                        {requests.length > 0 ? <Check className="h-5 w-5" /> : <ClipboardPlus className="h-5 w-5" />}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-slate-700">{requests.length} Pedidos enviados</p>
-                        <p className="text-[10px] text-slate-500 uppercase font-bold">{requests.length > 0 ? "Ótimo Trabalho" : "Aguardando Janela"}</p>
-                      </div>
-                      {requests.length === 0 && isWithinWindow && (
-                        <Button size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase" asChild>
-                          <Link href="/ubs-portal/requests">Criar Pedido</Link>
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-auto flex items-center justify-between pt-6 border-t">
-                  <div className="flex gap-1">
-                    {[1, 2].map(step => (
-                      <div 
-                        key={step} 
-                        className={cn(
-                          "h-1.5 rounded-full transition-all duration-300",
-                          step === guideStep ? "bg-amber-500 w-8" : "bg-slate-200 w-1.5"
-                        )} 
-                      />
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    {guideStep > 1 && (
-                      <Button variant="ghost" size="sm" className="h-9 px-4 rounded-xl gap-2 font-bold text-slate-400" onClick={() => setGuideStep(prev => prev - 1)}>
-                        <ChevronLeft className="h-4 w-4" /> Voltar
-                      </Button>
-                    )}
-                    {guideStep < 2 ? (
-                      <Button size="sm" className="h-9 px-4 rounded-xl gap-2 font-bold bg-amber-500 hover:bg-amber-600" onClick={() => setGuideStep(prev => prev + 1)}>
-                        Próximo <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <Button size="sm" className="h-9 px-4 rounded-xl gap-2 font-bold bg-emerald-600 hover:bg-emerald-700" asChild>
-                        <DialogTrigger asChild>
-                          <span className="cursor-pointer">Concluir Dicas</span>
-                        </DialogTrigger>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-
           <Button asChild disabled={!isWithinWindow} className={cn("bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 h-11 px-6 rounded-xl", !isWithinWindow && "opacity-50 grayscale")}>
             <Link href={isWithinWindow ? "/ubs-portal/requests" : "#"} className="gap-2">
               <PlusCircle className="h-4 w-4" /> Novo Pedido
@@ -381,7 +247,7 @@ export default function UbsDashboard() {
                     <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Protocolo de Suporte</h4>
                   </div>
                   <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
-                    Utilize o botão de <b>lâmpada</b> no topo para visualizar as etapas de implantação nesta unidade.
+                    Utilize o botão de <b>lâmpada</b> no cabeçalho para visualizar as etapas de implantação nesta unidade.
                   </p>
                 </div>
               </CardContent>
