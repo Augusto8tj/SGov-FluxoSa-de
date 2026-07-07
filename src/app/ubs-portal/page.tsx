@@ -20,7 +20,9 @@ import {
   Check,
   Info,
   ChevronRight,
-  ShieldCheck
+  ChevronLeft,
+  ShieldCheck,
+  Lightbulb
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -50,6 +52,7 @@ export default function UbsDashboard() {
   const [isWithinWindow, setIsWithinWindow] = useState(false);
   const [aiReport, setAiReport] = useState<UbsDemandOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
+  const [guideStep, setGuideStep] = useState(1);
   
   // Real Data States
   const [requests, setRequests] = useState<TransportRequest[]>([]);
@@ -71,6 +74,9 @@ export default function UbsDashboard() {
       
       setRequests(myRequests);
       setPatientCount(pats.length);
+
+      // Ajusta passo do guia
+      if (pats.length > 0 && myRequests.length === 0) setGuideStep(2);
     } catch (error) {
       console.error("Erro ao carregar dados da UBS:", error);
     } finally {
@@ -127,83 +133,114 @@ export default function UbsDashboard() {
           <p className="text-muted-foreground">Gestão de transporte para a UBS Central - Rio Claro, RJ.</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* BOTÃO DO POP-UP DE IMPLANTAÇÃO UBS */}
+          {/* BOTÃO DE DICA UBS */}
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg h-10 px-4 rounded-xl gap-2 font-black uppercase text-[10px] tracking-widest">
-                <Rocket className="h-4 w-4" /> Missão: Beta Real
+              <Button className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg h-10 px-4 rounded-xl gap-2 font-black uppercase text-[10px] tracking-widest">
+                <Lightbulb className="h-4 w-4" /> Dica da Unidade
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-              <div className="bg-indigo-600 p-6 text-white">
+            <DialogContent className="sm:max-w-[500px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <div className="bg-amber-500 p-6 text-white">
                 <DialogHeader className="text-left space-y-0">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-white/20 p-2.5 rounded-2xl">
-                      <Rocket className="h-6 w-6" />
+                      <Lightbulb className="h-6 w-6" />
                     </div>
                     <div>
-                      <DialogTitle className="text-xl font-black uppercase tracking-tighter">Guia da Unidade (Beta)</DialogTitle>
-                      <DialogDescription className="text-indigo-100 text-[10px] uppercase font-bold tracking-widest">
-                        Roteiro de Operação Real & bull; UBS
+                      <DialogTitle className="text-xl font-black uppercase tracking-tighter">Roteiro Local</DialogTitle>
+                      <DialogDescription className="text-amber-100 text-[10px] uppercase font-bold tracking-widest">
+                        Passo {guideStep} de 2 & bull; UBS Central
                       </DialogDescription>
                     </div>
                   </div>
                 </DialogHeader>
               </div>
-              <div className="p-6 space-y-6 bg-white">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4 p-4 rounded-2xl border bg-slate-50 transition-all hover:border-indigo-200">
-                    <div className={cn("p-2 rounded-xl shrink-0 mt-1", patientCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-indigo-600 text-white")}>
-                      {patientCount > 0 ? <Check className="h-4 w-4" /> : <Users className="h-4 w-4" />}
+              <div className="p-8 space-y-8 bg-white min-h-[300px] flex flex-col">
+                
+                {guideStep === 1 && (
+                  <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-2">
+                      <Badge className="bg-amber-100 text-amber-700 border-none px-3 h-6 mb-2">ETAPA 1: CADASTRO</Badge>
+                      <h3 className="text-2xl font-black text-slate-800 leading-tight">Alimentar Base de Cidadãos</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Antes de pedir transporte, cadastre os moradores da sua unidade com o número do <b>CNS oficial</b>.
+                      </p>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-[10px] font-black uppercase text-slate-400">Passo 1</p>
-                      <p className="text-sm font-bold text-slate-800">Alimentar Base de Cidadãos</p>
-                      <p className="text-xs text-slate-500">Cadastre os moradores da sua microárea com o número do CNS.</p>
+                    <div className={cn("p-4 rounded-2xl border flex items-center gap-4 transition-all", patientCount > 0 ? "bg-emerald-50 border-emerald-200" : "bg-slate-50")}>
+                      <div className={cn("p-3 rounded-xl shrink-0", patientCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-primary/10 text-primary")}>
+                        {patientCount > 0 ? <Check className="h-5 w-5" /> : <Users className="h-5 w-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-700">{patientCount} Cidadãos na sua base</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">{patientCount > 0 ? "Pronto para Agendar" : "Ação Necessária"}</p>
+                      </div>
                       {patientCount === 0 && (
-                        <Button variant="link" className="p-0 h-auto text-[10px] text-indigo-600 font-bold uppercase" asChild>
-                          <Link href="/ubs-portal/patients">Ir para pacientes <ChevronRight className="h-3 w-3" /></Link>
+                        <Button size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase" asChild>
+                          <Link href="/ubs-portal/patients">Ir para base</Link>
                         </Button>
                       )}
                     </div>
-                    {patientCount > 0 && <Badge className="bg-emerald-500 text-white border-none text-[8px] uppercase">Pronto</Badge>}
                   </div>
+                )}
 
-                  <div className="flex items-start gap-4 p-4 rounded-2xl border bg-slate-50 transition-all hover:border-indigo-200">
-                    <div className={cn("p-2 rounded-xl shrink-0 mt-1", requests.length > 0 ? "bg-emerald-100 text-emerald-600" : "bg-indigo-600 text-white")}>
-                      {requests.length > 0 ? <Check className="h-4 w-4" /> : <ClipboardPlus className="h-4 w-4" />}
+                {guideStep === 2 && (
+                  <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-2">
+                      <Badge className="bg-amber-100 text-amber-700 border-none px-3 h-6 mb-2">ETAPA 2: AGENDAMENTO</Badge>
+                      <h3 className="text-2xl font-black text-slate-800 leading-tight">Primeiros Pedidos Reais</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Realize as solicitações entre <b>08h e 13h</b>. Informe o local de embarque exato (ex: Portaria B) para o motorista.
+                      </p>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-[10px] font-black uppercase text-slate-400">Passo 2</p>
-                      <p className="text-sm font-bold text-slate-800">Primeiros Agendamentos Reais</p>
-                      <p className="text-xs text-slate-500">Realize os pedidos entre 08h e 13h para análise do gabinete.</p>
+                    <div className={cn("p-4 rounded-2xl border flex items-center gap-4 transition-all", requests.length > 0 ? "bg-emerald-50 border-emerald-200" : "bg-slate-50")}>
+                      <div className={cn("p-3 rounded-xl shrink-0", requests.length > 0 ? "bg-emerald-100 text-emerald-600" : "bg-primary/10 text-primary")}>
+                        {requests.length > 0 ? <Check className="h-5 w-5" /> : <ClipboardPlus className="h-5 w-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-700">{requests.length} Pedidos enviados</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">{requests.length > 0 ? "Ótimo Trabalho" : "Aguardando Janela"}</p>
+                      </div>
+                      {requests.length === 0 && isWithinWindow && (
+                        <Button size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase" asChild>
+                          <Link href="/ubs-portal/requests">Criar Pedido</Link>
+                        </Button>
+                      )}
                     </div>
                   </div>
+                )}
 
-                  <div className="flex items-start gap-4 p-4 rounded-2xl border bg-slate-50 transition-all hover:border-indigo-200">
-                    <div className="bg-indigo-600 text-white p-2 rounded-xl shrink-0 mt-1">
-                      <Key className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-[10px] font-black uppercase text-slate-400">Passo 3</p>
-                      <p className="text-sm font-bold text-slate-800">Fornecer Códigos de Acesso</p>
-                      <p className="text-xs text-slate-500">Entregue o código de 6 dígitos aos pacientes aprovados.</p>
-                    </div>
+                <div className="mt-auto flex items-center justify-between pt-6 border-t">
+                  <div className="flex gap-1">
+                    {[1, 2].map(step => (
+                      <div 
+                        key={step} 
+                        className={cn(
+                          "h-1.5 rounded-full transition-all duration-300",
+                          step === guideStep ? "bg-amber-500 w-8" : "bg-slate-200 w-1.5"
+                        )} 
+                      />
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    {guideStep > 1 && (
+                      <Button variant="ghost" size="sm" className="h-9 px-4 rounded-xl gap-2 font-bold text-slate-400" onClick={() => setGuideStep(prev => prev - 1)}>
+                        <ChevronLeft className="h-4 w-4" /> Voltar
+                      </Button>
+                    )}
+                    {guideStep < 2 ? (
+                      <Button size="sm" className="h-9 px-4 rounded-xl gap-2 font-bold bg-amber-500 hover:bg-amber-600" onClick={() => setGuideStep(prev => prev + 1)}>
+                        Próximo <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button size="sm" className="h-9 px-4 rounded-xl gap-2 font-bold bg-emerald-600 hover:bg-emerald-700" asChild>
+                        <DialogTrigger asChild>
+                          <span className="cursor-pointer">Concluir Dicas</span>
+                        </DialogTrigger>
+                      </Button>
+                    )}
                   </div>
                 </div>
-
-                <div className="p-4 bg-amber-50 rounded-2xl border border-dashed border-amber-200 flex items-center gap-3">
-                  <ShieldCheck className="h-5 w-5 text-amber-600 shrink-0" />
-                  <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
-                    <b>Lembrete LGPD:</b> Nunca compartilhe o telefone do motorista. O paciente deve consultar tudo pelo Portal do Cidadão usando o código oficial.
-                  </p>
-                </div>
-              </div>
-              <Separator />
-              <div className="p-4 bg-slate-50 flex justify-end">
-                <Button className="rounded-xl font-black uppercase text-[10px] tracking-widest h-10 px-6" asChild>
-                  <Link href="/ubs-portal/help">Acessar Manual</Link>
-                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -344,7 +381,7 @@ export default function UbsDashboard() {
                     <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Protocolo de Suporte</h4>
                   </div>
                   <p className="text-[11px] text-slate-500 leading-relaxed font-medium">
-                    Utilize o botão <b>"Missão: Beta Real"</b> no topo para acompanhar seu progresso de implantação nesta unidade.
+                    Utilize o botão de <b>lâmpada</b> no topo para visualizar as etapas de implantação nesta unidade.
                   </p>
                 </div>
               </CardContent>

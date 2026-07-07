@@ -17,7 +17,9 @@ import {
   Check,
   Info,
   ChevronRight,
-  ShieldCheck
+  ChevronLeft,
+  ShieldCheck,
+  Lightbulb
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -39,7 +41,8 @@ import {
   DialogDescription, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger 
+  DialogTrigger,
+  DialogFooter
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { generateSystemInsights, SystemInsightsOutput } from "@/ai/flows/generate-system-insights-flow";
@@ -58,6 +61,7 @@ export default function DashboardPage() {
   const [isWithinWindow, setIsWithinWindow] = useState(false);
   const [aiReport, setAiReport] = useState<SystemInsightsOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
+  const [guideStep, setGuideStep] = useState(1);
   
   // Real Data States
   const [requests, setRequests] = useState<TransportRequest[]>([]);
@@ -104,6 +108,10 @@ export default function DashboardPage() {
       const formattedChart = Object.entries(groups).map(([name, count]) => ({ name, count }));
       setChartData(formattedChart.length > 0 ? formattedChart : [{ name: "Sem Dados", count: 0 }]);
 
+      // Ajusta o passo inicial do guia com base no progresso
+      if (units.length > 0 && vehs.length === 0) setGuideStep(2);
+      else if (units.length > 0 && vehs.length > 0) setGuideStep(3);
+
     } catch (error) {
       console.error("Erro ao carregar dashboard real:", error);
     } finally {
@@ -145,89 +153,138 @@ export default function DashboardPage() {
           <p className="text-xs sm:text-sm text-muted-foreground">Monitoramento em tempo real - Rio Claro, RJ.</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* BOTÃO DO POP-UP DE IMPLANTAÇÃO */}
+          {/* BOTÃO DE DICA - POP-UP DE IMPLANTAÇÃO */}
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg h-10 px-4 rounded-xl gap-2 font-black uppercase text-[10px] tracking-widest animate-in fade-in slide-in-from-right-4">
-                <Rocket className="h-4 w-4" /> Missão: Teste Beta
+              <Button className="bg-amber-500 hover:bg-amber-600 text-white shadow-lg h-10 px-4 rounded-xl gap-2 font-black uppercase text-[10px] tracking-widest animate-in fade-in slide-in-from-right-4">
+                <Lightbulb className="h-4 w-4" /> Dica de Implantação
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
-              <div className="bg-emerald-600 p-6 text-white">
+            <DialogContent className="sm:max-w-[500px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <div className="bg-amber-500 p-6 text-white">
                 <DialogHeader className="text-left space-y-0">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-white/20 p-2.5 rounded-2xl">
-                      <Rocket className="h-6 w-6" />
+                      <Lightbulb className="h-6 w-6" />
                     </div>
                     <div>
-                      <DialogTitle className="text-xl font-black uppercase tracking-tighter">Guia de Implantação</DialogTitle>
-                      <DialogDescription className="text-emerald-100 text-[10px] uppercase font-bold tracking-widest">
-                        Checklist Operacional Real & bull; Rio Claro
+                      <DialogTitle className="text-xl font-black uppercase tracking-tighter">Guia de Etapas</DialogTitle>
+                      <DialogDescription className="text-amber-100 text-[10px] uppercase font-bold tracking-widest">
+                        Passo {guideStep} de 3 & bull; Rio Claro
                       </DialogDescription>
                     </div>
                   </div>
                 </DialogHeader>
               </div>
-              <div className="p-6 space-y-6 bg-white">
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4 p-4 rounded-2xl border bg-slate-50 transition-all hover:border-emerald-200">
-                    <div className={cn("p-2 rounded-xl shrink-0 mt-1", unitCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-indigo-600 text-white")}>
-                      {unitCount > 0 ? <Check className="h-4 w-4" /> : <Building className="h-4 w-4" />}
+              <div className="p-8 space-y-8 bg-white min-h-[350px] flex flex-col">
+                
+                {guideStep === 1 && (
+                  <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-2">
+                      <Badge className="bg-amber-100 text-amber-700 border-none px-3 h-6 mb-2">ETAPA 1: AS BASES</Badge>
+                      <h3 className="text-2xl font-black text-slate-800 leading-tight">Cadastrar Unidades Oficiais</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Para que as solicitações funcionem, você precisa definir os postos de saúde (UBS) e hospitais no sistema.
+                      </p>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-[10px] font-black uppercase text-slate-400">Passo 1</p>
-                      <p className="text-sm font-bold text-slate-800">Cadastrar Unidades Oficiais</p>
-                      <p className="text-xs text-slate-500">Defina os postos de saúde (UBS) no menu de configurações.</p>
+                    <div className={cn("p-4 rounded-2xl border flex items-center gap-4 transition-all", unitCount > 0 ? "bg-emerald-50 border-emerald-200" : "bg-slate-50")}>
+                      <div className={cn("p-3 rounded-xl shrink-0", unitCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-primary/10 text-primary")}>
+                        {unitCount > 0 ? <Check className="h-5 w-5" /> : <Building className="h-5 w-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-700">{unitCount} Unidades registradas</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">{unitCount > 0 ? "Passo Concluído" : "Ação Necessária"}</p>
+                      </div>
                       {unitCount === 0 && (
-                        <Button variant="link" className="p-0 h-auto text-[10px] text-emerald-600 font-bold uppercase" asChild>
-                          <Link href="/dashboard/ubs">Ir para cadastro <ChevronRight className="h-3 w-3" /></Link>
+                        <Button size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase" asChild>
+                          <Link href="/dashboard/ubs">Ir agora</Link>
                         </Button>
                       )}
                     </div>
-                    {unitCount > 0 && <Badge className="bg-emerald-500 text-white border-none text-[8px] uppercase">Concluído</Badge>}
                   </div>
+                )}
 
-                  <div className="flex items-start gap-4 p-4 rounded-2xl border bg-slate-50 transition-all hover:border-emerald-200">
-                    <div className={cn("p-2 rounded-xl shrink-0 mt-1", vehicleCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-indigo-600 text-white")}>
-                      {vehicleCount > 0 ? <Check className="h-4 w-4" /> : <Ambulance className="h-4 w-4" />}
+                {guideStep === 2 && (
+                  <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-2">
+                      <Badge className="bg-amber-100 text-amber-700 border-none px-3 h-6 mb-2">ETAPA 2: A FROTA</Badge>
+                      <h3 className="text-2xl font-black text-slate-800 leading-tight">Carga da Frota Municipal</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Registre as viaturas, ambulâncias e vans. Informe o <b>odômetro inicial</b> para que a IA monitore a manutenção.
+                      </p>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-[10px] font-black uppercase text-slate-400">Passo 2</p>
-                      <p className="text-sm font-bold text-slate-800">Carga da Frota Municipal</p>
-                      <p className="text-xs text-slate-500">Registre as viaturas com odômetro e placa oficial.</p>
+                    <div className={cn("p-4 rounded-2xl border flex items-center gap-4 transition-all", vehicleCount > 0 ? "bg-emerald-50 border-emerald-200" : "bg-slate-50")}>
+                      <div className={cn("p-3 rounded-xl shrink-0", vehicleCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-primary/10 text-primary")}>
+                        {vehicleCount > 0 ? <Check className="h-5 w-5" /> : <Ambulance className="h-5 w-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-700">{vehicleCount} Veículos na base</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">{vehicleCount > 0 ? "Passo Concluído" : "Ação Necessária"}</p>
+                      </div>
                       {vehicleCount === 0 && (
-                        <Button variant="link" className="p-0 h-auto text-[10px] text-emerald-600 font-bold uppercase" asChild>
-                          <Link href="/dashboard/fleet">Ir para frota <ChevronRight className="h-3 w-3" /></Link>
+                        <Button size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase" asChild>
+                          <Link href="/dashboard/fleet">Configurar</Link>
                         </Button>
                       )}
                     </div>
-                    {vehicleCount > 0 && <Badge className="bg-emerald-500 text-white border-none text-[8px] uppercase">Concluído</Badge>}
                   </div>
+                )}
 
-                  <div className="flex items-start gap-4 p-4 rounded-2xl border bg-slate-50 transition-all hover:border-emerald-200">
-                    <div className="bg-indigo-600 text-white p-2 rounded-xl shrink-0 mt-1">
-                      <UserCheck className="h-4 w-4" />
+                {guideStep === 3 && (
+                  <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                    <div className="space-y-2">
+                      <Badge className="bg-amber-100 text-amber-700 border-none px-3 h-6 mb-2">ETAPA 3: EQUIPE</Badge>
+                      <h3 className="text-2xl font-black text-slate-800 leading-tight">Credenciar Condutores</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        Adicione os motoristas oficiais. Sem eles, o Otimizador de Rotas não terá para quem atribuir as missões.
+                      </p>
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-[10px] font-black uppercase text-slate-400">Passo 3</p>
-                      <p className="text-sm font-bold text-slate-800">Credenciar Condutores</p>
-                      <p className="text-xs text-slate-500">Adicione os motoristas para que apareçam na roteirização.</p>
+                    <div className="p-4 rounded-2xl border bg-slate-50 flex items-center gap-4">
+                      <div className="bg-primary/10 text-primary p-3 rounded-xl shrink-0">
+                        <UserCheck className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-700">Controle de Condutores</p>
+                        <p className="text-[10px] text-slate-500 uppercase font-bold">Menu: Motoristas</p>
+                      </div>
+                      <Button size="sm" className="h-8 rounded-lg text-[10px] font-black uppercase" asChild>
+                        <Link href="/dashboard/settings?tab=drivers">Acessar</Link>
+                      </Button>
                     </div>
+                  </div>
+                )}
+
+                <div className="mt-auto flex items-center justify-between pt-6 border-t">
+                  <div className="flex gap-1">
+                    {[1, 2, 3].map(step => (
+                      <div 
+                        key={step} 
+                        className={cn(
+                          "h-1.5 rounded-full transition-all duration-300",
+                          step === guideStep ? "bg-amber-500 w-8" : "bg-slate-200 w-1.5"
+                        )} 
+                      />
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    {guideStep > 1 && (
+                      <Button variant="ghost" size="sm" className="h-9 px-4 rounded-xl gap-2 font-bold text-slate-400" onClick={() => setGuideStep(prev => prev - 1)}>
+                        <ChevronLeft className="h-4 w-4" /> Anterior
+                      </Button>
+                    )}
+                    {guideStep < 3 ? (
+                      <Button size="sm" className="h-9 px-4 rounded-xl gap-2 font-bold bg-amber-500 hover:bg-amber-600" onClick={() => setGuideStep(prev => prev + 1)}>
+                        Próximo <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button size="sm" className="h-9 px-4 rounded-xl gap-2 font-bold bg-emerald-600 hover:bg-emerald-700" asChild>
+                        <DialogTrigger asChild>
+                          <span className="cursor-pointer">Entendido!</span>
+                        </DialogTrigger>
+                      </Button>
+                    )}
                   </div>
                 </div>
-
-                <div className="p-4 bg-emerald-50 rounded-2xl border border-dashed border-emerald-200 flex items-center gap-3">
-                  <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
-                  <p className="text-[10px] text-emerald-700 font-medium leading-relaxed">
-                    <b>Dica Operacional:</b> Após cadastrar as bases, instrua as UBS a iniciarem os cadastros de cidadãos antes de gerar os primeiros pedidos reais.
-                  </p>
-                </div>
-              </div>
-              <Separator />
-              <div className="p-4 bg-slate-50 flex justify-end">
-                <Button className="rounded-xl font-black uppercase text-[10px] tracking-widest" asChild>
-                  <Link href="/dashboard/help">Ver Manual Completo</Link>
-                </Button>
               </div>
             </DialogContent>
           </Dialog>
