@@ -14,7 +14,10 @@ import {
   Rocket,
   Building,
   UserCheck,
-  Check
+  Check,
+  Info,
+  ChevronRight,
+  ShieldCheck
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -30,6 +33,14 @@ import {
   ResponsiveContainer,
   Cell
 } from "recharts";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { generateSystemInsights, SystemInsightsOutput } from "@/ai/flows/generate-system-insights-flow";
 import { useToast } from "@/hooks/use-toast";
@@ -39,16 +50,13 @@ import { vehicleService } from "@/services/vehicle-service";
 import { ubsService } from "@/services/ubs-service";
 import { TransportRequest } from "@/lib/types";
 import Link from "next/link";
+import { Separator } from "@/components/ui/separator";
 
-/**
- * @fileOverview Dashboard principal otimizado para o lançamento Beta.
- * Inclui guia de implantação passo a passo para o Secretário.
- */
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isWithinWindow, setIsWithinWindow] = useState(false);
-  const [aiBriefing, setAiBriefing] = useState<SystemInsightsOutput | null>(null);
+  const [aiReport, setAiReport] = useState<SystemInsightsOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   
   // Real Data States
@@ -69,7 +77,6 @@ export default function DashboardPage() {
       setIsWithinWindow(hour >= 8 && hour < 13);
     };
     checkTime();
-    
     loadRealData();
   }, []);
 
@@ -138,10 +145,97 @@ export default function DashboardPage() {
           <p className="text-xs sm:text-sm text-muted-foreground">Monitoramento em tempo real - Rio Claro, RJ.</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* BOTÃO DO POP-UP DE IMPLANTAÇÃO */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg h-10 px-4 rounded-xl gap-2 font-black uppercase text-[10px] tracking-widest animate-in fade-in slide-in-from-right-4">
+                <Rocket className="h-4 w-4" /> Missão: Teste Beta
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+              <div className="bg-emerald-600 p-6 text-white">
+                <DialogHeader className="text-left space-y-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="bg-white/20 p-2.5 rounded-2xl">
+                      <Rocket className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-xl font-black uppercase tracking-tighter">Guia de Implantação</DialogTitle>
+                      <DialogDescription className="text-emerald-100 text-[10px] uppercase font-bold tracking-widest">
+                        Checklist Operacional Real & bull; Rio Claro
+                      </DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+              </div>
+              <div className="p-6 space-y-6 bg-white">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4 p-4 rounded-2xl border bg-slate-50 transition-all hover:border-emerald-200">
+                    <div className={cn("p-2 rounded-xl shrink-0 mt-1", unitCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-indigo-600 text-white")}>
+                      {unitCount > 0 ? <Check className="h-4 w-4" /> : <Building className="h-4 w-4" />}
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-[10px] font-black uppercase text-slate-400">Passo 1</p>
+                      <p className="text-sm font-bold text-slate-800">Cadastrar Unidades Oficiais</p>
+                      <p className="text-xs text-slate-500">Defina os postos de saúde (UBS) no menu de configurações.</p>
+                      {unitCount === 0 && (
+                        <Button variant="link" className="p-0 h-auto text-[10px] text-emerald-600 font-bold uppercase" asChild>
+                          <Link href="/dashboard/ubs">Ir para cadastro <ChevronRight className="h-3 w-3" /></Link>
+                        </Button>
+                      )}
+                    </div>
+                    {unitCount > 0 && <Badge className="bg-emerald-500 text-white border-none text-[8px] uppercase">Concluído</Badge>}
+                  </div>
+
+                  <div className="flex items-start gap-4 p-4 rounded-2xl border bg-slate-50 transition-all hover:border-emerald-200">
+                    <div className={cn("p-2 rounded-xl shrink-0 mt-1", vehicleCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-indigo-600 text-white")}>
+                      {vehicleCount > 0 ? <Check className="h-4 w-4" /> : <Ambulance className="h-4 w-4" />}
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-[10px] font-black uppercase text-slate-400">Passo 2</p>
+                      <p className="text-sm font-bold text-slate-800">Carga da Frota Municipal</p>
+                      <p className="text-xs text-slate-500">Registre as viaturas com odômetro e placa oficial.</p>
+                      {vehicleCount === 0 && (
+                        <Button variant="link" className="p-0 h-auto text-[10px] text-emerald-600 font-bold uppercase" asChild>
+                          <Link href="/dashboard/fleet">Ir para frota <ChevronRight className="h-3 w-3" /></Link>
+                        </Button>
+                      )}
+                    </div>
+                    {vehicleCount > 0 && <Badge className="bg-emerald-500 text-white border-none text-[8px] uppercase">Concluído</Badge>}
+                  </div>
+
+                  <div className="flex items-start gap-4 p-4 rounded-2xl border bg-slate-50 transition-all hover:border-emerald-200">
+                    <div className="bg-indigo-600 text-white p-2 rounded-xl shrink-0 mt-1">
+                      <UserCheck className="h-4 w-4" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-[10px] font-black uppercase text-slate-400">Passo 3</p>
+                      <p className="text-sm font-bold text-slate-800">Credenciar Condutores</p>
+                      <p className="text-xs text-slate-500">Adicione os motoristas para que apareçam na roteirização.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-emerald-50 rounded-2xl border border-dashed border-emerald-200 flex items-center gap-3">
+                  <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
+                  <p className="text-[10px] text-emerald-700 font-medium leading-relaxed">
+                    <b>Dica Operacional:</b> Após cadastrar as bases, instrua as UBS a iniciarem os cadastros de cidadãos antes de gerar os primeiros pedidos reais.
+                  </p>
+                </div>
+              </div>
+              <Separator />
+              <div className="p-4 bg-slate-50 flex justify-end">
+                <Button className="rounded-xl font-black uppercase text-[10px] tracking-widest" asChild>
+                  <Link href="/dashboard/help">Ver Manual Completo</Link>
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Button 
             variant="outline" 
             size="sm" 
-            className="gap-2 border-primary/20 bg-card shrink-0 h-9"
+            className="gap-2 border-primary/20 bg-card shrink-0 h-10 rounded-xl"
             onClick={handleGenerateBriefing}
             disabled={loadingAi}
           >
@@ -150,79 +244,17 @@ export default function DashboardPage() {
           </Button>
           <div className="shrink-0">
             {isWithinWindow ? (
-              <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 px-3 py-1.5 h-9 flex items-center gap-2">
+              <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 px-3 py-1.5 h-10 rounded-xl flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5" /> Janela Aberta
               </Badge>
             ) : (
-              <Badge variant="destructive" className="px-3 py-1.5 h-9 flex items-center gap-2">
+              <Badge variant="destructive" className="px-3 py-1.5 h-10 rounded-xl flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5" /> Janela Fechada
               </Badge>
             )}
           </div>
         </div>
       </div>
-
-      {/* GUIA DE IMPLANTAÇÃO BETA (SECRETÁRIO) */}
-      <Card className="border-2 border-emerald-200 bg-emerald-50/50 shadow-none rounded-[2rem] overflow-hidden">
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <Rocket className="h-5 w-5 text-emerald-600" />
-            <CardTitle className="text-sm font-black uppercase text-emerald-700 tracking-tighter">Roteiro de Implantação Beta</CardTitle>
-          </div>
-          <CardDescription className="text-emerald-600/70 text-xs font-medium">Siga estes passos para iniciar a operação real em Rio Claro.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link href="/dashboard/ubs" className="group">
-              <div className={cn(
-                "p-4 rounded-2xl border transition-all flex items-start gap-3",
-                unitCount > 0 ? "bg-white border-emerald-100 opacity-60" : "bg-white border-emerald-200 shadow-md group-hover:border-emerald-400"
-              )}>
-                <div className={cn("p-2 rounded-xl shrink-0", unitCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-emerald-600 text-white")}>
-                  {unitCount > 0 ? <Check className="h-4 w-4" /> : <Building className="h-4 w-4" />}
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase text-emerald-700 tracking-widest leading-none mb-1">Passo 1</p>
-                  <p className="text-xs font-bold text-slate-800">Cadastrar UBSs</p>
-                  <p className="text-[10px] text-slate-500 mt-1">Defina as unidades oficiais do município.</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/dashboard/fleet" className="group">
-              <div className={cn(
-                "p-4 rounded-2xl border transition-all flex items-start gap-3",
-                vehicleCount > 0 ? "bg-white border-emerald-100 opacity-60" : "bg-white border-emerald-200 shadow-md group-hover:border-emerald-400"
-              )}>
-                <div className={cn("p-2 rounded-xl shrink-0", vehicleCount > 0 ? "bg-emerald-100 text-emerald-600" : "bg-emerald-600 text-white")}>
-                  {vehicleCount > 0 ? <Check className="h-4 w-4" /> : <Ambulance className="h-4 w-4" />}
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase text-emerald-700 tracking-widest leading-none mb-1">Passo 2</p>
-                  <p className="text-xs font-bold text-slate-800">Carga de Frota</p>
-                  <p className="text-[10px] text-slate-500 mt-1">Registre os veículos e seus odômetros.</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link href="/dashboard/drivers" className="group">
-              <div className={cn(
-                "p-4 rounded-2xl border transition-all flex items-start gap-3",
-                vehicleCount === 0 ? "opacity-50 grayscale pointer-events-none" : "bg-white border-emerald-200 shadow-md group-hover:border-emerald-400"
-              )}>
-                <div className="bg-emerald-600 text-white p-2 rounded-xl shrink-0">
-                  <UserCheck className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase text-emerald-700 tracking-widest leading-none mb-1">Passo 3</p>
-                  <p className="text-xs font-bold text-slate-800">Condutores</p>
-                  <p className="text-[10px] text-slate-500 mt-1">Credencie os motoristas para as rotas.</p>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
 
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <StatsCard title="Pendentes" value={pendingRequestsCount} icon={Clock} description="Aguardando" />
@@ -295,6 +327,18 @@ export default function DashboardPage() {
             </Button>
           </CardContent>
         </Card>
+      </div>
+      
+      <div className="p-6 bg-primary/5 rounded-[2rem] border border-dashed border-primary/20 flex flex-col md:flex-row items-center gap-6 mx-1">
+        <div className="h-16 w-16 rounded-[1.5rem] bg-white shadow-xl flex items-center justify-center shrink-0">
+          <Info className="h-8 w-8 text-primary" />
+        </div>
+        <div className="flex-1 text-center md:text-left space-y-1">
+          <h4 className="font-black text-lg text-slate-800 uppercase tracking-tighter">Status da Operação</h4>
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-2xl font-medium">
+            O Teste Beta opera conectado ao Firestore oficial. Para suporte imediato sobre o motor híbrido de rotas ou cadastros de unidades, consulte o menu <b>Ajuda/Manual</b>.
+          </p>
+        </div>
       </div>
     </div>
   );

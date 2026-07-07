@@ -16,7 +16,9 @@ import {
   Lock,
   Navigation,
   Activity,
-  ShieldCheck
+  ShieldCheck,
+  PhoneCall,
+  UserPlus
 } from "lucide-react";
 import { 
   Accordion, 
@@ -45,101 +47,147 @@ export default function UbsHelpPage() {
         <div className="flex-1 text-center md:text-left">
           <h4 className="font-black text-rose-800 uppercase tracking-tighter text-lg">Janela de Agendamento Crítica</h4>
           <p className="text-sm text-rose-700 font-medium">
-            O sistema aceita novos pedidos de transporte das <b>08:00 às 13:00</b> para o dia seguinte. Após este horário, o botão de confirmação é bloqueado automaticamente para que a Secretaria possa planejar as rotas.
+            O sistema aceita novos pedidos de transporte das <b>08:00 às 13:00</b> para o dia seguinte. Após este horário, o sistema bloqueia automaticamente para que a Secretaria possa planejar a logística da frota municipal.
           </p>
         </div>
         <Badge className="bg-rose-600 text-white border-none font-bold hidden md:block">REGRA DE OURO</Badge>
       </div>
 
       <h3 className="text-lg font-black uppercase tracking-tighter text-slate-400 mt-8 mb-4 flex items-center gap-2">
-        <ClipboardList className="h-5 w-5" /> Guia de Operação Diária
+        <ClipboardList className="h-5 w-5" /> Protocolos Operacionais Diários
       </h3>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
-        {/* SEÇÃO: INICIANDO NO BETA REAL */}
-        <AccordionItem value="inicio-beta" className="border-2 border-emerald-200 rounded-2xl bg-emerald-50/50 px-4 shadow-sm overflow-hidden">
+        {/* SEÇÃO: CADASTRO DE CIDADÃOS */}
+        <AccordionItem value="cadastro-base" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-emerald-100">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
-              <div className="bg-emerald-600 p-3 rounded-xl text-white shadow-lg">
-                <Rocket className="h-6 w-6" />
+              <div className="bg-emerald-500 p-3 rounded-xl text-white">
+                <UserPlus className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-black text-lg text-emerald-700">Como Começar no Teste Beta</p>
-                <p className="text-sm text-emerald-600/70 font-medium">Guia para os primeiros agendamentos reais</p>
+                <p className="font-black text-lg text-slate-800">Gestão de Cidadãos (Base Local)</p>
+                <p className="text-sm text-muted-foreground">Como manter a base de dados da sua unidade em dia</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
-            <div className="p-4 bg-white rounded-xl border border-emerald-100 shadow-sm space-y-3">
-              <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest border-b pb-1 flex items-center gap-2">Passos Iniciais</p>
-              <div className="space-y-3 text-xs leading-relaxed">
-                <p>1. <b>Cadastro de Cidadãos</b>: Acesse "Meus Pacientes" e cadastre os moradores da sua área. O número do CNS é obrigatório para garantir a integridade do banco de dados municipal.</p>
-                <p>2. <b>Local de Embarque</b>: Ao solicitar transporte, seja específico sobre o ponto de encontro (Ex: Portaria Leste, Farmácia Municipal, etc). Isso reduz o tempo de busca do motorista.</p>
-                <p>3. <b>Código do Cidadão</b>: Ao finalizar o pedido, anote o código de 6 dígitos gerado e entregue ao paciente. Ele servirá para consulta no Portal do Cidadão.</p>
-              </div>
+            <div className="p-4 bg-slate-50 rounded-xl border space-y-3">
+              <p className="text-xs leading-relaxed font-medium">
+                Antes de solicitar qualquer transporte, o paciente deve estar cadastrado em <b>"Meus Pacientes"</b>.
+              </p>
+              <ul className="text-[11px] list-disc pl-4 space-y-2 font-medium text-slate-600">
+                <li><span className="font-black">CNS / Prontuário:</span> O número do Cartão Nacional de Saúde é a chave primária. Garanta que ele esteja correto para evitar duplicidades no município.</li>
+                <li><span className="font-black">Comorbidades:</span> Informe condições como "Hemodiálise", "Oncologia" ou "Cadeirante". Isso ajuda a IA a priorizar a ambulância correta.</li>
+                <li><span className="font-black">Privacidade:</span> O sistema oculta sobrenomes no Portal do Cidadão para segurança da LGPD.</li>
+              </ul>
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="protocolo-embarque" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-primary/20">
+        <AccordionItem value="embarque-preciso" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-primary/20">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
               <div className="bg-primary/10 p-3 rounded-xl text-primary">
                 <Navigation className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-black text-lg text-slate-800">Protocolo de Embarque</p>
-                <p className="text-sm text-muted-foreground">Definição precisa do local de coleta</p>
+                <p className="font-black text-lg text-slate-800">Protocolo de Local de Embarque</p>
+                <p className="text-sm text-muted-foreground">Definição precisa do ponto de encontro viário</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
-            <div className="p-4 bg-slate-50 rounded-xl border space-y-3">
+            <div className="p-4 bg-blue-50 rounded-xl border border-primary/10 space-y-3">
               <p className="text-xs leading-relaxed">
-                Ao criar uma solicitação, o campo <b>&quot;Local de Embarque&quot;</b> é obrigatório. Ele define onde o paciente aguardará a viatura.
+                Este campo é vital para o motorista. Não insira apenas "UBS". Seja específico:
               </p>
-              <ul className="text-[11px] list-disc pl-4 space-y-1 font-medium">
-                <li>Se for na UBS, especifique a portaria (Ex: UBS Central - Setor A).</li>
-                <li>Se for coleta externa, insira o endereço completo ou ponto de referência.</li>
-                <li>Este dado aparece no GPS do motorista e no Portal do Cidadão, reduzindo o tempo de espera.</li>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-3 bg-white rounded-lg border border-emerald-100">
+                  <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Certo ✅</p>
+                  <p className="text-[11px]">"UBS Central - Portaria do Lado B (Rampa)"</p>
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-rose-100">
+                  <p className="text-[10px] font-black text-rose-600 uppercase mb-1">Errado ❌</p>
+                  <p className="text-[11px]">"Na frente do posto"</p>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground italic">Este dado aparece no GPS do motorista e no celular do paciente, evitando que a viatura fique circulando e perca o horário.</p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="codigo-acesso" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-indigo-100">
+          <AccordionTrigger className="hover:no-underline py-6">
+            <div className="flex items-center gap-4 text-left">
+              <div className="bg-indigo-600 p-3 rounded-xl text-white">
+                <KeyRound className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="font-black text-lg text-slate-800">Código de Acesso do Cidadão</p>
+                <p className="text-sm text-muted-foreground">Transparência e segurança para o paciente</p>
+              </div>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
+            <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100 space-y-3">
+              <p className="text-xs leading-relaxed">
+                Após a Secretaria aprovar o pedido (status <b>Confirmado</b>), um código de 6 dígitos é gerado.
+              </p>
+              <ul className="text-[11px] list-disc pl-4 space-y-1 font-medium text-indigo-800">
+                <li>O código deve ser entregue ao paciente (ou anotado na guia de agendamento).</li>
+                <li>O paciente acessa o <b>Portal do Cidadão</b> para ver qual viatura e motorista o buscarão.</li>
+                <li>Se o pedido for cancelado ou negado, o código deixará de funcionar automaticamente.</li>
               </ul>
             </div>
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="ia-sigilo" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-amber-100">
+        <AccordionItem value="privacidade-seguranca" className="border rounded-2xl bg-card px-4 shadow-sm overflow-hidden border-amber-100">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
               <div className="bg-amber-100 p-3 rounded-xl text-amber-600">
                 <Lock className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-bold text-lg">Sigilo e LGPD</p>
-                <p className="text-sm text-muted-foreground">Proteção de dados do motorista e paciente</p>
+                <p className="font-bold text-lg">Sigilo Rio Claro (LGPD)</p>
+                <p className="text-sm text-muted-foreground">Proteção de dados sensíveis</p>
               </div>
             </div>
           </AccordionTrigger>
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
             <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
               <p className="text-xs leading-relaxed text-amber-800">
-                <b>Importante:</b> Seguindo as diretrizes de Ordem Pública e LGPD, o Portal do Cidadão nunca exibe o contato pessoal (telefone) dos motoristas. Caso o paciente precise de suporte ou informações sobre atrasos, ele deve utilizar a Central de Regulação exibida no portal.
+                O Portal do Cidadão é público, por isso adotamos o <b>Protocolo de Pseudonimização</b>. Nenhuma doença ou prontuário clínico é exibido publicamente. O portal mostra apenas a logística necessária para o embarque seguro do morador.
               </p>
               <Separator className="my-3 bg-amber-200" />
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-amber-600" />
-                <p className="text-[10px] font-black uppercase text-amber-700">Privacidade Garantida pela PMRC</p>
+                <p className="text-[10px] font-black uppercase text-amber-700 tracking-widest">Protocolo de Privacidade Ativo</p>
               </div>
             </div>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
 
+      <div className="p-6 bg-slate-100 rounded-[2.5rem] border border-dashed border-slate-300 flex flex-col md:flex-row items-center gap-6">
+        <div className="h-16 w-16 rounded-[2rem] bg-white shadow-lg flex items-center justify-center shrink-0">
+          <PhoneCall className="h-8 w-8 text-primary" />
+        </div>
+        <div className="flex-1 text-center md:text-left">
+          <h4 className="font-black text-lg text-slate-800 uppercase tracking-tighter">Dúvida sobre Agendamento?</h4>
+          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl mt-1">
+            Contate a Central de Regulação Municipal via rádio ou telefone (19) 3526-0000 para autorizações excepcionais fora da janela das 13h.
+          </p>
+        </div>
+      </div>
+
       <Card className="border-dashed border-2 bg-muted/5 mt-10">
         <CardContent className="pt-6 flex flex-col items-center text-center gap-4">
           <AlertTriangle className="h-10 w-10 text-rose-500 opacity-20" />
           <div>
-            <p className="font-bold">Dúvida Operacional?</p>
-            <p className="text-sm text-muted-foreground">Contate a Central de Regulação Municipal via rádio ou telefone para autorizações excepcionais fora da janela.</p>
+            <p className="font-bold text-sm">Controle de Auditoria</p>
+            <p className="text-xs text-muted-foreground">Toda solicitação feita neste portal é vinculada ao ID do Gerente responsável da UBS.</p>
           </div>
         </CardContent>
       </Card>
