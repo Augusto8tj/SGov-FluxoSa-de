@@ -17,73 +17,11 @@ import { DriverReport, BoardingLog } from "@/lib/types";
 
 const COLLECTION_NAME = "reports";
 
-// Dados de demonstração estratégica para o Secretário (Rio Claro - RJ)
-const MOCK_REPORTS: DriverReport[] = [
-  { 
-    id: "REP-001", 
-    driverId: "D1", 
-    driverName: "Carlos Alberto Silva", 
-    vehicleId: "V1 (Ambulância)", 
-    content: "O odômetro da V1 está apresentando ruído metálico leve após a curva de Lídice. Sugiro revisão preventiva na suspensão antes da próxima escala.", 
-    timestamp: new Date().toISOString(), 
-    read: false,
-    type: 'NORMAL'
-  },
-  { 
-    id: "REP-002", 
-    driverId: "D2", 
-    driverName: "Marcos Pereira", 
-    vehicleId: "V2 (Van)", 
-    content: "Paciente Maria Souza transportada com sucesso. Rota tranquila. O paciente elogiou a agilidade de consulta via Portal do Cidadão.", 
-    timestamp: new Date(Date.now() - 3600000).toISOString(), 
-    read: true,
-    type: 'NORMAL'
-  },
-  { 
-    id: "REP-003", 
-    driverId: "D3", 
-    driverName: "Ricardo Oliveira", 
-    vehicleId: "V3 (Acessível)", 
-    content: "Atraso de 15 minutos na chegada à UBS Passa Três devido à manutenção na rede elétrica da estrada. Todos os pacientes avisados e seguros.", 
-    timestamp: new Date(Date.now() - 7200000).toISOString(), 
-    read: false,
-    type: 'NORMAL'
-  },
-  { 
-    id: "REP-004", 
-    driverId: "D1", 
-    driverName: "Carlos Alberto Silva", 
-    vehicleId: "V1 (Ambulância)", 
-    content: "Solicito reposição de insumos básicos: luvas descartáveis e máscaras cirúrgicas para o kit de primeiros socorros da viatura V1.", 
-    timestamp: new Date(Date.now() - 10800000).toISOString(), 
-    read: true,
-    type: 'NORMAL'
-  },
-  { 
-    id: "REP-005", 
-    driverId: "D2", 
-    driverName: "Marcos Pereira", 
-    vehicleId: "V2 (Van)", 
-    content: "Checklist de segurança matinal concluído. Veículo totalmente higienizado conforme protocolo PMRC e abastecido para o turno.", 
-    timestamp: new Date(Date.now() - 14400000).toISOString(), 
-    read: false,
-    type: 'NORMAL'
-  },
-];
-
-const BOARDING_LOGS: BoardingLog[] = [];
-
 /**
- * @fileOverview Serviço para gestão de relatórios de campo (feedbacks dos motoristas).
+ * @fileOverview Serviço de relatórios e SOS operando 100% em tempo real.
  */
 export const reportService = {
   async addReport(report: Omit<DriverReport, "id" | "read">): Promise<string> {
-    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
-        const id = `REP-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-        MOCK_REPORTS.unshift({ id, ...report, read: false, type: report.type || 'NORMAL' });
-        return id;
-    }
-
     try {
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...report,
@@ -91,69 +29,55 @@ export const reportService = {
         type: report.type || 'NORMAL'
       });
       return docRef.id;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error adding report:", error);
-      throw new Error("Falha ao enviar relatório para a Secretaria.");
+      throw new Error("Falha ao enviar relatório oficial.");
     }
   },
 
   async addBoardingLog(log: BoardingLog): Promise<void> {
-    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
-      BOARDING_LOGS.push(log);
-      return Promise.resolve();
+    try {
+      // Logs de embarque são salvos em uma coleção auditável
+      await addDoc(collection(db, "boarding_logs"), log);
+    } catch (error) {
+      console.error("Error logging boarding:", error);
     }
-    // No Firebase real, gravaria em uma subcoleção de missões ou logs
-    return Promise.resolve();
   },
 
   async getReports(): Promise<DriverReport[]> {
-    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
-      return [...MOCK_REPORTS];
-    }
-
     try {
-      const q = query(collection(db, COLLECTION_NAME), orderBy("timestamp", "desc"), limit(50));
+      const q = query(collection(db, COLLECTION_NAME), orderBy("timestamp", "desc"), limit(100));
       const querySnapshot = await getDocs(q);
       
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as DriverReport));
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching reports:", error);
       return [];
     }
   },
 
   async markAsRead(id: string): Promise<void> {
-    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
-        const report = MOCK_REPORTS.find(r => r.id === id);
-        if (report) report.read = true;
-        return Promise.resolve();
-    }
-
     try {
       const docRef = doc(db, COLLECTION_NAME, id);
       await updateDoc(docRef, { read: true });
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating report status:", error);
     }
   },
 
   async markManyAsRead(ids: string[]): Promise<void> {
-    if (typeof window !== 'undefined' && sessionStorage.getItem("sgov_demo_user")) {
+    try {
+      const batch = writeBatch(db);
       ids.forEach(id => {
-        const r = MOCK_REPORTS.find(rep => rep.id === id);
-        if (r) r.read = true;
+        const ref = doc(db, COLLECTION_NAME, id);
+        batch.update(ref, { read: true });
       });
-      return Promise.resolve();
+      await batch.commit();
+    } catch (error) {
+      console.error("Error in batch mark as read:", error);
     }
-
-    const batch = writeBatch(db);
-    ids.forEach(id => {
-      const ref = doc(db, COLLECTION_NAME, id);
-      batch.update(ref, { read: true });
-    });
-    await batch.commit();
   }
 };

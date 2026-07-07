@@ -14,6 +14,20 @@
       },
       "required": ["uid", "name", "email", "role"]
     },
+    "Patient": {
+      "title": "Paciente / Cidadão",
+      "description": "Dados cadastrais do cidadão para transporte sanitário.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "medicalRecordNumber": { "type": "string", "description": "CNS ou Prontuário" },
+        "comorbidities": { "type": "array", "items": { "type": "string" } },
+        "needsCompanion": { "type": "boolean" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "medicalRecordNumber"]
+    },
     "TransportRequest": {
       "title": "Solicitação de Transporte",
       "description": "Dados de um pedido de transporte sanitário.",
@@ -27,12 +41,63 @@
         "urgencyLevel": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
         "status": { "type": "string", "enum": ["PENDING", "APPROVED", "DENIED", "COMPLETED", "CANCELLED"] },
         "requestedTime": { "type": "string", "format": "date-time" },
-        "patientAccessCode": { "type": "string", "description": "Código de 6 dígitos para acesso público do paciente." }
-      }
+        "patientAccessCode": { "type": "string", "description": "Código de 6 dígitos para acesso público." },
+        "driverId": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "vehiclePlate": { "type": "string" },
+        "manifestId": { "type": "string" },
+        "aiRecommendation": { "type": "string" }
+      },
+      "required": ["patientId", "pickupLocation", "destinationLocation", "status"]
+    },
+    "Vehicle": {
+      "title": "Veículo da Frota",
+      "description": "Viatura oficial do município.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["Ambulância", "Van", "Sedan", "Acessível"] },
+        "licensePlate": { "type": "string" },
+        "capacity": { "type": "number" },
+        "available": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["AVAILABLE", "MAINTENANCE", "IN_USE"] },
+        "odometer": { "type": "number" },
+        "fuelLevel": { "type": "number" },
+        "lastMaintenance": { "type": "string", "format": "date" },
+        "nextMaintenance": { "type": "string", "format": "date" }
+      },
+      "required": ["licensePlate", "type", "capacity"]
+    },
+    "Driver": {
+      "title": "Condutor Sanitário",
+      "description": "Motorista habilitado para transporte de saúde.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "licenseNumber": { "type": "string" },
+        "phone": { "type": "string" },
+        "available": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["AVAILABLE", "ON_ROUTE", "OFF_DUTY"] }
+      },
+      "required": ["name", "licenseNumber"]
+    },
+    "UBS": {
+      "title": "Unidade de Saúde",
+      "description": "Posto de saúde ou hospital do município.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "managerName": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "type": { "type": "string", "enum": ["UBS", "HOSPITAL", "PRONTO_ATENDIMENTO", "ESPECIALIZADA"] },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      },
+      "required": ["name", "address", "type"]
     },
     "DriverReport": {
-      "title": "Relatório de Campo do Motorista",
-      "description": "Feedback enviado pelo motorista ao encerrar uma jornada.",
+      "title": "Relatório de Campo",
+      "description": "Feedback ou SOS enviado pelo motorista.",
       "type": "object",
       "properties": {
         "driverId": { "type": "string" },
@@ -40,9 +105,10 @@
         "vehicleId": { "type": "string" },
         "content": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" },
-        "read": { "type": "boolean" }
+        "read": { "type": "boolean" },
+        "type": { "type": "string", "enum": ["NORMAL", "SOS"] }
       },
-      "required": ["driverId", "driverName", "content", "timestamp"]
+      "required": ["driverId", "content", "timestamp"]
     }
   },
   "auth": {
@@ -51,15 +117,31 @@
   "firestore": {
     "/users/{uid}": {
       "schema": "UserProfile",
-      "description": "Coleção de usuários e seus papéis."
+      "description": "Perfis de acesso administrativo."
+    },
+    "/patients/{patientId}": {
+      "schema": "Patient",
+      "description": "Base municipal de cidadãos."
     },
     "/requests/{requestId}": {
       "schema": "TransportRequest",
-      "description": "Solicitações de transporte realizadas pelas UBS."
+      "description": "Agendamentos de transporte."
+    },
+    "/vehicles/{vehicleId}": {
+      "schema": "Vehicle",
+      "description": "Cadastro da frota municipal."
+    },
+    "/drivers/{driverId}": {
+      "schema": "Driver",
+      "description": "Corpo de condutores."
+    },
+    "/units/{unitId}": {
+      "schema": "UBS",
+      "description": "Rede de unidades de atendimento."
     },
     "/reports/{reportId}": {
       "schema": "DriverReport",
-      "description": "Feedbacks e relatórios enviados pelos condutores."
+      "description": "Ocorrências de campo e SOS."
     }
   }
 }
