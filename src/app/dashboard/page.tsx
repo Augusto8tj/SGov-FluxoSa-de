@@ -29,24 +29,12 @@ import {
 import { cn } from "@/lib/utils";
 import { generateSystemInsights, SystemInsightsOutput } from "@/ai/flows/generate-system-insights-flow";
 import { useToast } from "@/hooks/use-toast";
+import { requestService } from "@/services/request-service";
+import { patientService } from "@/services/patient-service";
+import { vehicleService } from "@/services/vehicle-service";
+import { ubsService } from "@/services/ubs-service";
+import { TransportRequest } from "@/lib/types";
 import Link from "next/link";
-
-// Dados Mock para Demonstração (Rio Claro - RJ)
-const MOCK_REQUESTS = [
-  { id: "1", patientName: "Benedito Silva", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Municipal", status: "PENDING", urgencyLevel: "critical", createdAt: new Date().toISOString() },
-  { id: "2", patientName: "Maria de Fátima", pickupLocation: "UBS Central", destinationLocation: "Centro de Hemodiálise", status: "APPROVED", urgencyLevel: "high", createdAt: new Date().toISOString() },
-  { id: "3", patientName: "José Bonifácio", pickupLocation: "UBS Passa Três", destinationLocation: "UBS Central", status: "PENDING", urgencyLevel: "medium", createdAt: new Date().toISOString() },
-  { id: "4", patientName: "Ana Cláudia", pickupLocation: "UBS Lídice", destinationLocation: "Hospital Regional", status: "COMPLETED", urgencyLevel: "low", createdAt: new Date().toISOString() },
-  { id: "5", patientName: "Wilson Oliveira", pickupLocation: "UBS Central", destinationLocation: "Clínica Ortopédica", status: "APPROVED", urgencyLevel: "medium", createdAt: new Date().toISOString() },
-];
-
-const MOCK_CHART = [
-  { name: "Lídice", count: 18 },
-  { name: "Central", count: 32 },
-  { name: "Passa Três", count: 12 },
-  { name: "S. Eliza", count: 8 },
-  { name: "Rural", count: 5 },
-];
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
@@ -54,6 +42,15 @@ export default function DashboardPage() {
   const [isWithinWindow, setIsWithinWindow] = useState(false);
   const [aiBriefing, setAiBriefing] = useState<SystemInsightsOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
+  
+  // Real Data States
+  const [requests, setRequests] = useState<TransportRequest[]>([]);
+  const [patientCount, setPatientCount] = useState(0);
+  const [vehicleCount, setVehicleCount] = useState(0);
+  const [activeVehicleCount, setActiveVehicleCount] = useState(0);
+  const [unitCount, setUnitCount] = useState(0);
+  const [chartData, setChartData] = useState<{name: string, count: number}[]>([]);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -63,25 +60,60 @@ export default function DashboardPage() {
       const hour = now.getHours();
       setIsWithinWindow(hour >= 8 && hour < 13);
     };
-    
     checkTime();
-    setLoading(false); // Carregamento instantâneo para demonstração
+    
+    loadRealData();
   }, []);
+
+  const loadRealData = async () => {
+    setLoading(true);
+    try {
+      const [reqs, pats, vehs, units] = await Promise.all([
+        requestService.getRequests(),
+        patientService.getPatients(),
+        vehicleService.getVehicles(),
+        ubsService.getUnits()
+      ]);
+
+      setRequests(reqs);
+      setPatientCount(pats.length);
+      setVehicleCount(vehs.length);
+      setActiveVehicleCount(vehs.filter(v => v.status === 'AVAILABLE' || v.status === 'IN_USE').length);
+      setUnitCount(units.length);
+
+      // Agrupar dados para o gráfico por UBS
+      const groups: Record<string, number> = {};
+      reqs.forEach(r => {
+        const ubs = r.ubsId || "Geral";
+        groups[ubs] = (groups[ubs] || 0) + 1;
+      });
+      const formattedChart = Object.entries(groups).map(([name, count]) => ({ name, count }));
+      setChartData(formattedChart.length > 0 ? formattedChart : [{ name: "Sem Dados", count: 0 }]);
+
+    } catch (error) {
+      console.error("Erro ao carregar dashboard real:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGenerateBriefing = async () => {
     setLoadingAi(true);
     try {
+      const pendingCount = requests.filter(r => r.status === 'PENDING').length;
+      const criticalCount = requests.filter(r => r.urgencyLevel === 'critical').length;
+
       const result = await generateSystemInsights({
-        pendingRequests: 32,
-        activeVehicles: 8,
-        totalVehicles: 12,
-        criticalPatientsCount: 5,
+        pendingRequests: pendingCount,
+        activeVehicles: activeVehicleCount,
+        totalVehicles: vehicleCount,
+        criticalPatientsCount: criticalCount,
         currentHour: new Date().getHours()
       });
       setAiBriefing(result);
-      toast({ title: "Resumo Atualizado", description: "IA gerou novos insights estratégicos." });
+      toast({ title: "Resumo Atualizado", description: "IA gerou novos insights a partir dos dados do Firestore." });
     } catch {
-      toast({ variant: "destructive", title: "IA: Falha na Conexão", description: "Verificando chaves de API..." });
+      toast({ variant: "destructive", title: "IA: Falha na Conexão", description: "Verifique os limites da API." });
     } finally {
       setLoadingAi(false);
     }
@@ -93,10 +125,12 @@ export default function DashboardPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground font-medium">Sincronizando painel governamental...</p>
+        <p className="text-sm text-muted-foreground font-medium">Lendo dados reais do Firestore...</p>
       </div>
     );
   }
+
+  const pendingRequestsCount = requests.filter(r => r.status === 'PENDING').length;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -157,28 +191,28 @@ export default function DashboardPage() {
       )}
 
       <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-        <StatsCard title="Pendentes" value="32" icon={Clock} description="Aguardando" />
-        <StatsCard title="Cidadãos" value="1.240" icon={Users} description="Total Base" />
-        <StatsCard title="Frota" value="8/12" icon={Ambulance} description="Veículos Ativos" />
-        <StatsCard title="Unidades" value="5" icon={MapPin} description="Pontos de Coleta" />
+        <StatsCard title="Pendentes" value={pendingRequestsCount} icon={Clock} description="Aguardando" />
+        <StatsCard title="Cidadãos" value={patientCount.toLocaleString('pt-BR')} icon={Users} description="Total Base" />
+        <StatsCard title="Frota" value={`${activeVehicleCount}/${vehicleCount}`} icon={Ambulance} description="Veículos Ativos" />
+        <StatsCard title="Unidades" value={unitCount} icon={MapPin} description="Pontos de Coleta" />
       </div>
 
       <div className="grid gap-4 sm:gap-6 md:grid-cols-7">
         <Card className="md:col-span-4 border-none shadow-sm overflow-hidden bg-card">
           <CardHeader>
-            <CardTitle className="text-base sm:text-lg">Fluxo por Distrito</CardTitle>
-            <CardDescription className="text-xs">Demandas originadas por localidade.</CardDescription>
+            <CardTitle className="text-base sm:text-lg">Fluxo por Unidade</CardTitle>
+            <CardDescription className="text-xs">Demandas originadas por localidade no Firestore.</CardDescription>
           </CardHeader>
           <CardContent className="h-[200px] sm:h-[300px] p-2 sm:p-6">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MOCK_CHART}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                 <Tooltip cursor={{ fill: 'hsl(var(--muted)/0.3)' }} contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '10px' }} />
                 <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {MOCK_CHART.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === 1 ? "hsl(var(--primary))" : "hsl(var(--accent))"} />
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "hsl(var(--primary))" : "hsl(var(--accent))"} />
                   ))}
                 </Bar>
               </BarChart>
@@ -189,11 +223,11 @@ export default function DashboardPage() {
         <Card className="md:col-span-3 border-none shadow-sm bg-card">
           <CardHeader>
             <CardTitle className="text-base sm:text-lg">Atividade Recente</CardTitle>
-            <CardDescription className="text-xs">Últimos transportes da malha viária.</CardDescription>
+            <CardDescription className="text-xs">Últimos transportes reais gravados.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {MOCK_REQUESTS.map((item, i) => (
+              {requests.length > 0 ? requests.slice(0, 5).map((item, i) => (
                 <div key={item.id} className="flex items-start gap-3">
                   <div className={cn(
                     "mt-1.5 size-1.5 rounded-full shrink-0",
@@ -204,9 +238,11 @@ export default function DashboardPage() {
                     <p className="text-xs font-semibold leading-tight">{item.patientName}</p>
                     <p className="text-[10px] text-muted-foreground">{item.pickupLocation} → {item.destinationLocation}</p>
                   </div>
-                  <span className="text-[9px] text-muted-foreground whitespace-nowrap">há {i+2} min</span>
+                  <span className="text-[9px] text-muted-foreground whitespace-nowrap">ID: {item.id.slice(-4)}</span>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-10 opacity-40 italic text-sm">Sem solicitações registradas.</div>
+              )}
             </div>
             <Button 
               variant="ghost" 
@@ -214,7 +250,7 @@ export default function DashboardPage() {
               asChild
             >
               <Link href="/dashboard/requests">
-                Ver Histórico Completo
+                Ver Fila Completa
               </Link>
             </Button>
           </CardContent>

@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Plus, 
   Search, 
@@ -15,7 +16,8 @@ import {
   ShieldCheck,
   MoreVertical,
   Edit,
-  Trash2
+  Trash2,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,11 +57,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { UBS } from "@/lib/types";
-import { MOCK_UBS } from "@/lib/mock-data";
+import { ubsService } from "@/services/ubs-service";
 
 export default function UBSPage() {
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [units, setUnits] = useState<UBS[]>(MOCK_UBS);
+  const [units, setUnits] = useState<UBS[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newUnit, setNewUnit] = useState<Partial<UBS>>({ 
     name: "", 
@@ -72,57 +76,73 @@ export default function UBSPage() {
   });
   const { toast } = useToast();
 
+  const loadUnits = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await ubsService.getUnits();
+      setUnits(data);
+    } catch {
+      toast({ title: "Erro", description: "Falha ao sincronizar unidades reais.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    setMounted(true);
+    loadUnits();
+  }, [loadUnits]);
+
   const filteredUBS = units.filter(u => 
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.managerName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSaveUnit = () => {
+  const handleSaveUnit = async () => {
     if (!newUnit.name || !newUnit.address) {
-      toast({ title: "Atenção", description: "Preencha pelo menos o nome e o endereço da UBS.", variant: "destructive" });
+      toast({ title: "Atenção", description: "Preencha o nome e o endereço da UBS.", variant: "destructive" });
       return;
     }
 
-    if (newUnit.id) {
-      setUnits(prev => prev.map(u => u.id === newUnit.id ? { ...u, ...newUnit } as UBS : u));
-      toast({ title: "Unidade Atualizada", description: `Os dados da ${newUnit.name} foram salvos com sucesso.` });
-    } else {
-      const unit: UBS = {
-        id: `UBS-0${units.length + 1}`,
-        name: newUnit.name || "",
-        address: newUnit.address || "",
-        managerName: newUnit.managerName,
-        phone: newUnit.phone,
-        email: newUnit.email,
-        operatingHours: newUnit.operatingHours,
-        type: newUnit.type as any,
-        status: 'active',
-        location: { lat: -22.72, lng: -44.13 } 
-      };
-      setUnits(prev => [...prev, unit]);
-      toast({ title: "Unidade Cadastrada", description: `A ${unit.name} foi adicionada ao sistema.` });
+    try {
+      if (newUnit.id) {
+        await ubsService.updateUnit(newUnit.id, newUnit);
+        toast({ title: "Unidade Atualizada", description: `Os dados da ${newUnit.name} foram salvos no Firestore.` });
+      } else {
+        await ubsService.addUnit({
+          name: newUnit.name || "",
+          address: newUnit.address || "",
+          managerName: newUnit.managerName,
+          phone: newUnit.phone,
+          email: newUnit.email,
+          operatingHours: newUnit.operatingHours,
+          type: newUnit.type as any,
+          status: 'active',
+          location: { lat: -22.72, lng: -44.13 } 
+        });
+        toast({ title: "Unidade Cadastrada", description: `A ${newUnit.name} foi adicionada à rede municipal.` });
+      }
+      setIsDialogOpen(false);
+      loadUnits();
+    } catch {
+      toast({ title: "Erro de Gravação", description: "Falha ao salvar no banco de dados.", variant: "destructive" });
     }
-
-    setIsDialogOpen(false);
-    setNewUnit({ name: "", address: "", managerName: "", phone: "", email: "", operatingHours: "07:00 - 17:00", type: "UBS" });
   };
 
   const handleOpenMaps = (ubs: UBS) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${ubs.location.lat},${ubs.location.lng}`;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${ubs.location?.lat || -22.72},${ubs.location?.lng || -44.13}`;
     window.open(url, '_blank');
-    toast({
-      title: "Abrindo Mapa",
-      description: `Direcionando para a localização de ${ubs.name}.`,
-    });
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">Postos de Saúde (UBS)</h2>
-          <p className="text-muted-foreground">Monitoramento e logística dos pontos de coleta de pacientes.</p>
+          <p className="text-muted-foreground">Monitoramento da rede municipal real via Firestore.</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -131,272 +151,127 @@ export default function UBSPage() {
         }}>
           <DialogTrigger asChild>
             <Button className="gap-2 shadow-md h-11 px-6 rounded-xl">
-              <Plus className="h-4 w-4" /> Nova Unidade
+              <Plus className="h-4 w-4" /> Nova Unidade Real
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px] w-[95vw] rounded-2xl overflow-y-auto max-h-[90vh]">
             <DialogHeader>
               <DialogTitle>{newUnit.id ? "Editar Unidade" : "Cadastrar Nova Unidade"}</DialogTitle>
-              <DialogDescription>Adicione um ponto de coleta ao sistema de Rio Claro - RJ com dados administrativos.</DialogDescription>
+              <DialogDescription>Dados oficiais para o Teste Beta em Rio Claro - RJ.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-4">
               <div className="space-y-4">
-                <h4 className="text-[10px] font-black uppercase text-primary tracking-widest px-1">Identificação e Localização</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="name">Nome da Unidade</Label>
-                    <Input 
-                      id="name" 
-                      placeholder="Ex: UBS Santa Eliza" 
-                      className="h-11 rounded-xl"
-                      value={newUnit.name}
-                      onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))}
-                    />
+                    <Input id="name" className="h-11 rounded-xl" value={newUnit.name} onChange={(e) => setNewUnit(prev => ({ ...prev, name: e.target.value }))} />
                   </div>
                   <div className="grid gap-2">
                     <Label>Tipo de Unidade</Label>
                     <Select value={newUnit.type} onValueChange={(val) => setNewUnit(prev => ({ ...prev, type: val as any }))}>
-                      <SelectTrigger className="h-11 rounded-xl">
-                        <SelectValue />
-                      </SelectTrigger>
+                      <SelectTrigger className="h-11 rounded-xl"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="UBS">UBS (Saúde da Família)</SelectItem>
-                        <SelectItem value="HOSPITAL">Hospital / Regional</SelectItem>
+                        <SelectItem value="UBS">UBS</SelectItem>
+                        <SelectItem value="HOSPITAL">Hospital</SelectItem>
                         <SelectItem value="PRONTO_ATENDIMENTO">Pronto Atendimento</SelectItem>
-                        <SelectItem value="ESPECIALIZADA">Clínica Especializada</SelectItem>
+                        <SelectItem value="ESPECIALIZADA">Clínica</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="address">Endereço Completo</Label>
-                  <Input 
-                    id="address" 
-                    placeholder="Rua, Número - Bairro, Distrito" 
-                    className="h-11 rounded-xl"
-                    value={newUnit.address}
-                    onChange={(e) => setNewUnit(prev => ({ ...prev, address: e.target.value }))}
-                  />
+                  <Input id="address" className="h-11 rounded-xl" value={newUnit.address} onChange={(e) => setNewUnit(prev => ({ ...prev, address: e.target.value }))} />
                 </div>
               </div>
-
               <div className="space-y-4 pt-2 border-t">
-                <h4 className="text-[10px] font-black uppercase text-emerald-600 tracking-widest px-1 flex items-center gap-2">
-                  <ShieldCheck className="h-3 w-3" /> Gestão e Contato
-                </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label className="flex items-center gap-1.5"><User className="h-3.5 w-3.5" /> Responsável / Gerente</Label>
-                    <Input 
-                      placeholder="Nome do gestor local"
-                      className="h-11 rounded-xl"
-                      value={newUnit.managerName}
-                      onChange={(e) => setNewUnit(prev => ({ ...prev, managerName: e.target.value }))}
-                    />
+                    <Label>Responsável / Gerente</Label>
+                    <Input className="h-11 rounded-xl" value={newUnit.managerName} onChange={(e) => setNewUnit(prev => ({ ...prev, managerName: e.target.value }))} />
                   </div>
                   <div className="grid gap-2">
-                    <Label className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> Telefone / Ramal</Label>
-                    <Input 
-                      placeholder="(24) 0000-0000"
-                      className="h-11 rounded-xl"
-                      value={newUnit.phone}
-                      onChange={(e) => setNewUnit(prev => ({ ...prev, phone: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" /> E-mail Institucional</Label>
-                    <Input 
-                      type="email"
-                      placeholder="ubs@rioclaro.rj.gov.br"
-                      className="h-11 rounded-xl"
-                      value={newUnit.email}
-                      onChange={(e) => setNewUnit(prev => ({ ...prev, email: e.target.value }))}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Funcionamento</Label>
-                    <Input 
-                      placeholder="Ex: 07h às 17h"
-                      className="h-11 rounded-xl"
-                      value={newUnit.operatingHours}
-                      onChange={(e) => setNewUnit(prev => ({ ...prev, operatingHours: e.target.value }))}
-                    />
+                    <Label>Telefone</Label>
+                    <Input className="h-11 rounded-xl" value={newUnit.phone} onChange={(e) => setNewUnit(prev => ({ ...prev, phone: e.target.value }))} />
                   </div>
                 </div>
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0 border-t pt-4">
               <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl">Cancelar</Button>
-              <Button onClick={handleSaveUnit} className="h-11 rounded-xl shadow-lg bg-primary">
-                {newUnit.id ? "Atualizar Unidade" : "Salvar Unidade"}
-              </Button>
+              <Button onClick={handleSaveUnit} className="h-11 rounded-xl shadow-lg bg-primary">Salvar no Firestore</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-7">
-        <div className="md:col-span-5 space-y-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Buscar unidade por nome, endereço ou responsável..." 
-              className="pl-10 h-12 bg-card border-none shadow-sm rounded-xl"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <Card className="border-none shadow-md overflow-hidden bg-card rounded-2xl">
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-muted/30">
-                    <TableRow className="border-none">
-                      <TableHead className="font-bold">Unidade</TableHead>
-                      <TableHead className="font-bold">Responsável & Contato</TableHead>
-                      <TableHead className="font-bold">Status / Horário</TableHead>
-                      <TableHead className="text-right font-bold">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredUBS.length > 0 ? (
-                      filteredUBS.map((ubs) => (
-                        <TableRow key={ubs.id} className="hover:bg-muted/10 group transition-colors">
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="h-11 w-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary transition-colors group-hover:bg-primary group-hover:text-white shadow-sm">
-                                <Building className="h-5 w-5" />
-                              </div>
-                              <div>
-                                <p className="font-black text-sm text-slate-800">{ubs.name}</p>
-                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase font-bold mt-0.5">
-                                  <MapPin className="h-3 w-3" /> {ubs.address.split(',')[0]}
-                                </div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                                <User className="h-3 w-3 text-emerald-600" /> {ubs.managerName || "A definir"}
-                              </div>
-                              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium uppercase tracking-tight">
-                                <Phone className="h-2.5 w-2.5" /> {ubs.phone || "N/A"}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1.5">
-                              <Badge className="bg-emerald-50 text-emerald-700 border-none text-[9px] font-black uppercase h-5 px-2">Aberto</Badge>
-                              <p className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <Clock className="h-2.5 w-2.5" /> {ubs.operatingHours || "07:00 - 17:00"}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 rounded-full text-primary hover:bg-primary/10"
-                                onClick={() => handleOpenMaps(ubs)}
-                                title="Abrir no Maps"
-                              >
-                                <ArrowUpRight className="h-4 w-4" />
-                              </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                                    <MoreVertical className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="rounded-xl shadow-xl w-48">
-                                  <DropdownMenuItem 
-                                    className="gap-2 cursor-pointer"
-                                    onClick={() => {
-                                      setNewUnit(ubs);
-                                      setIsDialogOpen(true);
-                                    }}
-                                  >
-                                    <Edit className="h-4 w-4" /> Editar Unidade
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
-                                    className="gap-2 cursor-pointer text-destructive focus:text-destructive"
-                                    onClick={() => {
-                                      setUnits(prev => prev.filter(u => u.id !== ubs.id));
-                                      toast({ title: "Removido", description: `A ${ubs.name} foi removida do sistema.` });
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" /> Excluir Registro
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-20 text-muted-foreground font-medium italic">
-                          Nenhuma unidade encontrada para a pesquisa.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="md:col-span-2 space-y-6">
-          <Card className="border-none shadow-xl bg-primary text-primary-foreground rounded-3xl overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-4 opacity-10"><Activity className="h-24 w-24" /></div>
-            <CardHeader className="relative">
-              <CardTitle className="text-lg font-black tracking-tighter uppercase">Demanda Crítica</CardTitle>
-              <CardDescription className="text-primary-foreground/80 text-xs">UBS com maior volume operacional hoje.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 relative">
-              <div className="p-5 bg-white/10 rounded-[2rem] border border-white/10 backdrop-blur-sm">
-                <p className="text-[10px] uppercase tracking-widest font-black opacity-80">UBS Central</p>
-                <div className="flex items-end gap-1 mt-1">
-                  <p className="text-4xl font-black">32</p>
-                  <p className="text-[10px] mb-2 font-bold opacity-60">PEDIDOS</p>
-                </div>
-                <div className="h-1.5 w-full bg-white/10 rounded-full mt-4 overflow-hidden">
-                  <div className="h-full bg-white rounded-full w-[84%]" />
-                </div>
-                <p className="text-[10px] mt-2 opacity-80 font-bold uppercase tracking-tighter">84% da capacidade de rota ocupada</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-md rounded-2xl bg-card">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-xs uppercase text-muted-foreground font-black tracking-widest flex items-center gap-2">
-                <Phone className="h-4 w-4 text-primary" /> Ramais de Emergência
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-xl">
-                <span className="text-xs font-bold text-slate-700 uppercase">Central de Regulação</span>
-                <Badge variant="secondary" className="bg-primary text-white border-none font-black text-[10px]">192</Badge>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-muted/30 rounded-xl">
-                <span className="text-xs font-bold text-slate-700 uppercase">Logística Municipal</span>
-                <Badge variant="secondary" className="bg-slate-700 text-white border-none font-black text-[10px]">110</Badge>
-              </div>
-              <Button variant="outline" className="w-full h-11 rounded-xl border-dashed border-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                Lista de Ramais UBS
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input 
+          placeholder="Buscar unidade real por nome..." 
+          className="pl-10 h-12 bg-card border-none shadow-sm rounded-xl"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
+
+      <Card className="border-none shadow-md overflow-hidden bg-card rounded-2xl">
+        {loading ? (
+          <div className="py-20 text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="text-xs uppercase font-black text-muted-foreground">Sincronizando com Rio Claro...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow className="border-none">
+                  <TableHead className="font-bold">Unidade</TableHead>
+                  <TableHead className="font-bold">Responsável</TableHead>
+                  <TableHead className="font-bold">Status</TableHead>
+                  <TableHead className="text-right font-bold">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUBS.length > 0 ? filteredUBS.map((ubs) => (
+                  <TableRow key={ubs.id} className="hover:bg-muted/10 group transition-colors">
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><Building className="h-5 w-5" /></div>
+                        <div>
+                          <p className="font-black text-sm text-slate-800">{ubs.name}</p>
+                          <p className="text-[10px] text-muted-foreground truncate max-w-[200px]">{ubs.address}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs font-bold">{ubs.managerName || "A definir"}</TableCell>
+                    <TableCell><Badge className="bg-emerald-50 text-emerald-700 border-none text-[9px] uppercase h-5 px-2">Real</Badge></TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-primary" onClick={() => handleOpenMaps(ubs)}><ArrowUpRight className="h-4 w-4" /></Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 rounded-full"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="rounded-xl shadow-xl w-48">
+                            <DropdownMenuItem className="gap-2 cursor-pointer" onClick={() => { setNewUnit(ubs); setIsDialogOpen(true); }}><Edit className="h-4 w-4" /> Editar</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="gap-2 cursor-pointer text-destructive focus:text-destructive" onClick={async () => {
+                              await ubsService.deleteUnit(ubs.id);
+                              loadUnits();
+                              toast({ title: "Removido", description: "Unidade apagada do Firestore." });
+                            }}><Trash2 className="h-4 w-4" /> Excluir Real</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow><TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic">Nenhuma UBS real cadastrada no Firestore ainda.</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

@@ -40,13 +40,14 @@ export const requestService = {
         ...doc.data()
       } as TransportRequest));
     } catch (error) {
-      console.error("Firestore Error:", error);
+      console.error("Firestore Error (Requests):", error);
       return [];
     }
   },
 
   async getByAccessCode(code: string): Promise<TransportRequest | null> {
     try {
+      // BUSCA REAL: Sempre consulta o servidor para o Portal do Cidadão para garantir precisão
       const q = query(collection(db, COLLECTION_NAME), where("patientAccessCode", "==", code));
       const querySnapshot = await getDocs(q);
       
@@ -56,7 +57,8 @@ export const requestService = {
 
       const docData = querySnapshot.docs[0];
       return { id: docData.id, ...docData.data() } as TransportRequest;
-    } catch {
+    } catch (error) {
+      console.error("Access Code Error:", error);
       return null;
     }
   },
@@ -64,7 +66,6 @@ export const requestService = {
   async addRequest(request: Omit<TransportRequest, "id">): Promise<string> {
     try {
       const now = new Date().toISOString();
-      // Gera código de acesso único de 6 dígitos
       const patientAccessCode = Math.floor(100000 + Math.random() * 900000).toString();
 
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
@@ -74,8 +75,9 @@ export const requestService = {
         updatedAt: now
       });
       return docRef.id;
-    } catch {
-      throw new Error("Falha ao criar nova solicitação oficial.");
+    } catch (error) {
+      console.error("Add Request Error:", error);
+      throw new Error("Falha ao criar nova solicitação no Firestore.");
     }
   },
 
@@ -87,7 +89,7 @@ export const requestService = {
         updatedAt: new Date().toISOString()
       });
     } catch {
-      throw new Error(`Falha ao atualizar solicitação ${id}.`);
+      throw new Error(`Falha ao atualizar solicitação real.`);
     }
   },
 
@@ -96,18 +98,14 @@ export const requestService = {
       const docRef = doc(db, COLLECTION_NAME, id);
       await deleteDoc(docRef);
     } catch {
-      throw new Error("Falha ao remover solicitação.");
+      throw new Error("Falha ao remover solicitação real.");
     }
   },
 
-  /**
-   * Oficializa múltiplos manifestos em uma única transação atômica.
-   */
   async createManifestBatch(assignments: any[]): Promise<void> {
     const batch = writeBatch(db);
     
     assignments.forEach((assign) => {
-      // Gera ID de Manifesto único baseado em tempo e viatura
       const manifestId = `MF-${Date.now().toString().slice(-4)}-${String(assign.vehicleId).slice(0, 3).toUpperCase()}`;
       
       assign.route.forEach((requestId: string) => {
