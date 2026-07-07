@@ -10,30 +10,23 @@ import {
   query, 
   orderBy,
   where,
-  writeBatch,
-  getDocsFromCache
+  writeBatch
 } from "firebase/firestore";
 import { TransportRequest } from "@/lib/types";
 
 const COLLECTION_NAME = "requests";
 
 /**
- * @fileOverview Serviço de gestão de solicitações operando 100% via Firestore para o Teste Beta.
+ * @fileOverview Serviço de gestão de solicitações otimizado para resposta instantânea.
+ * Removida lógica de verificação dupla de cache para acelerar leituras em bancos vazios.
  */
 export const requestService = {
   async getRequests(): Promise<TransportRequest[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
       
-      let querySnapshot;
-      try {
-        querySnapshot = await getDocsFromCache(q);
-        if (querySnapshot.empty) {
-          querySnapshot = await getDocs(q);
-        }
-      } catch {
-        querySnapshot = await getDocs(q);
-      }
+      // Chamada direta ao Firestore: o SDK gerencia o cache internamente de forma eficiente
+      const querySnapshot = await getDocs(q);
       
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
@@ -47,7 +40,6 @@ export const requestService = {
 
   async getByAccessCode(code: string): Promise<TransportRequest | null> {
     try {
-      // BUSCA REAL: Sempre consulta o servidor para o Portal do Cidadão para garantir precisão
       const q = query(collection(db, COLLECTION_NAME), where("patientAccessCode", "==", code));
       const querySnapshot = await getDocs(q);
       

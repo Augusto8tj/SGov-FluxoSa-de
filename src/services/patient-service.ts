@@ -8,31 +8,20 @@ import {
   deleteDoc, 
   doc, 
   query, 
-  orderBy,
-  getDocsFromCache
+  orderBy
 } from "firebase/firestore";
 import { Patient } from "@/lib/types";
 
 const COLLECTION_NAME = "patients";
 
 /**
- * @fileOverview Serviço de gerenciamento de pacientes com suporte a dados reais no Firestore.
+ * @fileOverview Serviço de gerenciamento de pacientes otimizado.
  */
 export const patientService = {
   async getPatients(): Promise<Patient[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("name", "asc"));
-      
-      let querySnapshot;
-      try {
-        // Tenta cache primeiro para velocidade instantânea
-        querySnapshot = await getDocsFromCache(q);
-        if (querySnapshot.empty) {
-          querySnapshot = await getDocs(q);
-        }
-      } catch {
-        querySnapshot = await getDocs(q);
-      }
+      const querySnapshot = await getDocs(q);
       
       return querySnapshot.docs.map(doc => ({
         id: doc.id,

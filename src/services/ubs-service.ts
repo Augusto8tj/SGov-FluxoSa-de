@@ -8,8 +8,7 @@ import {
   deleteDoc, 
   doc, 
   query, 
-  orderBy,
-  getDocsFromCache
+  orderBy
 } from "firebase/firestore";
 import { UBS } from "@/lib/types";
 
@@ -22,17 +21,7 @@ export const ubsService = {
   async getUnits(): Promise<UBS[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("name", "asc"));
-      
-      let querySnapshot;
-      try {
-        querySnapshot = await getDocsFromCache(q);
-        if (querySnapshot.empty) {
-          querySnapshot = await getDocs(q);
-        }
-      } catch {
-        querySnapshot = await getDocs(q);
-      }
-      
+      const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()

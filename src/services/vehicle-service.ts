@@ -8,8 +8,7 @@ import {
   deleteDoc, 
   doc, 
   query, 
-  orderBy,
-  getDocsFromCache
+  orderBy
 } from "firebase/firestore";
 import { Vehicle } from "@/lib/types";
 
@@ -17,22 +16,13 @@ const COLLECTION_NAME = "vehicles";
 
 /**
  * @fileOverview Serviço de gerenciamento da frota real no Firestore.
+ * Simplificado para resposta imediata.
  */
 export const vehicleService = {
   async getVehicles(): Promise<Vehicle[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("licensePlate", "asc"));
-      
-      let querySnapshot;
-      try {
-        querySnapshot = await getDocsFromCache(q);
-        if (querySnapshot.empty) {
-          querySnapshot = await getDocs(q);
-        }
-      } catch {
-        querySnapshot = await getDocs(q);
-      }
-      
+      const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()

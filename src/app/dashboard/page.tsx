@@ -36,6 +36,10 @@ import { ubsService } from "@/services/ubs-service";
 import { TransportRequest } from "@/lib/types";
 import Link from "next/link";
 
+/**
+ * @fileOverview Dashboard principal otimizado para carregamento instantâneo.
+ * Removido o loader de tela cheia para permitir que a interface renderize enquanto os dados chegam.
+ */
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -43,7 +47,7 @@ export default function DashboardPage() {
   const [aiBriefing, setAiBriefing] = useState<SystemInsightsOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   
-  // Real Data States
+  // Real Data States iniciados com valores vazios para evitar undefined errors
   const [requests, setRequests] = useState<TransportRequest[]>([]);
   const [patientCount, setPatientCount] = useState(0);
   const [vehicleCount, setVehicleCount] = useState(0);
@@ -81,7 +85,6 @@ export default function DashboardPage() {
       setActiveVehicleCount(vehs.filter(v => v.status === 'AVAILABLE' || v.status === 'IN_USE').length);
       setUnitCount(units.length);
 
-      // Agrupar dados para o gráfico por UBS
       const groups: Record<string, number> = {};
       reqs.forEach(r => {
         const ubs = r.ubsId || "Geral";
@@ -120,15 +123,6 @@ export default function DashboardPage() {
   };
 
   if (!mounted) return null;
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground font-medium">Lendo dados reais do Firestore...</p>
-      </div>
-    );
-  }
 
   const pendingRequestsCount = requests.filter(r => r.status === 'PENDING').length;
 
@@ -201,33 +195,39 @@ export default function DashboardPage() {
         <Card className="md:col-span-4 border-none shadow-sm overflow-hidden bg-card">
           <CardHeader>
             <CardTitle className="text-base sm:text-lg">Fluxo por Unidade</CardTitle>
-            <CardDescription className="text-xs">Demandas originadas por localidade no Firestore.</CardDescription>
+            <CardDescription className="text-xs">Demandas originadas por localidade.</CardDescription>
           </CardHeader>
           <CardContent className="h-[200px] sm:h-[300px] p-2 sm:p-6">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                <Tooltip cursor={{ fill: 'hsl(var(--muted)/0.3)' }} contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '10px' }} />
-                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "hsl(var(--primary))" : "hsl(var(--accent))"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {loading ? (
+              <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin text-muted-foreground" /></div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                  <Tooltip cursor={{ fill: 'hsl(var(--muted)/0.3)' }} contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '10px' }} />
+                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "hsl(var(--primary))" : "hsl(var(--accent))"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
         <Card className="md:col-span-3 border-none shadow-sm bg-card">
           <CardHeader>
             <CardTitle className="text-base sm:text-lg">Atividade Recente</CardTitle>
-            <CardDescription className="text-xs">Últimos transportes reais gravados.</CardDescription>
+            <CardDescription className="text-xs">Últimos transportes gravados.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {requests.length > 0 ? requests.slice(0, 5).map((item, i) => (
+              {loading ? (
+                <div className="py-10 flex justify-center"><Loader2 className="animate-spin text-muted-foreground" /></div>
+              ) : requests.length > 0 ? requests.slice(0, 5).map((item, i) => (
                 <div key={item.id} className="flex items-start gap-3">
                   <div className={cn(
                     "mt-1.5 size-1.5 rounded-full shrink-0",
