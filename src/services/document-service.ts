@@ -1,11 +1,9 @@
-
 import { db } from "@/lib/firebase";
 import { 
   collection, 
   getDocs, 
   query, 
   orderBy,
-  addDoc,
   updateDoc,
   doc
 } from "firebase/firestore";

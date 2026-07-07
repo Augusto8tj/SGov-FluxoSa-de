@@ -5,7 +5,6 @@ import { Ambulance, Heart, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { use } from "react";
 
 /**
  * @fileOverview Layout do Portal do Paciente.
@@ -14,10 +13,8 @@ import { use } from "react";
 
 export default function PatientLayout(props: {
   children: React.ReactNode;
-  params: Promise<any>;
 }) {
   const children = props.children;
-  const params = use(props.params);
 
   const router = useRouter();
   const pathname = usePathname();

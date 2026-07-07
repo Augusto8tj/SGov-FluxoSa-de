@@ -7,7 +7,7 @@ import { ThemeSelector } from "@/components/theme-selector";
 import { ImplementationGuide } from "@/components/implementation-guide";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 /**
@@ -17,10 +17,8 @@ import { Loader2 } from "lucide-react";
 
 export default function DashboardLayout(props: {
   children: React.ReactNode;
-  params: Promise<any>;
 }) {
   const children = props.children;
-  const params = use(props.params);
   
   const { user, loading } = useAuth();
   const router = useRouter();

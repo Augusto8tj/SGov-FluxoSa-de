@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -11,8 +10,7 @@ import {
   ChevronRight, 
   ChevronLeft,
   Users,
-  ClipboardPlus,
-  Info
+  ClipboardPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {

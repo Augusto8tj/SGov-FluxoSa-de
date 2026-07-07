@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -13,7 +12,8 @@ import {
   AlertTriangle,
   MapPin,
   Loader2,
-  Info
+  Info,
+  KeyRound
 } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/stats-card";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -232,7 +232,7 @@ export default function UbsDashboard() {
                 <Button variant="outline" className="w-full justify-start gap-4 h-20 rounded-[1.5rem] border-dashed group hover:border-indigo-400 transition-all" asChild>
                   <Link href="/ubs-portal/manifests">
                     <div className="bg-indigo-50 p-3 rounded-2xl text-indigo-600 group-hover:bg-indigo-100 transition-colors">
-                      <Key className="h-6 w-6" />
+                      <KeyRound className="h-6 w-6" />
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-bold">Códigos de Acesso</p>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,8 +7,6 @@ import {
   Clock, 
   MapPin,
   BrainCircuit,
-  Zap,
-  ArrowRight,
   Loader2,
   Info
 } from "lucide-react";
@@ -28,7 +25,7 @@ import {
   Cell
 } from "recharts";
 import { cn } from "@/lib/utils";
-import { generateSystemInsights, SystemInsightsOutput } from "@/ai/flows/generate-system-insights-flow";
+import { generateSystemInsights } from "@/ai/flows/generate-system-insights-flow";
 import { useToast } from "@/hooks/use-toast";
 import { requestService } from "@/services/request-service";
 import { patientService } from "@/services/patient-service";
@@ -41,7 +38,6 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isWithinWindow, setIsWithinWindow] = useState(false);
-  const [aiReport, setAiReport] = useState<SystemInsightsOutput | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   
   // Real Data States
@@ -102,14 +98,13 @@ export default function DashboardPage() {
       const pendingCount = requests.filter(r => r.status === 'PENDING').length;
       const criticalCount = requests.filter(r => r.urgencyLevel === 'critical').length;
 
-      const result = await generateSystemInsights({
+      await generateSystemInsights({
         pendingRequests: pendingCount,
         activeVehicles: activeVehicleCount,
         totalVehicles: vehicleCount,
         criticalPatientsCount: criticalCount,
         currentHour: new Date().getHours()
       });
-      setAiReport(result);
       toast({ title: "Resumo Atualizado", description: "IA gerou novos insights a partir dos dados do Firestore." });
     } catch {
       toast({ variant: "destructive", title: "IA: Falha na Conexão", description: "Verifique os limites da API." });
@@ -178,7 +173,7 @@ export default function DashboardPage() {
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                   <Tooltip cursor={{ fill: 'hsl(var(--muted)/0.3)' }} contentStyle={{ borderRadius: '8px', border: 'none', fontSize: '10px' }} />
                   <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {chartData.map((entry, index) => (
+                    {chartData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={index % 2 === 0 ? "hsl(var(--primary))" : "hsl(var(--accent))"} />
                     ))}
                   </Bar>
@@ -197,7 +192,7 @@ export default function DashboardPage() {
             <div className="space-y-4">
               {loading ? (
                 <div className="py-10 flex justify-center"><Loader2 className="animate-spin text-muted-foreground" /></div>
-              ) : requests.length > 0 ? requests.slice(0, 5).map((item, i) => (
+              ) : requests.length > 0 ? requests.slice(0, 5).map((item) => (
                 <div key={item.id} className="flex items-start gap-3">
                   <div className={cn(
                     "mt-1.5 size-1.5 rounded-full shrink-0",

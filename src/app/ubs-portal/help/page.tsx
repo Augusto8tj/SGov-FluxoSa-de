@@ -1,21 +1,13 @@
-
 "use client";
 
 import { 
   BookOpen, 
   Clock, 
-  Rocket,
-  History,
   ClipboardList,
-  Users,
-  BrainCircuit,
   AlertTriangle,
   KeyRound,
-  CheckCircle2,
-  UserCircle,
   Lock,
   Navigation,
-  Activity,
   ShieldCheck,
   PhoneCall,
   UserPlus
@@ -74,11 +66,11 @@ export default function UbsHelpPage() {
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
             <div className="p-4 bg-slate-50 rounded-xl border space-y-3">
               <p className="text-xs leading-relaxed font-medium">
-                Antes de solicitar qualquer transporte, o paciente deve estar cadastrado em <b>"Meus Pacientes"</b>.
+                Antes de solicitar qualquer transporte, o paciente deve estar cadastrado em &quot;Meus Pacientes&quot;.
               </p>
               <ul className="text-[11px] list-disc pl-4 space-y-2 font-medium text-slate-600">
                 <li><span className="font-black">CNS / Prontuário:</span> O número do Cartão Nacional de Saúde é a chave primária. Garanta que ele esteja correto para evitar duplicidades no município.</li>
-                <li><span className="font-black">Comorbidades:</span> Informe condições como "Hemodiálise", "Oncologia" ou "Cadeirante". Isso ajuda a IA a priorizar a ambulância correta.</li>
+                <li><span className="font-black">Comorbidades:</span> Informe condições como &quot;Hemodiálise&quot;, &quot;Oncologia&quot; ou &quot;Cadeirante&quot;. Isso ajuda a IA a priorizar a ambulância correta.</li>
                 <li><span className="font-black">Privacidade:</span> O sistema oculta sobrenomes no Portal do Cidadão para segurança da LGPD.</li>
               </ul>
             </div>
@@ -100,16 +92,16 @@ export default function UbsHelpPage() {
           <AccordionContent className="text-slate-600 space-y-4 pb-6 pt-2">
             <div className="p-4 bg-blue-50 rounded-xl border border-primary/10 space-y-3">
               <p className="text-xs leading-relaxed">
-                Este campo é vital para o motorista. Não insira apenas "UBS". Seja específico:
+                Este campo é vital para o motorista. Não insira apenas &quot;UBS&quot;. Seja específico:
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-3 bg-white rounded-lg border border-emerald-100">
                   <p className="text-[10px] font-black text-emerald-600 uppercase mb-1">Certo ✅</p>
-                  <p className="text-[11px]">"UBS Central - Portaria do Lado B (Rampa)"</p>
+                  <p className="text-[11px]">&quot;UBS Central - Portaria do Lado B (Rampa)&quot;</p>
                 </div>
                 <div className="p-3 bg-white rounded-lg border border-rose-100">
                   <p className="text-[10px] font-black text-rose-600 uppercase mb-1">Errado ❌</p>
-                  <p className="text-[11px]">"Na frente do posto"</p>
+                  <p className="text-[11px]">&quot;Na frente do posto&quot;</p>
                 </div>
               </div>
               <p className="text-[10px] text-muted-foreground italic">Este dado aparece no GPS do motorista e no celular do paciente, evitando que a viatura fique circulando e perca o horário.</p>

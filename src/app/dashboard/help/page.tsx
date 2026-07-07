@@ -1,4 +1,3 @@
-
 "use client";
 
 import { 
@@ -9,19 +8,12 @@ import {
   Fingerprint,
   HelpCircle,
   BrainCircuit,
-  MapPin,
-  CheckCircle2,
-  Lock,
-  Printer,
-  CalendarDays,
-  UserCircle,
   Zap,
   Activity,
-  FileText,
   Rocket,
   ShieldAlert,
-  Coins,
-  History
+  Lock,
+  Printer
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -30,8 +22,6 @@ import {
   AccordionItem, 
   AccordionTrigger 
 } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 export default function AdminHelpPage() {
   return (
@@ -187,7 +177,7 @@ export default function AdminHelpPage() {
               <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
                 <p className="text-[10px] font-black text-indigo-700 uppercase mb-2 flex items-center gap-2"><ShieldCheck className="h-3.5 w-3.5" /> Segurança Jurídica</p>
                 <p className="text-xs leading-relaxed text-indigo-800 italic">
-                  "Cada documento possui um HASH único e identificador digital. O rodapé do documento deve ser conferido pela controladoria para evitar fraudes em guias físicas."
+                  &quot;Cada documento possui um HASH único e identificador digital. O rodapé do documento deve ser conferido pela controladoria para evitar fraudes em guias físicas.&quot;
                 </p>
               </div>
             </div>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -11,7 +10,6 @@ import {
   Filter,
   ArrowRightLeft,
   Lock,
-  Download,
   Loader2,
   CheckCircle2
 } from "lucide-react";

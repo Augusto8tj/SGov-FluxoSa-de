@@ -1,7 +1,6 @@
-
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   Plus, 
   Search, 
@@ -78,11 +77,7 @@ export default function FleetPage() {
   });
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadVehicles();
-  }, []);
-
-  const loadVehicles = async () => {
+  const loadVehicles = useCallback(async () => {
     setLoading(true);
     try {
       const data = await vehicleService.getVehicles();
@@ -92,7 +87,11 @@ export default function FleetPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    loadVehicles();
+  }, [loadVehicles]);
 
   const filteredVehicles = vehicles.filter(v => 
     v.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||

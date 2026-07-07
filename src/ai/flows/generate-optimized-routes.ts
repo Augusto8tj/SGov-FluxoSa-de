@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview Fluxo otimizado para geração de rotas.
@@ -79,7 +78,7 @@ RULES:
 
     throw new Error("IA_SLOW_OR_INVALID");
 
-  } catch (error) {
+  } catch {
     console.warn("Optimizer: Acionando Algoritmo de Contingência Local (Ultra-rápido).");
     
     return {

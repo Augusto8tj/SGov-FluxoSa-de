@@ -13,14 +13,10 @@ import {
   TrendingUp,
   Award,
   Calendar as CalendarIcon,
-  ThumbsUp,
-  X,
-  Check,
-  Printer,
   Info,
   Loader2
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -48,7 +44,6 @@ import { StatsCard } from "@/components/dashboard/stats-card";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useRouter } from "next/navigation";
 import { driverService } from "@/services/driver-service";
 import { Driver } from "@/lib/types";
 
@@ -57,11 +52,9 @@ export default function DriversManagementPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [financials, setFinancials] = useState<any[]>([]);
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
-  const router = useRouter();
 
   const loadDrivers = useCallback(async () => {
     setLoading(true);
@@ -79,27 +72,6 @@ export default function DriversManagementPage() {
     setMounted(true);
     loadDrivers();
   }, [loadDrivers]);
-
-  const handleFinancialAction = (id: string, action: 'APPROVED' | 'DENIED') => {
-    setFinancials(prev => prev.map(f => f.id === id ? { ...f, status: action } : f));
-    toast({
-      title: action === 'APPROVED' ? "Solicitação Aprovada" : "Solicitação Negada",
-      description: `O registro ${id} foi processado e enviado para o financeiro.`,
-      variant: action === 'DENIED' ? "destructive" : "default"
-    });
-  };
-
-  const handlePrintRequest = (req: any) => {
-    const type = req.type === 'DIÁRIA' ? 'daily' : 'fuel';
-    const params = new URLSearchParams({
-      type,
-      id: req.id,
-      driver: req.driver,
-      value: req.value,
-      date: req.date
-    });
-    router.push(`/dashboard/print?${params.toString()}`);
-  };
 
   if (!mounted) return null;
 

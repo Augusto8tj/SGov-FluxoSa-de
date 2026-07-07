@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -17,12 +16,7 @@ import {
   Gauge,
   Code,
   AlertCircle,
-  Play,
-  Mail,
-  Phone,
-  Clock,
-  Heart,
-  Check
+  Play
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,7 +34,6 @@ import {
 import { 
   Dialog, 
   DialogContent, 
-  DialogDescription, 
   DialogFooter, 
   DialogHeader, 
   DialogTitle, 
@@ -52,7 +45,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { runModelTest, ModelTesterOutput } from "@/ai/flows/model-tester-flow";
 import { cn } from "@/lib/utils";
-import { UserRole, Vehicle, UBS, Driver } from "@/lib/types";
+import { Vehicle, UBS, Driver } from "@/lib/types";
 import { ubsService } from "@/services/ubs-service";
 import { driverService } from "@/services/driver-service";
 import { vehicleService } from "@/services/vehicle-service";
@@ -67,7 +60,6 @@ const AI_MODELS = [
 export default function SettingsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(false);
   
   // IA Lab State
   const [aiModel, setAiModel] = useState("nvidia/nemotron-nano-9b-v2:free");
@@ -81,7 +73,6 @@ export default function SettingsPage() {
   const [units, setUnits] = useState<UBS[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [users, setUsers] = useState<any[]>([]); // User management placeholder
   
   // Dialog States
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
@@ -94,11 +85,8 @@ export default function SettingsPage() {
   const [newVehicle, setNewVehicle] = useState<Partial<Vehicle>>({ 
     licensePlate: "", type: "Ambulância", capacity: 1, status: "AVAILABLE", odometer: 0, fuelLevel: 100 
   });
-  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
-  const [newUser, setNewUser] = useState({ id: "", name: "", email: "", role: "UBS_MANAGER" as UserRole });
 
   const loadData = useCallback(async () => {
-    setLoading(true);
     try {
       const [uData, dData, vData] = await Promise.all([
         ubsService.getUnits(),
@@ -110,8 +98,6 @@ export default function SettingsPage() {
       setVehicles(vData);
     } catch (e) {
       console.error("Settings: Error loading DB", e);
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -218,16 +204,6 @@ export default function SettingsPage() {
       toast({ title: "Veículo Salvo", description: "Base de dados atualizada." });
     } catch {
       toast({ title: "Erro", variant: "destructive" });
-    }
-  };
-
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'SECRETARY': return <Badge variant="outline" className="border-primary text-primary">Secretário</Badge>;
-      case 'UBS_MANAGER': return <Badge variant="outline" className="border-emerald-600 text-emerald-600">UBS</Badge>;
-      case 'DRIVER': return <Badge variant="outline" className="border-accent text-accent-foreground">Motorista</Badge>;
-      case 'ADMIN': return <Badge variant="destructive">Admin</Badge>;
-      default: return <Badge variant="secondary">{role}</Badge>;
     }
   };
 
