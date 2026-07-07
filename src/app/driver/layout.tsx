@@ -4,11 +4,12 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Loader2, LayoutDashboard, ShieldAlert } from "lucide-react";
+import { Loader2, LayoutDashboard, ShieldAlert, LogOut } from "lucide-react";
 import { ThemeSelector } from "@/components/theme-selector";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 /**
  * @fileOverview Layout do Aplicativo do Condutor.
@@ -20,7 +21,7 @@ export default function DriverLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
@@ -58,7 +59,16 @@ export default function DriverLayout({
           </div>
           <div className="flex items-center gap-2">
             <ThemeSelector />
-            <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold uppercase">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-white/20 h-9 w-9 rounded-full transition-colors"
+              onClick={logout}
+              title="Sair do Sistema"
+            >
+              <LogOut className="size-5" />
+            </Button>
+            <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold uppercase shadow-inner">
               {user.email?.[0] || 'M'}
             </div>
           </div>
