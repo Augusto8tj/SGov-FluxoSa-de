@@ -36,11 +36,13 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+export default async function RootLayout(props: {
   children: React.ReactNode;
-}>) {
+  params: Promise<any>;
+}) {
+  const children = props.children;
+  const params = await props.params;
+
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>

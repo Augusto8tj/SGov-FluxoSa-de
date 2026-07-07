@@ -1,4 +1,3 @@
-
 "use client";
 
 import { ThemeSelector } from "@/components/theme-selector";
@@ -6,23 +5,29 @@ import { Ambulance, Heart, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { use } from "react";
 
-export default function PatientLayout({
-  children,
-}: {
+/**
+ * @fileOverview Layout do Portal do Paciente.
+ * Atualizado para Next.js 15: params é uma Promise.
+ */
+
+export default function PatientLayout(props: {
   children: React.ReactNode;
+  params: Promise<any>;
 }) {
+  const children = props.children;
+  const params = use(props.params);
+
   const router = useRouter();
   const pathname = usePathname();
   const isViewing = pathname.includes("/view");
 
   const handleLogout = () => {
-    // Se estiver visualizando, limpa a sessão do paciente e volta para a busca
     if (isViewing) {
       sessionStorage.removeItem("patient_access_code");
       router.push("/patient-portal");
     } else {
-      // Se estiver na busca, volta para o login principal do sistema
       router.push("/login");
     }
   };

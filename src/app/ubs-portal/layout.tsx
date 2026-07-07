@@ -1,4 +1,3 @@
-
 "use client";
 
 import { UbsSidebar } from "@/components/ubs/ubs-sidebar";
@@ -8,18 +7,21 @@ import { ThemeSelector } from "@/components/theme-selector";
 import { ImplementationGuide } from "@/components/implementation-guide";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { Loader2 } from "lucide-react";
 
 /**
- * @fileOverview Layout do Portal UBS com roteiro de suporte no cabeçalho.
+ * @fileOverview Layout do Portal UBS.
+ * Atualizado para Next.js 15: params é uma Promise.
  */
 
-export default function UbsLayout({
-  children,
-}: {
+export default function UbsLayout(props: {
   children: React.ReactNode;
+  params: Promise<any>;
 }) {
+  const children = props.children;
+  const params = use(props.params);
+
   const { user, loading } = useAuth();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);

@@ -1,13 +1,14 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, use } from "react";
 import { Printer, ArrowLeft, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
  * @fileOverview Página de Layout de Impressão (Modo A4).
  * Esta página é otimizada para window.print().
+ * Atualizada para Next.js 15: props params e searchParams são Promises.
  */
 
 function PrintContent() {
@@ -128,7 +129,14 @@ function PrintContent() {
   );
 }
 
-export default function PrintPage() {
+export default function PrintPage(props: {
+  params: Promise<any>;
+  searchParams: Promise<any>;
+}) {
+  // Desembrulhando as promises de props para satisfazer o Next.js 15
+  const params = use(props.params);
+  const searchParams = use(props.searchParams);
+
   return (
     <Suspense fallback={<div className="p-10 text-center font-bold uppercase tracking-widest">Carregando Modelo Oficial...</div>}>
       <PrintContent />

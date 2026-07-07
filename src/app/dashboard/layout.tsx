@@ -1,4 +1,3 @@
-
 "use client";
 
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
@@ -8,19 +7,21 @@ import { ThemeSelector } from "@/components/theme-selector";
 import { ImplementationGuide } from "@/components/implementation-guide";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { Loader2 } from "lucide-react";
 
 /**
  * @fileOverview Layout principal do Dashboard.
- * Adicionado suporte ao roteiro de implantação no cabeçalho.
+ * Atualizado para Next.js 15: params é uma Promise.
  */
 
-export default function DashboardLayout({
-  children,
-}: {
+export default function DashboardLayout(props: {
   children: React.ReactNode;
+  params: Promise<any>;
 }) {
+  const children = props.children;
+  const params = use(props.params);
+  
   const { user, loading } = useAuth();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
