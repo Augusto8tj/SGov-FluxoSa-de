@@ -80,35 +80,34 @@
       },
       "required": ["name", "licenseNumber"]
     },
-    "UBS": {
-      "title": "Unidade de Saúde",
-      "description": "Posto de saúde ou hospital do município.",
+    "AuditLog": {
+      "title": "Log de Auditoria",
+      "description": "Registro de ação administrativa no sistema.",
       "type": "object",
       "properties": {
-        "name": { "type": "string" },
-        "address": { "type": "string" },
-        "managerName": { "type": "string" },
-        "phone": { "type": "string" },
-        "email": { "type": "string" },
-        "type": { "type": "string", "enum": ["UBS", "HOSPITAL", "PRONTO_ATENDIMENTO", "ESPECIALIZADA"] },
-        "status": { "type": "string", "enum": ["active", "inactive"] }
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "resource": { "type": "string" },
+        "ip": { "type": "string" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "address", "type"]
+      "required": ["userId", "action", "timestamp"]
     },
-    "DriverReport": {
-      "title": "Relatório de Campo",
-      "description": "Feedback ou SOS enviado pelo motorista.",
+    "OfficialDocument": {
+      "title": "Documento Oficial",
+      "description": "Guia de diária ou combustível gerada pelo sistema.",
       "type": "object",
       "properties": {
-        "driverId": { "type": "string" },
+        "type": { "type": "string", "enum": ["DIÁRIA", "COMBUSTÍVEL"] },
+        "name": { "type": "string" },
         "driverName": { "type": "string" },
-        "vehicleId": { "type": "string" },
-        "content": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" },
-        "read": { "type": "boolean" },
-        "type": { "type": "string", "enum": ["NORMAL", "SOS"] }
+        "value": { "type": "string" },
+        "status": { "type": "string", "enum": ["READY", "PRINTED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["driverId", "content", "timestamp"]
+      "required": ["type", "name", "driverName", "status"]
     }
   },
   "auth": {
@@ -135,13 +134,13 @@
       "schema": "Driver",
       "description": "Corpo de condutores."
     },
-    "/units/{unitId}": {
-      "schema": "UBS",
-      "description": "Rede de unidades de atendimento."
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Logs de segurança."
     },
-    "/reports/{reportId}": {
-      "schema": "DriverReport",
-      "description": "Ocorrências de campo e SOS."
+    "/official_documents/{docId}": {
+      "schema": "OfficialDocument",
+      "description": "Guias e requisições oficiais."
     }
   }
 }
