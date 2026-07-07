@@ -176,7 +176,7 @@ export default function AdminHelpPage() {
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="h-5 w-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-black shrink-0">2</div>
-                    <p className="text-xs">O Secretário aprova o valor no menu <b>Motoristas > Financeiro</b>.</p>
+                    <p className="text-xs">O Secretário aprova o valor no menu <b>Motoristas &gt; Financeiro</b>.</p>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="h-5 w-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-black shrink-0">3</div>

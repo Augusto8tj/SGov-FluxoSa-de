@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -50,7 +51,6 @@ import { Vehicle } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { vehicleService } from "@/services/vehicle-service";
-import { MOCK_VEHICLES } from "@/lib/mock-data";
 
 const MOCK_MANIFEST = [
   { id: "S1", patient: "Maria Souza", time: "14:30", type: "COLETA", location: "UBS Central" },
@@ -86,9 +86,9 @@ export default function FleetPage() {
     setLoading(true);
     try {
       const data = await vehicleService.getVehicles();
-      setVehicles(data.length > 0 ? data : MOCK_VEHICLES);
+      setVehicles(data);
     } catch {
-      setVehicles(MOCK_VEHICLES);
+      toast({ title: "Erro", description: "Falha ao sincronizar frota real.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -546,7 +546,7 @@ export default function FleetPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-10 text-muted-foreground font-medium italic">
-                      Nenhum veículo encontrado para a busca.
+                      Nenhum veículo encontrado real cadastrado no sistema.
                     </TableCell>
                   </TableRow>
                 )}
