@@ -1,4 +1,3 @@
-
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -18,6 +17,24 @@ const COLLECTION_NAME = "drivers";
  * @fileOverview Serviço de gerenciamento de condutores oficiais no Firestore.
  */
 export const driverService = {
+  async getDrivers(): Promise<Driver[]> {
+    try {
+      const q = query(
+        collection(db, COLLECTION_NAME), 
+        orderBy("name", "asc")
+      );
+      
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      } as Driver));
+    } catch (error) {
+      console.error("Firestore Error (getDrivers):", error);
+      return [];
+    }
+  },
+
   async getAvailableDrivers(): Promise<Driver[]> {
     try {
       const q = query(
@@ -32,7 +49,7 @@ export const driverService = {
         ...doc.data()
       } as Driver));
     } catch (error) {
-      console.error("Firestore Error:", error);
+      console.error("Firestore Error (getAvailableDrivers):", error);
       return [];
     }
   },

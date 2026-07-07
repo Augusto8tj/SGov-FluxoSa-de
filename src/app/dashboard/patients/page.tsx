@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Search, 
   UserPlus, 
   MoreVertical, 
   Edit, 
   Trash2,
-  Filter
+  Filter,
+  Loader2
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,18 +41,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-const MOCK_PATIENTS: Patient[] = [
-  { id: "P1", name: "Benedito Silva", medicalRecordNumber: "CNS 123.456.789-00", comorbidities: ["Diabetes", "Hipertensão"], needsCompanion: true, notes: "Cadeirante, requer rampa." },
-  { id: "P2", name: "Maria de Fátima", medicalRecordNumber: "CNS 987.654.321-11", comorbidities: ["Renal Crônico"], needsCompanion: false, notes: "Tratamento de Hemodiálise." },
-  { id: "P3", name: "José Bonifácio", medicalRecordNumber: "CNS 456.123.789-22", comorbidities: ["Cardiopata"], needsCompanion: true },
-  { id: "P4", name: "Ana Cláudia", medicalRecordNumber: "CNS 321.654.987-33", comorbidities: ["Pós-Operatório"], needsCompanion: true },
-  { id: "P5", name: "Wilson Oliveira", medicalRecordNumber: "CNS 789.456.123-44", comorbidities: ["DPOC"], needsCompanion: false, notes: "Uso eventual de O2." },
-];
+import { patientService } from "@/services/patient-service";
 
 export default function PatientsPage() {
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [patients] = useState<Patient[]>(MOCK_PATIENTS);
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   
@@ -60,20 +56,57 @@ export default function PatientsPage() {
 
   const { toast } = useToast();
 
-  const handleSave = () => {
+  const loadPatients = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await patientService.getPatients();
+      setPatients(data);
+    } catch {
+      toast({ title: "Erro", description: "Falha ao sincronizar cidadãos.", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    setMounted(true);
+    loadPatients();
+  }, [loadPatients]);
+
+  const handleSave = async () => {
     if (!formName || !formCns) {
       toast({ title: "Campos Requeridos", description: "Nome e CNS são necessários.", variant: "destructive" });
       return;
     }
     
-    setIsDialogOpen(false);
-    toast({ title: "Sucesso", description: "Dados sincronizados com o banco de dados." });
+    try {
+      const patientData = {
+        name: formName,
+        medicalRecordNumber: formCns,
+        comorbidities: editingPatient?.comorbidities || ["Geral"],
+        needsCompanion: editingPatient?.needsCompanion || false,
+      };
+
+      if (editingPatient) {
+        await patientService.updatePatient(editingPatient.id, patientData);
+      } else {
+        await patientService.addPatient(patientData as any);
+      }
+
+      setIsDialogOpen(false);
+      loadPatients();
+      toast({ title: "Sucesso", description: "Dados sincronizados com o Firestore." });
+    } catch {
+      toast({ title: "Erro", description: "Falha ao salvar paciente.", variant: "destructive" });
+    }
   };
 
   const filteredPatients = patients.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.medicalRecordNumber.includes(searchTerm)
   );
+
+  if (!mounted) return null;
 
   return (
     <div className="space-y-6">
@@ -103,18 +136,6 @@ export default function PatientsPage() {
                   <Label>CNS / Prontuário</Label>
                   <Input className="h-11" value={formCns} onChange={(e) => setFormCns(e.target.value)} />
                 </div>
-                <div className="flex items-center space-x-2 pt-0 sm:pt-8">
-                  <Checkbox id="comp" />
-                  <Label htmlFor="comp" className="text-sm font-medium">Requer Acompanhante</Label>
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label>Comorbidades (separar por vírgula)</Label>
-                <Input className="h-11" placeholder="Ex: Hipertensão, Diabetes" />
-              </div>
-              <div className="grid gap-2">
-                <Label>Observações Gerais</Label>
-                <Textarea className="min-h-[80px]" />
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
@@ -133,50 +154,67 @@ export default function PatientsPage() {
         <Button variant="outline" size="icon" className="h-11 w-11 shrink-0"><Filter className="h-4 w-4" /></Button>
       </div>
 
-      <Card className="border-none shadow-sm overflow-hidden bg-card">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-muted/30">
-              <TableRow>
-                <TableHead className="min-w-[150px]">Nome</TableHead>
-                <TableHead>CNS</TableHead>
-                <TableHead>Necessidades</TableHead>
-                <TableHead className="text-right">Ação</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPatients.map((p) => (
-                <TableRow key={p.id} className="hover:bg-muted/10">
-                  <TableCell className="font-semibold text-sm">{p.name}</TableCell>
-                  <TableCell className="text-xs font-mono text-muted-foreground">{p.medicalRecordNumber}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {p.comorbidities.map((c, i) => (
-                        <Badge key={i} className="bg-primary/10 text-primary border-none text-[9px] uppercase">{c}</Badge>
-                      ))}
-                      {p.needsCompanion && <Badge className="bg-accent/20 text-accent-foreground border-none text-[9px] uppercase">Acomp.</Badge>}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => { setEditingPatient(p); setFormName(p.name); setFormCns(p.medicalRecordNumber); setIsDialogOpen(true); }}>
-                          <Edit className="h-4 w-4 mr-2" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+      <Card className="border-none shadow-sm overflow-hidden bg-card rounded-xl">
+        {loading ? (
+          <div className="py-20 text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="text-xs uppercase font-black text-muted-foreground">Sincronizando Cidadãos...</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/30">
+                <TableRow>
+                  <TableHead className="min-w-[150px]">Nome</TableHead>
+                  <TableHead>CNS</TableHead>
+                  <TableHead>Necessidades</TableHead>
+                  <TableHead className="text-right">Ação</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {filteredPatients.length > 0 ? filteredPatients.map((p) => (
+                  <TableRow key={p.id} className="hover:bg-muted/10">
+                    <TableCell className="font-semibold text-sm">{p.name}</TableCell>
+                    <TableCell className="text-xs font-mono text-muted-foreground">{p.medicalRecordNumber}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {p.comorbidities?.map((c, i) => (
+                          <Badge key={i} className="bg-primary/10 text-primary border-none text-[9px] uppercase">{c}</Badge>
+                        ))}
+                        {p.needsCompanion && <Badge className="bg-accent/20 text-accent-foreground border-none text-[9px] uppercase">Acomp.</Badge>}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => { setEditingPatient(p); setFormName(p.name); setFormCns(p.medicalRecordNumber); setIsDialogOpen(true); }}>
+                            <Edit className="h-4 w-4 mr-2" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={async () => {
+                            await patientService.deletePatient(p.id);
+                            loadPatients();
+                            toast({ title: "Removido", description: "Cidadão apagado do Firestore." });
+                          }}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-20 text-muted-foreground italic">
+                      Nenhum cidadão real cadastrado no Firestore.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </Card>
     </div>
   );
