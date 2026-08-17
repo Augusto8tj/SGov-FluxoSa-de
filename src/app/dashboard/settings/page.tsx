@@ -19,8 +19,8 @@ import {
   Play,
   Trophy,
   Timer,
-  CheckCircle2,
-  XCircle
+  FileJson,
+  Download
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,6 +78,7 @@ type ArenaResult = {
   latency: number;
   status: 'idle' | 'testing' | 'success' | 'error';
   error?: string;
+  timestamp?: string;
 };
 
 export default function SettingsPage() {
@@ -168,15 +169,60 @@ export default function SettingsPage() {
           ...r, 
           status: result.error ? 'error' : 'success', 
           latency: result.latency,
-          error: result.error
+          error: result.error,
+          timestamp: new Date().toISOString()
         } : r));
       } catch (err) {
-        setArenaResults(prev => prev.map(r => r.id === model.id ? { ...r, status: 'error', error: "Timeout" } : r));
+        setArenaResults(prev => prev.map(r => r.id === model.id ? { ...r, status: 'error', error: "Timeout", timestamp: new Date().toISOString() } : r));
       }
     }
 
     setIsArenaTesting(false);
     toast({ title: "Arena Finalizada", description: "O ranking de performance foi atualizado." });
+  };
+
+  const handleDownloadReport = () => {
+    const fastest = sortedArena.find(r => r.status === 'success');
+    const report = {
+      reportId: `DIAG-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      municipalEntity: "Prefeitura de Rio Claro - RJ",
+      department: "Secretaria de Ordem Pública",
+      systemContext: {
+        activeModel: SYSTEM_DEFAULT_MODEL,
+        environment: "BETA_PRODUCTION"
+      },
+      diagnostics: {
+        totalModelsTested: arenaResults.length,
+        successfulRequests: arenaResults.filter(r => r.status === 'success').length,
+        failedRequests: arenaResults.filter(r => r.status === 'error').length,
+        fastestModel: fastest ? {
+          name: fastest.name,
+          id: fastest.id,
+          latency: fastest.latency
+        } : "NONE_SUCCESSFUL"
+      },
+      rawResults: arenaResults.map(r => ({
+        modelName: r.name,
+        modelId: r.id,
+        latencyMs: r.latency,
+        status: r.status,
+        failureReason: r.error || null,
+        testedAt: r.timestamp || "N/A"
+      }))
+    };
+
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `SGov-AI-Diagnostic-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({ title: "Relatório Gerado", description: "O arquivo JSON foi baixado para análise técnica." });
   };
 
   const sortedArena = useMemo(() => {
@@ -387,15 +433,25 @@ export default function SettingsPage() {
                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-0.5">Ranking em Tempo Real de Rio Claro</p>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="bg-amber-500 hover:bg-amber-600 border-none text-slate-900 font-black uppercase text-[10px] tracking-widest h-12 rounded-xl shadow-lg px-6 gap-2"
-                  onClick={handleRunArena}
-                  disabled={isArenaTesting}
-                >
-                  {isArenaTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-slate-900" />}
-                  {isArenaTesting ? "Benchmarking..." : "Iniciar Arena"}
-                </Button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="border-white/20 text-white hover:bg-white/10 font-black uppercase text-[10px] tracking-widest h-12 rounded-xl gap-2"
+                    onClick={handleDownloadReport}
+                    disabled={arenaResults.every(r => r.status === 'idle')}
+                  >
+                    <FileJson className="h-4 w-4" /> Relatório Diagnóstico
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="bg-amber-500 hover:bg-amber-600 border-none text-slate-900 font-black uppercase text-[10px] tracking-widest h-12 rounded-xl shadow-lg px-6 gap-2"
+                    onClick={handleRunArena}
+                    disabled={isArenaTesting}
+                  >
+                    {isArenaTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-slate-900" />}
+                    {isArenaTesting ? "Benchmarking..." : "Iniciar Arena"}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -448,13 +504,20 @@ export default function SettingsPage() {
                   </TableBody>
                 </Table>
               </div>
-              <div className="p-6 bg-slate-50 border-t flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
-                  <Timer className="h-5 w-5 text-slate-400" />
+              <div className="p-6 bg-slate-50 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
+                    <Timer className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic max-w-2xl">
+                    * O benchmark envia uma requisição 'ping' sequencial. Utilize o botão **Relatório Diagnóstico** acima para obter os dados brutos e motivos detalhados de falha técnica em modelos específicos.
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic">
-                  * O benchmark envia uma requisição 'ping' sequencial para garantir que a rede municipal não sofra sobrecarga. Modelos com latência abaixo de 2000ms são recomendados para triagem de emergência.
-                </p>
+                {!arenaResults.every(r => r.status === 'idle') && (
+                  <Button variant="ghost" size="sm" className="gap-2 text-primary font-bold text-[10px] uppercase" onClick={handleDownloadReport}>
+                    <Download className="h-3.5 w-3.5" /> Baixar JSON de Diagnóstico
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
