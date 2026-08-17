@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   Hospital, 
   User, 
@@ -15,7 +16,11 @@ import {
   Gauge,
   Code,
   AlertCircle,
-  Play
+  Play,
+  Trophy,
+  Timer,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,17 +72,30 @@ const AI_MODELS = [
   { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)" },
 ];
 
+type ArenaResult = {
+  id: string;
+  name: string;
+  latency: number;
+  status: 'idle' | 'testing' | 'success' | 'error';
+  error?: string;
+};
+
 export default function SettingsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
   
   // IA Lab State
   const [aiModel, setAiModel] = useState(SYSTEM_DEFAULT_MODEL);
-  const [aiTestPrompt, setAiTestPrompt] = useState("Dê um resumo das metas de saúde pública específicas para o município de Rio Claro, Rio de Janeiro (RJ) para 2024.");
+  const [aiTestPrompt, setAiTestPrompt] = useState("Analise a prioridade de transporte: Paciente em hemodiálise saindo de Lídice para o Hospital Municipal.");
   const [testResult, setTestResult] = useState<ModelTesterOutput | null>(null);
   const [isTestingAi, setIsTestingAi] = useState(false);
-  const [isBatchTesting, setIsBatchTesting] = useState(false);
   const [activeDebugTab, setActiveDebugTab] = useState("response");
+
+  // Arena State
+  const [arenaResults, setArenaResults] = useState<ArenaResult[]>(
+    AI_MODELS.map(m => ({ id: m.id, name: m.name, latency: 0, status: 'idle' }))
+  );
+  const [isArenaTesting, setIsArenaTesting] = useState(false);
 
   // Real Data States
   const [units, setUnits] = useState<UBS[]>([]);
@@ -134,16 +152,41 @@ export default function SettingsPage() {
     }
   };
 
-  const handleRunAllTests = async () => {
-    setIsBatchTesting(true);
-    toast({ title: "Benchmarking", description: "Testando modelos..." });
+  const handleRunArena = async () => {
+    setIsArenaTesting(true);
+    setArenaResults(prev => prev.map(r => ({ ...r, status: 'idle', latency: 0, error: undefined })));
+    
+    toast({ title: "Arena Iniciada", description: "Iniciando benchmarking de velocidade sequencial." });
+
     for (const model of AI_MODELS) {
+      setArenaResults(prev => prev.map(r => r.id === model.id ? { ...r, status: 'testing' } : r));
+      
       try {
-        await runModelTest(aiTestPrompt, model.id);
-      } catch { /* silence */ }
+        const result = await runModelTest("Responda apenas 'OK'", model.id);
+        
+        setArenaResults(prev => prev.map(r => r.id === model.id ? { 
+          ...r, 
+          status: result.error ? 'error' : 'success', 
+          latency: result.latency,
+          error: result.error
+        } : r));
+      } catch (err) {
+        setArenaResults(prev => prev.map(r => r.id === model.id ? { ...r, status: 'error', error: "Timeout" } : r));
+      }
     }
-    setIsBatchTesting(false);
+
+    setIsArenaTesting(false);
+    toast({ title: "Arena Finalizada", description: "O ranking de performance foi atualizado." });
   };
+
+  const sortedArena = useMemo(() => {
+    return [...arenaResults].sort((a, b) => {
+      if (a.status === 'success' && b.status === 'success') return a.latency - b.latency;
+      if (a.status === 'success') return -1;
+      if (b.status === 'success') return 1;
+      return 0;
+    });
+  }, [arenaResults]);
 
   const handleAddUnit = async () => {
     if (!newUnit.name || !newUnit.address) return;
@@ -250,16 +293,6 @@ export default function SettingsPage() {
                       <CardDescription className="text-xs">Explore os modelos gratuitos disponíveis.</CardDescription>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleRunAllTests} 
-                    disabled={isBatchTesting || isTestingAi} 
-                    className="w-full sm:w-auto gap-2 text-[10px] font-bold uppercase h-9 rounded-lg"
-                  >
-                    {isBatchTesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />}
-                    Benchmarking
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 flex-1 pt-6">
@@ -285,7 +318,7 @@ export default function SettingsPage() {
                 <Button 
                   className="w-full h-10 sm:h-12 rounded-xl uppercase text-[10px] sm:text-xs font-bold gap-2 mt-auto shadow-lg shadow-primary/10" 
                   onClick={handleTestAi} 
-                  disabled={isTestingAi || isBatchTesting}
+                  disabled={isTestingAi}
                 >
                   {isTestingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
                   Executar Teste Cloud
@@ -340,6 +373,91 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Arena Block */}
+          <Card className="border-none shadow-sm rounded-3xl overflow-hidden mt-6 bg-white">
+            <CardHeader className="bg-slate-900 text-white p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-500 shadow-inner">
+                    <Trophy className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-black uppercase tracking-tighter">Arena SGov: Velocidade & Performance</CardTitle>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-0.5">Ranking em Tempo Real de Rio Claro</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="bg-amber-500 hover:bg-amber-600 border-none text-slate-900 font-black uppercase text-[10px] tracking-widest h-12 rounded-xl shadow-lg px-6 gap-2"
+                  onClick={handleRunArena}
+                  disabled={isArenaTesting}
+                >
+                  {isArenaTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-slate-900" />}
+                  {isArenaTesting ? "Benchmarking..." : "Iniciar Arena"}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-slate-50">
+                    <TableRow className="border-none">
+                      <TableHead className="w-16 text-center font-black uppercase text-[10px] text-slate-400">#</TableHead>
+                      <TableHead className="font-black uppercase text-[10px] text-slate-400">Modelo Cloud</TableHead>
+                      <TableHead className="text-right font-black uppercase text-[10px] text-slate-400">Latência (ms)</TableHead>
+                      <TableHead className="text-right font-black uppercase text-[10px] text-slate-400 pr-8">Performance</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedArena.map((res, idx) => (
+                      <TableRow key={res.id} className={cn("transition-colors", idx === 0 && res.latency > 0 ? "bg-emerald-50/50" : "hover:bg-slate-50/50")}>
+                        <TableCell className="text-center font-black text-slate-400">
+                          {res.latency > 0 && idx === 0 ? <Trophy className="h-4 w-4 text-amber-500 mx-auto" /> : idx + 1}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-sm text-slate-700">{res.name}</span>
+                            <span className="text-[9px] text-muted-foreground uppercase font-medium">{res.id}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {res.status === 'testing' ? (
+                            <Loader2 className="h-4 w-4 animate-spin ml-auto text-primary" />
+                          ) : res.latency > 0 ? (
+                            <span className={cn("font-mono font-black", idx === 0 ? "text-emerald-600" : "text-slate-600")}>
+                              {res.latency}ms
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-slate-300 font-bold uppercase">---</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right pr-8">
+                          {res.status === 'success' ? (
+                            <Badge className="bg-emerald-100 text-emerald-700 border-none font-black text-[9px] uppercase h-6 px-3">OTIMIZADO</Badge>
+                          ) : res.status === 'error' ? (
+                            <Badge variant="destructive" className="font-black text-[9px] uppercase h-6 px-3">FALHA</Badge>
+                          ) : res.status === 'testing' ? (
+                            <Badge variant="outline" className="animate-pulse border-primary/20 text-primary font-black text-[9px] uppercase h-6 px-3">ANALISANDO</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-slate-300 border-slate-200 font-black text-[9px] uppercase h-6 px-3">AGUARDANDO</Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="p-6 bg-slate-50 border-t flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
+                  <Timer className="h-5 w-5 text-slate-400" />
+                </div>
+                <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic">
+                  * O benchmark envia uma requisição 'ping' sequencial para garantir que a rede municipal não sofra sobrecarga. Modelos com latência abaixo de 2000ms são recomendados para triagem de emergência.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* UNIDADES CONTENT */}
