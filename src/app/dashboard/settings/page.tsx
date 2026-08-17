@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -55,21 +54,17 @@ import { driverService } from "@/services/driver-service";
 import { vehicleService } from "@/services/vehicle-service";
 import { SYSTEM_DEFAULT_MODEL } from "@/ai/constants";
 
+// Lista atualizada com modelos estáveis e verificados (OpenRouter Free)
 const AI_MODELS = [
-  { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Ultra Rápido - Padrão)" },
-  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nemotron Nano 9B V2 (free)" },
-  { id: "nvidia/nemotron-3.5-lightning:free", name: "NVIDIA Nemotron 3.5 Lightning (free)" },
-  { id: "openai/gpt-oss-120b:free", name: "OpenAI GPT-OSS 120B (Free)" },
-  { id: "openai/gpt-oss-20b:free", name: "OpenAI GPT-OSS 20B (Free)" },
-  { id: "nvidia/nemotron-3-ultra:free", name: "Nvidia Nemotron 3 Ultra (Free)" },
-  { id: "nvidia/nemotron-3-super:free", name: "Nvidia Nemotron 3 Super (Free)" },
-  { id: "nvidia/nemotron-3-nano-30b-a3b:free", name: "Nvidia Nemotron 3 Nano 30B (Free)" },
-  { id: "poolside/laguna-s-2.1:free", name: "Poolside Laguna S 2.1 (Free)" },
-  { id: "poolside/laguna-xs-2.1:free", name: "Poolside Laguna XS 2.1 (Free)" },
-  { id: "cohere/north-mini-code:free", name: "Cohere North Mini Code (Free)" },
-  { id: "google/gemma-4-31b-it:free", name: "Google Gemma 4 31B (Free)" },
-  { id: "dots/dots3-note-preview:free", name: "Dots 3 Note Preview (Free)" },
-  { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)" },
+  { id: "meta-llama/llama-3.1-8b-instruct:free", name: "Llama 3.1 8B (Ultra Rápido - Padrão)" },
+  { id: "meta-llama/llama-3.1-70b-instruct:free", name: "Llama 3.1 70B (Alta Precisão)" },
+  { id: "google/gemma-2-9b-it:free", name: "Google Gemma 2 9B (Estável)" },
+  { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Versátil)" },
+  { id: "qwen/qwen-2-7b-instruct:free", name: "Qwen 2 7B (Rápido)" },
+  { id: "microsoft/phi-3-mini-128k-instruct:free", name: "Phi-3 Mini 128k (Leve)" },
+  { id: "nvidia/nemotron-4-340b-instruct:free", name: "Nvidia Nemotron 4 (Robusto)" },
+  { id: "meta-llama/llama-3-8b-instruct:free", name: "Llama 3 8B (Legado)" },
+  { id: "huggingfaceh4/zephyr-7b-beta:free", name: "Zephyr 7B Beta" },
 ];
 
 type ArenaResult = {
@@ -509,9 +504,14 @@ export default function SettingsPage() {
                   <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0">
                     <Timer className="h-5 w-5 text-slate-400" />
                   </div>
-                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic max-w-2xl">
-                    * O benchmark envia uma requisição 'ping' sequencial. Utilize o botão **Relatório Diagnóstico** acima para obter os dados brutos e motivos detalhados de falha técnica em modelos específicos.
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic max-w-2xl">
+                      * O benchmark envia uma requisição 'ping' sequencial. Utilize o botão **Relatório Diagnóstico** acima para obter os dados brutos e motivos detalhados de falha técnica em modelos específicos.
+                    </p>
+                    <p className="text-[10px] text-amber-600 font-bold flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" /> Nota: Modelos gratuitos possuem limites de requisições por dia definidos pelo OpenRouter.
+                    </p>
+                  </div>
                 </div>
                 {!arenaResults.every(r => r.status === 'idle') && (
                   <Button variant="ghost" size="sm" className="gap-2 text-primary font-bold text-[10px] uppercase" onClick={handleDownloadReport}>
