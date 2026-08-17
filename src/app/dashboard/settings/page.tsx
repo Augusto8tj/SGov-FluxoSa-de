@@ -52,18 +52,18 @@ import { SYSTEM_DEFAULT_MODEL } from "@/ai/constants";
 
 const AI_MODELS = [
   { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Ultra Rápido - Padrão)" },
+  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nemotron Nano 9B V2 (free)" },
+  { id: "nvidia/nemotron-3.5-lightning:free", name: "NVIDIA Nemotron 3.5 Lightning (free)" },
   { id: "openai/gpt-oss-120b:free", name: "OpenAI GPT-OSS 120B (Free)" },
   { id: "openai/gpt-oss-20b:free", name: "OpenAI GPT-OSS 20B (Free)" },
   { id: "nvidia/nemotron-3-ultra:free", name: "Nvidia Nemotron 3 Ultra (Free)" },
   { id: "nvidia/nemotron-3-super:free", name: "Nvidia Nemotron 3 Super (Free)" },
-  { id: "nvidia/nemotron-3.5-lightning:free", name: "Nvidia Nemotron 3.5 Lightning (Free)" },
   { id: "nvidia/nemotron-3-nano-30b-a3b:free", name: "Nvidia Nemotron 3 Nano 30B (Free)" },
   { id: "poolside/laguna-s-2.1:free", name: "Poolside Laguna S 2.1 (Free)" },
   { id: "poolside/laguna-xs-2.1:free", name: "Poolside Laguna XS 2.1 (Free)" },
   { id: "cohere/north-mini-code:free", name: "Cohere North Mini Code (Free)" },
   { id: "google/gemma-4-31b-it:free", name: "Google Gemma 4 31B (Free)" },
   { id: "dots/dots3-note-preview:free", name: "Dots 3 Note Preview (Free)" },
-  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nvidia Nemotron Nano 9B (Free)" },
   { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)" },
 ];
 
