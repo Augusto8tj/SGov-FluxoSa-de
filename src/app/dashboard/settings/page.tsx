@@ -57,6 +57,8 @@ import { SYSTEM_DEFAULT_MODEL } from "@/ai/constants";
 // Lista atualizada com modelos estáveis e verificados (OpenRouter Free)
 const AI_MODELS = [
   { id: "meta-llama/llama-3.1-8b-instruct:free", name: "Llama 3.1 8B (Ultra Rápido - Padrão)" },
+  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nemotron Nano 9B V2 (free)" },
+  { id: "nvidia/nemotron-3.5-lightning:free", name: "NVIDIA Nemotron 3.5 Lightning" },
   { id: "meta-llama/llama-3.1-70b-instruct:free", name: "Llama 3.1 70B (Alta Precisão)" },
   { id: "google/gemma-2-9b-it:free", name: "Google Gemma 2 9B (Estável)" },
   { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Versátil)" },
@@ -129,6 +131,18 @@ export default function SettingsPage() {
     setMounted(true);
     loadData();
   }, [loadData]);
+
+  // Sincroniza a Arena se a lista de modelos mudar
+  useEffect(() => {
+    if (mounted) {
+      setArenaResults(prev => {
+        return AI_MODELS.map(m => {
+          const existing = prev.find(r => r.id === m.id);
+          return existing || { id: m.id, name: m.name, latency: 0, status: 'idle' };
+        });
+      });
+    }
+  }, [mounted]);
 
   const handleTestAi = async () => {
     setIsTestingAi(true);
@@ -368,7 +382,7 @@ export default function SettingsPage() {
             </Card>
 
             <Card className="border-none shadow-sm min-h-[350px] overflow-hidden flex flex-col rounded-2xl">
-              <CardHeader className="bg-primary/5 py-4 shrink-0 border-b px-4 sm:px-6">
+              <CardHeader className="bg-primary/5 py-4 shrink-0 border-b px-4 sm:p-6">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-xs font-black uppercase flex items-center gap-2 tracking-tighter">
                     <Gauge className="h-4 w-4 text-primary" /> Telemetria & Debug
