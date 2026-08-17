@@ -49,11 +49,12 @@ import { Vehicle, UBS, Driver } from "@/lib/types";
 import { ubsService } from "@/services/ubs-service";
 import { driverService } from "@/services/driver-service";
 import { vehicleService } from "@/services/vehicle-service";
+import { SYSTEM_DEFAULT_MODEL } from "@/ai/genkit";
 
 const AI_MODELS = [
-  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nvidia Nemotron Nano 9B (Padrão Free)" },
+  { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Ultra Rápido - Padrão)" },
+  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nvidia Nemotron Nano 9B (Free)" },
   { id: "google/gemini-2.0-flash-exp", name: "Gemini 2.0 Flash Exp" },
-  { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Estável)" },
   { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)" },
 ];
 
@@ -62,7 +63,7 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   
   // IA Lab State
-  const [aiModel, setAiModel] = useState("nvidia/nemotron-nano-9b-v2:free");
+  const [aiModel, setAiModel] = useState(SYSTEM_DEFAULT_MODEL);
   const [aiTestPrompt, setAiTestPrompt] = useState("Dê um resumo das metas de saúde pública específicas para o município de Rio Claro, Rio de Janeiro (RJ) para 2024.");
   const [testResult, setTestResult] = useState<ModelTesterOutput | null>(null);
   const [isTestingAi, setIsTestingAi] = useState(false);
@@ -223,7 +224,6 @@ export default function SettingsPage() {
             <TabsTrigger value="units" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg transition-all"><Hospital className="h-4 w-4" /> Unidades</TabsTrigger>
             <TabsTrigger value="drivers" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg transition-all"><User className="h-4 w-4" /> Motoristas</TabsTrigger>
             <TabsTrigger value="fleet" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg transition-all"><Ambulance className="h-4 w-4" /> Frota</TabsTrigger>
-            <TabsTrigger value="users" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg transition-all"><Users className="h-4 w-4" /> Usuários</TabsTrigger>
             <TabsTrigger value="profiles" className="gap-2 px-4 sm:px-6 h-11 sm:h-10 w-full sm:w-auto justify-start sm:justify-center whitespace-nowrap rounded-xl sm:rounded-lg transition-all"><ShieldCheck className="h-4 w-4" /> Perfis</TabsTrigger>
           </TabsList>
         </div>
@@ -238,7 +238,7 @@ export default function SettingsPage() {
                     <div className="p-2 bg-primary/10 rounded-lg shrink-0"><Zap className="h-5 w-5 text-primary" /></div>
                     <div>
                       <CardTitle className="text-lg">Configuração OpenRouter</CardTitle>
-                      <CardDescription className="text-xs">Compare modelos Nvidia, Claude e outros.</CardDescription>
+                      <CardDescription className="text-xs">Motor atual: Llama 3.1 8B (Ultra Rápido).</CardDescription>
                     </div>
                   </div>
                   <Button 
@@ -255,7 +255,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-4 flex-1 pt-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold uppercase text-muted-foreground px-1">Modelo de IA (Default: Nvidia)</Label>
+                  <Label className="text-[10px] font-bold uppercase text-muted-foreground px-1">Modelo de IA Ativo</Label>
                   <Select value={aiModel} onValueChange={setAiModel}>
                     <SelectTrigger className="h-12 rounded-xl bg-muted/20 border-muted-foreground/10">
                       <SelectValue />
@@ -333,7 +333,7 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
-        {/* UNITS TAB */}
+        {/* OUTRAS ABAS PERMANECEM IGUAIS (UBS, DRIVERS, FLEET, PROFILES) */}
         <TabsContent value="units" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 border-b bg-muted/5">
@@ -381,7 +381,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* DRIVERS TAB */}
         <TabsContent value="drivers" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 border-b bg-muted/5">
@@ -414,7 +413,6 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* FLEET TAB */}
         <TabsContent value="fleet" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 border-b bg-muted/5">
@@ -446,14 +444,6 @@ export default function SettingsPage() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* USERS & PROFILES TABS */}
-        <TabsContent value="users" className="space-y-4 sm:space-y-6">
-          <Card className="border-none shadow-sm rounded-2xl bg-card">
-            <CardHeader><CardTitle>Gestão de Acesso</CardTitle></CardHeader>
-            <CardContent className="py-10 text-center opacity-30 italic">Gestão de usuários reais disponível via Firebase Auth.</CardContent>
           </Card>
         </TabsContent>
 

@@ -71,7 +71,6 @@ export default function AdminHelpPage() {
       </h3>
 
       <Accordion type="single" collapsible className="w-full space-y-4">
-        {/* SEÇÃO: PROTOCOLO DE LANÇAMENTO BETA */}
         <AccordionItem value="protocolo-beta" className="border-2 border-primary/20 rounded-2xl bg-primary/[0.02] px-4 shadow-sm overflow-hidden">
           <AccordionTrigger className="hover:no-underline py-6">
             <div className="flex items-center gap-4 text-left">
@@ -113,8 +112,8 @@ export default function AdminHelpPage() {
                 <Zap className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-black text-lg text-slate-800">Motor Logístico Híbrido</p>
-                <p className="text-sm text-muted-foreground">Entenda como a IA e o Processador Local garantem a operação 24/7</p>
+                <p className="font-black text-lg text-slate-800">Motor Logístico Híbrido (Llama 3.1)</p>
+                <p className="text-sm text-muted-foreground">Entenda como a IA de ultra velocidade e o Processador Local garantem a operação 24/7</p>
               </div>
             </div>
           </AccordionTrigger>
@@ -127,9 +126,9 @@ export default function AdminHelpPage() {
                 <div className="p-4 bg-white rounded-xl border border-primary/10">
                   <div className="flex items-center gap-2 mb-2">
                     <BrainCircuit className="h-4 w-4 text-primary" />
-                    <p className="text-[10px] font-black text-primary uppercase">Nvidia Nemotron Nano</p>
+                    <p className="text-[10px] font-black text-primary uppercase">Llama 3.1 8B Ultra</p>
                   </div>
-                  <p className="text-xs text-slate-600">A IA processa o agrupamento avançado por distritos para reduzir o gasto de combustível. Este processo tem um <b>limite de 25 segundos</b> de espera.</p>
+                  <p className="text-xs text-slate-600">O novo motor Llama processa o agrupamento avançado por distritos em milissegundos. Este processo tem um <b>limite de 25 segundos</b> de espera de rede antes do fallback.</p>
                 </div>
                 <div className="p-4 bg-white rounded-xl border border-emerald-100">
                   <div className="flex items-center gap-2 mb-2">
