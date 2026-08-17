@@ -189,7 +189,7 @@ export default function AdminPage() {
               <BrainCircuit className={aiEnabled ? "text-primary animate-pulse h-4 w-4 sm:h-5 sm:w-5" : "text-muted-foreground h-4 w-4 sm:h-5 sm:w-5"} />
               <div className="grid gap-0">
                 <Label htmlFor="ai-toggle" className="text-[10px] sm:text-sm font-semibold leading-none">IA Ativa</Label>
-                <p className="text-[8px] text-muted-foreground uppercase font-black tracking-tighter hidden xs:block">Llama 3.1 8B Ultra</p>
+                <p className="text-[8px] text-muted-foreground uppercase font-black tracking-tighter hidden xs:block">Nemotron Nano 9B V2</p>
               </div>
             </div>
             <Switch 
@@ -205,7 +205,7 @@ export default function AdminPage() {
       <div className="grid gap-3 sm:gap-4 grid-cols-2 md:grid-cols-4">
         <StatsCard title="Pendentes" value={stats.pending} icon={Zap} description="Aguardando Triagem" />
         <StatsCard title="Taxa Aprovação" value={stats.rate} icon={CheckCircle} description="Decisões Reais" />
-        <StatsCard title="Motor IA" value="Llama 3.1" icon={BrainCircuit} description="Ultra Rápido" />
+        <StatsCard title="Motor IA" value="Nemotron Nano" icon={BrainCircuit} description="Padrão Sistema" />
         <StatsCard title="Alertas" value={stats.critical} icon={AlertTriangle} description="Casos Críticos" />
       </div>
 
@@ -382,7 +382,7 @@ export default function AdminPage() {
                                           <BrainCircuit className="h-7 w-7" />
                                         </div>
                                         <div className="flex-1 space-y-2">
-                                          <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.2em] leading-snug">Parecer Llama 3.1 Ultra</h4>
+                                          <h4 className="text-[11px] font-black text-primary uppercase tracking-[0.2em] leading-snug">Parecer Nemotron Nano</h4>
                                           <Badge className={cn(
                                             "text-[10px] font-black uppercase py-1.5 px-3 border-none h-auto whitespace-normal text-left leading-snug",
                                             analysis[req.id]?.suggestedAction === 'approve' ? 'bg-emerald-100 text-emerald-700' :
@@ -419,7 +419,7 @@ export default function AdminPage() {
                                   <div className="bg-slate-50 px-8 py-3.5 flex items-center justify-between border-t">
                                     <div className="flex items-center gap-2">
                                       <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proteção de Dados & bull; Llama 3.1 8B Ultra</span>
+                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proteção de Dados & bull; Nemotron Nano 9B V2</span>
                                     </div>
                                     <Button variant="ghost" size="sm" onClick={() => toggleExpand(req.id)} className="text-[10px] font-black text-primary uppercase">Fechar Painel</Button>
                                   </div>
@@ -451,9 +451,9 @@ export default function AdminPage() {
           <Activity className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
         </div>
         <div className="flex-1 text-center md:text-left space-y-1.5">
-          <h4 className="font-black text-lg sm:text-xl text-blue-800 uppercase tracking-tighter">Workflow de Triagem Aumentada (Llama)</h4>
+          <h4 className="font-black text-lg sm:text-xl text-blue-800 uppercase tracking-tighter">Workflow de Triagem Aumentada (Nano)</h4>
           <p className="text-[12px] sm:text-sm text-blue-600 leading-snug max-w-3xl font-medium">
-            O motor Llama 3.1 Ultra cruza a gravidade relatada pela UBS com a disponibilidade da frota para sugerir a melhor decisão técnica em milissegundos. Utilize a IA para garantir que casos de Hemodiálise, Oncologia e Pós-operatórios tenham a prioridade correta garantida pelo protocolo municipal.
+            O motor Nemotron Nano 9B cruza a gravidade relatada pela UBS com a disponibilidade da frota para sugerir a melhor decisão técnica em milissegundos. Utilize a IA para garantir que casos de Hemodiálise, Oncologia e Pós-operatórios tenham a prioridade correta garantida pelo protocolo municipal.
           </p>
         </div>
         <ArrowRight className="h-8 w-8 text-blue-300 hidden md:block" />

@@ -56,17 +56,14 @@ import { SYSTEM_DEFAULT_MODEL } from "@/ai/constants";
 
 // Lista atualizada com modelos estáveis e verificados (OpenRouter Free)
 const AI_MODELS = [
-  { id: "meta-llama/llama-3.1-8b-instruct:free", name: "Llama 3.1 8B (Ultra Rápido - Padrão)" },
-  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nemotron Nano 9B V2 (free)" },
+  { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nemotron Nano 9B V2 (Padrão do Sistema)" },
   { id: "nvidia/nemotron-3.5-lightning:free", name: "NVIDIA Nemotron 3.5 Lightning" },
+  { id: "meta-llama/llama-3.1-8b-instruct:free", name: "Llama 3.1 8B (Ultra Rápido)" },
   { id: "meta-llama/llama-3.1-70b-instruct:free", name: "Llama 3.1 70B (Alta Precisão)" },
   { id: "google/gemma-2-9b-it:free", name: "Google Gemma 2 9B (Estável)" },
   { id: "mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Versátil)" },
   { id: "qwen/qwen-2-7b-instruct:free", name: "Qwen 2 7B (Rápido)" },
   { id: "microsoft/phi-3-mini-128k-instruct:free", name: "Phi-3 Mini 128k (Leve)" },
-  { id: "nvidia/nemotron-4-340b-instruct:free", name: "Nvidia Nemotron 4 (Robusto)" },
-  { id: "meta-llama/llama-3-8b-instruct:free", name: "Llama 3 8B (Legado)" },
-  { id: "huggingfaceh4/zephyr-7b-beta:free", name: "Zephyr 7B Beta" },
 ];
 
 type ArenaResult = {
@@ -602,7 +599,7 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="p-0">
               <Table>
-                <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Ações</TableHead></TableHeader>
                 <TableBody>
                   {drivers.map(d => (
                     <TableRow key={d.id}>
