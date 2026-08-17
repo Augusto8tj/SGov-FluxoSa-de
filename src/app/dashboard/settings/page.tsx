@@ -5,7 +5,6 @@ import {
   Hospital, 
   User, 
   Ambulance, 
-  Users, 
   ShieldCheck, 
   Plus, 
   Edit,
@@ -36,8 +35,7 @@ import {
   DialogContent, 
   DialogFooter, 
   DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+  DialogTitle 
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -49,7 +47,7 @@ import { Vehicle, UBS, Driver } from "@/lib/types";
 import { ubsService } from "@/services/ubs-service";
 import { driverService } from "@/services/driver-service";
 import { vehicleService } from "@/services/vehicle-service";
-import { SYSTEM_DEFAULT_MODEL } from "@/ai/genkit";
+import { SYSTEM_DEFAULT_MODEL } from "@/ai/constants";
 
 const AI_MODELS = [
   { id: "meta-llama/llama-3.1-8b-instruct", name: "Llama 3.1 8B (Ultra Rápido - Padrão)" },
@@ -333,7 +331,7 @@ export default function SettingsPage() {
           </div>
         </TabsContent>
 
-        {/* OUTRAS ABAS PERMANECEM IGUAIS (UBS, DRIVERS, FLEET, PROFILES) */}
+        {/* UNIDADES CONTENT */}
         <TabsContent value="units" className="space-y-4 sm:space-y-6">
           <Card className="border-none shadow-sm rounded-2xl overflow-hidden">
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 sm:p-6 border-b bg-muted/5">

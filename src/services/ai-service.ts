@@ -1,10 +1,9 @@
-
 /**
  * @fileOverview Serviço central de Inteligência Artificial do SGov FluxoSaúde.
  * Gerencia chamadas para OpenRouter com limpeza rigorosa de saída JSON e timeout de segurança.
  */
 
-import { SYSTEM_DEFAULT_MODEL } from "@/ai/genkit";
+import { SYSTEM_DEFAULT_MODEL } from "@/ai/constants";
 
 export type AiResponse<T> = {
   output: T | null;

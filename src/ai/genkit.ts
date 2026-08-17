@@ -1,5 +1,6 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/google-genai';
+import { SYSTEM_DEFAULT_MODEL } from './constants';
 
 /**
  * @fileOverview Configuração central do Genkit.
@@ -7,8 +8,7 @@ import {googleAI} from '@genkit-ai/google-genai';
  * garantir o máximo de agilidade no processamento logístico.
  */
 
-// Modelo padrão escolhido para todo o sistema (Ultra Rápido)
-export const SYSTEM_DEFAULT_MODEL = "meta-llama/llama-3.1-8b-instruct";
+export { SYSTEM_DEFAULT_MODEL };
 
 export const ai = genkit({
   plugins: [googleAI()],
