@@ -195,7 +195,7 @@ export default function SettingsPage() {
       municipalEntity: "Prefeitura de Rio Claro - RJ",
       department: "Secretaria de Ordem Pública",
       systemContext: {
-        activeModel: SYSTEM_DEFAULT_MODEL,
+        activeModel: aiModel,
         environment: "BETA_PRODUCTION"
       },
       diagnostics: {
@@ -367,14 +367,16 @@ export default function SettingsPage() {
                     onChange={(e) => setAiTestPrompt(e.target.value)} 
                   />
                 </div>
-                <Button 
-                  className="w-full h-10 sm:h-12 rounded-xl uppercase text-[10px] sm:text-xs font-bold gap-2 mt-auto shadow-lg shadow-primary/10" 
-                  onClick={handleTestAi} 
-                  disabled={isTestingAi}
-                >
-                  {isTestingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
-                  Executar Teste Cloud
-                </Button>
+                <div className="flex gap-2 mt-auto">
+                   <Button 
+                    className="flex-1 h-10 sm:h-12 rounded-xl uppercase text-[10px] sm:text-xs font-bold gap-2 shadow-lg shadow-primary/10" 
+                    onClick={handleTestAi} 
+                    disabled={isTestingAi}
+                  >
+                    {isTestingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <Activity className="h-4 w-4" />}
+                    Executar Teste Cloud
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -524,11 +526,6 @@ export default function SettingsPage() {
                     </p>
                   </div>
                 </div>
-                {!arenaResults.every(r => r.status === 'idle') && (
-                  <Button variant="ghost" size="sm" className="gap-2 text-primary font-bold text-[10px] uppercase" onClick={handleDownloadReport}>
-                    <Download className="h-3.5 w-3.5" /> Baixar JSON de Diagnóstico
-                  </Button>
-                )}
               </div>
             </CardContent>
           </Card>
@@ -599,7 +596,7 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="p-0">
               <Table>
-                <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Ações</TableHead></TableHeader>
+                <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Ações</TableHead></TableRow></TableHeader>
                 <TableBody>
                   {drivers.map(d => (
                     <TableRow key={d.id}>
