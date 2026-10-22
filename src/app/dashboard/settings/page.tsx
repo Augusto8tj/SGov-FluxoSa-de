@@ -18,8 +18,7 @@ import {
   Play,
   Trophy,
   Timer,
-  FileJson,
-  Download
+  FileJson
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -178,7 +177,7 @@ export default function SettingsPage() {
           error: result.error,
           timestamp: new Date().toISOString()
         } : r));
-      } catch (err) {
+      } catch {
         setArenaResults(prev => prev.map(r => r.id === model.id ? { ...r, status: 'error', error: "Timeout", timestamp: new Date().toISOString() } : r));
       }
     }
@@ -519,7 +518,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[11px] text-slate-500 font-medium leading-relaxed italic max-w-2xl">
-                      * O benchmark envia uma requisição 'ping' sequencial. Utilize o botão **Relatório Diagnóstico** acima para obter os dados brutos e motivos detalhados de falha técnica em modelos específicos.
+                      * O benchmark envia uma requisição &apos;ping&apos; sequencial. Utilize o botão **Relatório Diagnóstico** acima para obter os dados brutos e motivos detalhados de falha técnica em modelos específicos.
                     </p>
                     <p className="text-[10px] text-amber-600 font-bold flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" /> Nota: Modelos gratuitos possuem limites de requisições por dia definidos pelo OpenRouter.
