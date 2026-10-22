@@ -11,24 +11,24 @@ import {
   orderBy
 } from "firebase/firestore";
 import { Vehicle } from "@/lib/types";
+import { MOCK_VEHICLES } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "vehicles";
 
-/**
- * @fileOverview Serviço de gerenciamento da frota real no Firestore.
- * Simplificado para resposta imediata.
- */
 export const vehicleService = {
   async getVehicles(): Promise<Vehicle[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("licensePlate", "asc"));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      
+      const firestoreData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Vehicle));
+
+      return firestoreData.length > 0 ? firestoreData : MOCK_VEHICLES;
     } catch {
-      return [];
+      return MOCK_VEHICLES;
     }
   },
 

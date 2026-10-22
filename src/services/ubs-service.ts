@@ -11,24 +11,24 @@ import {
   orderBy
 } from "firebase/firestore";
 import { UBS } from "@/lib/types";
+import { MOCK_UBS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "units";
 
-/**
- * @fileOverview Serviço de gerenciamento de Unidades de Saúde (UBS) no Firestore.
- */
 export const ubsService = {
   async getUnits(): Promise<UBS[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("name", "asc"));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const firestoreData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as UBS));
+
+      return firestoreData.length > 0 ? firestoreData : MOCK_UBS;
     } catch (error) {
-      console.error("Firestore Error (UBS):", error);
-      return [];
+      console.warn("UBS Service Error - Using Mock:", error);
+      return MOCK_UBS;
     }
   },
 

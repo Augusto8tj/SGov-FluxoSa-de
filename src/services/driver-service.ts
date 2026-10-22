@@ -1,3 +1,4 @@
+
 import { db } from "@/lib/firebase";
 import { 
   collection, 
@@ -10,28 +11,24 @@ import {
   updateDoc
 } from "firebase/firestore";
 import { Driver } from "@/lib/types";
+import { MOCK_DRIVERS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "drivers";
 
-/**
- * @fileOverview Serviço de gerenciamento de condutores oficiais no Firestore.
- */
 export const driverService = {
   async getDrivers(): Promise<Driver[]> {
     try {
-      const q = query(
-        collection(db, COLLECTION_NAME), 
-        orderBy("name", "asc")
-      );
-      
+      const q = query(collection(db, COLLECTION_NAME), orderBy("name", "asc"));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const firestoreData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Driver));
+
+      return firestoreData.length > 0 ? firestoreData : MOCK_DRIVERS;
     } catch (error) {
-      console.error("Firestore Error (getDrivers):", error);
-      return [];
+      console.warn("Driver Service Error - Using Mock:", error);
+      return MOCK_DRIVERS;
     }
   },
 
@@ -44,13 +41,15 @@ export const driverService = {
       );
       
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const firestoreData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Driver));
+
+      return firestoreData.length > 0 ? firestoreData : MOCK_DRIVERS.filter(d => d.available);
     } catch (error) {
       console.error("Firestore Error (getAvailableDrivers):", error);
-      return [];
+      return MOCK_DRIVERS.filter(d => d.available);
     }
   },
 

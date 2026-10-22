@@ -14,12 +14,10 @@ import {
   writeBatch
 } from "firebase/firestore";
 import { DriverReport, BoardingLog } from "@/lib/types";
+import { MOCK_REPORTS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "reports";
 
-/**
- * @fileOverview Serviço de relatórios e SOS operando 100% em tempo real.
- */
 export const reportService = {
   async addReport(report: Omit<DriverReport, "id" | "read">): Promise<string> {
     try {
@@ -37,7 +35,6 @@ export const reportService = {
 
   async addBoardingLog(log: BoardingLog): Promise<void> {
     try {
-      // Logs de embarque são salvos em uma coleção auditável
       await addDoc(collection(db, "boarding_logs"), log);
     } catch (error) {
       console.error("Error logging boarding:", error);
@@ -48,14 +45,15 @@ export const reportService = {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("timestamp", "desc"), limit(100));
       const querySnapshot = await getDocs(q);
-      
-      return querySnapshot.docs.map(doc => ({
+      const firestoreData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as DriverReport));
+
+      return firestoreData.length > 0 ? firestoreData : MOCK_REPORTS;
     } catch (error) {
-      console.error("Error fetching reports:", error);
-      return [];
+      console.warn("Report Service Error - Using Mock:", error);
+      return MOCK_REPORTS;
     }
   },
 

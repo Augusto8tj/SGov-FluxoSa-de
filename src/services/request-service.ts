@@ -13,28 +13,29 @@ import {
   writeBatch
 } from "firebase/firestore";
 import { TransportRequest } from "@/lib/types";
+import { MOCK_REQUESTS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "requests";
 
 /**
- * @fileOverview Serviço de gestão de solicitações otimizado para resposta instantânea.
- * Removida lógica de verificação dupla de cache para acelerar leituras em bancos vazios.
+ * @fileOverview Serviço de gestão de solicitações operando com Fallback de Demonstração.
  */
 export const requestService = {
   async getRequests(): Promise<TransportRequest[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
-      
-      // Chamada direta ao Firestore: o SDK gerencia o cache internamente de forma eficiente
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
+      const firestoreData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as TransportRequest));
+
+      // MODO DEMO: Se o Firestore estiver vazio, injetamos os dados mock para a apresentação
+      return firestoreData.length > 0 ? firestoreData : MOCK_REQUESTS;
     } catch (error) {
-      console.error("Firestore Error (Requests):", error);
-      return [];
+      console.warn("Firestore Error (Requests) - Falling back to Mock:", error);
+      return MOCK_REQUESTS;
     }
   },
 
@@ -43,15 +44,16 @@ export const requestService = {
       const q = query(collection(db, COLLECTION_NAME), where("patientAccessCode", "==", code));
       const querySnapshot = await getDocs(q);
       
-      if (querySnapshot.empty) {
-        return null;
+      if (!querySnapshot.empty) {
+        const docData = querySnapshot.docs[0];
+        return { id: docData.id, ...docData.data() } as TransportRequest;
       }
 
-      const docData = querySnapshot.docs[0];
-      return { id: docData.id, ...docData.data() } as TransportRequest;
+      // MODO DEMO: Busca no mock se não achar no banco
+      return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
     } catch (error) {
       console.error("Access Code Error:", error);
-      return null;
+      return MOCK_REQUESTS.find(r => r.patientAccessCode === code) || null;
     }
   },
 

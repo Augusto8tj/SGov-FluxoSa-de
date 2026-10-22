@@ -11,25 +11,25 @@ import {
   orderBy
 } from "firebase/firestore";
 import { Patient } from "@/lib/types";
+import { MOCK_PATIENTS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "patients";
 
-/**
- * @fileOverview Serviço de gerenciamento de pacientes otimizado.
- */
 export const patientService = {
   async getPatients(): Promise<Patient[]> {
     try {
       const q = query(collection(db, COLLECTION_NAME), orderBy("name", "asc"));
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
+      const firestoreData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Patient));
+
+      return firestoreData.length > 0 ? firestoreData : MOCK_PATIENTS;
     } catch (error) {
-      console.error("Firestore Error:", error);
-      return [];
+      console.warn("Patient Service Error - Using Mock:", error);
+      return MOCK_PATIENTS;
     }
   },
 
@@ -43,7 +43,7 @@ export const patientService = {
       });
       return docRef.id;
     } catch {
-      throw new Error("Erro ao realizar cadastro do cidadão no banco de dados.");
+      throw new Error("Erro ao realizar cadastro do cidadão.");
     }
   },
 

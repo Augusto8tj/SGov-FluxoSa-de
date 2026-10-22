@@ -8,6 +8,7 @@ import {
   limit,
   addDoc
 } from "firebase/firestore";
+import { MOCK_AUDIT_LOGS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "audit_logs";
 
@@ -20,13 +21,15 @@ export const auditService = {
         limit(100)
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const firestoreData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
+      return firestoreData.length > 0 ? firestoreData : MOCK_AUDIT_LOGS;
     } catch (error) {
-      console.error("Audit Service Error:", error);
-      return [];
+      console.warn("Audit Service Error - Using Mock:", error);
+      return MOCK_AUDIT_LOGS;
     }
   },
 
