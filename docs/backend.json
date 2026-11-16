@@ -50,64 +50,18 @@
       },
       "required": ["patientId", "pickupLocation", "destinationLocation", "status"]
     },
-    "Vehicle": {
-      "title": "Veículo da Frota",
-      "description": "Viatura oficial do município.",
+    "SystemSettings": {
+      "title": "Configurações de Sistema",
+      "description": "Configurações globais de IA e infraestrutura.",
       "type": "object",
       "properties": {
-        "type": { "type": "string", "enum": ["Ambulância", "Van", "Sedan", "Acessível"] },
-        "licensePlate": { "type": "string" },
-        "capacity": { "type": "number" },
-        "available": { "type": "boolean" },
-        "status": { "type": "string", "enum": ["AVAILABLE", "MAINTENANCE", "IN_USE"] },
-        "odometer": { "type": "number" },
-        "fuelLevel": { "type": "number" },
-        "lastMaintenance": { "type": "string", "format": "date" },
-        "nextMaintenance": { "type": "string", "format": "date" }
-      },
-      "required": ["licensePlate", "type", "capacity"]
-    },
-    "Driver": {
-      "title": "Condutor Sanitário",
-      "description": "Motorista habilitado para transporte de saúde.",
-      "type": "object",
-      "properties": {
-        "name": { "type": "string" },
-        "licenseNumber": { "type": "string" },
-        "phone": { "type": "string" },
-        "available": { "type": "boolean" },
-        "status": { "type": "string", "enum": ["AVAILABLE", "ON_ROUTE", "OFF_DUTY"] }
-      },
-      "required": ["name", "licenseNumber"]
-    },
-    "AuditLog": {
-      "title": "Log de Auditoria",
-      "description": "Registro de ação administrativa no sistema.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "userEmail": { "type": "string" },
-        "action": { "type": "string" },
-        "resource": { "type": "string" },
-        "ip": { "type": "string" },
-        "status": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "action", "timestamp"]
-    },
-    "OfficialDocument": {
-      "title": "Documento Oficial",
-      "description": "Guia de diária ou combustível gerada pelo sistema.",
-      "type": "object",
-      "properties": {
-        "type": { "type": "string", "enum": ["DIÁRIA", "COMBUSTÍVEL"] },
-        "name": { "type": "string" },
-        "driverName": { "type": "string" },
-        "value": { "type": "string" },
-        "status": { "type": "string", "enum": ["READY", "PRINTED"] },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["type", "name", "driverName", "status"]
+        "aiProvider": { "type": "string", "enum": ["GOOGLE", "OPENROUTER", "OLLAMA", "NVIDIA"] },
+        "aiModelId": { "type": "string" },
+        "ollamaBaseUrl": { "type": "string" },
+        "ollamaApiKey": { "type": "string" },
+        "googleApiKey": { "type": "string" },
+        "openrouterApiKey": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -118,29 +72,9 @@
       "schema": "UserProfile",
       "description": "Perfis de acesso administrativo."
     },
-    "/patients/{patientId}": {
-      "schema": "Patient",
-      "description": "Base municipal de cidadãos."
-    },
-    "/requests/{requestId}": {
-      "schema": "TransportRequest",
-      "description": "Agendamentos de transporte."
-    },
-    "/vehicles/{vehicleId}": {
-      "schema": "Vehicle",
-      "description": "Cadastro da frota municipal."
-    },
-    "/drivers/{driverId}": {
-      "schema": "Driver",
-      "description": "Corpo de condutores."
-    },
-    "/audit_logs/{logId}": {
-      "schema": "AuditLog",
-      "description": "Logs de segurança."
-    },
-    "/official_documents/{docId}": {
-      "schema": "OfficialDocument",
-      "description": "Guias e requisições oficiais."
+    "/system_settings/global": {
+      "schema": "SystemSettings",
+      "description": "Configuração centralizada do motor de IA."
     }
   }
 }
