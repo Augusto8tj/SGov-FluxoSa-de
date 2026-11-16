@@ -15,13 +15,15 @@ export type SystemSettings = {
 };
 
 const SETTINGS_DOC = "system_settings/global";
+let cachedSettings: SystemSettings | null = null;
 
 export const systemSettingsService = {
   /**
-   * Obtém as configurações globais do sistema.
-   * Aplica fallbacks para garantir que a URL do Ollama e o modelo padrão estejam sempre disponíveis.
+   * Obtém as configurações globais do sistema com cache em memória.
    */
   async getSettings(): Promise<SystemSettings> {
+    if (cachedSettings) return cachedSettings;
+
     const defaults: SystemSettings = {
       aiProvider: 'OPENROUTER',
       aiModelId: SYSTEM_DEFAULT_MODEL,
@@ -35,27 +37,24 @@ export const systemSettingsService = {
       const snap = await getDoc(docRef);
       if (snap.exists()) {
         const data = snap.data();
-        console.log("SystemSettingsService: Configurações lidas do Firestore", data);
-        // Mescla os dados do Firestore com os padrões para garantir que campos novos não fiquem vazios
-        return { ...defaults, ...data } as SystemSettings;
+        cachedSettings = { ...defaults, ...data } as SystemSettings;
+        return cachedSettings;
       }
-    } catch (e) {
-      console.warn("SystemSettingsService: Falha ao ler Firestore, usando defaults técnicos.", e);
+    } catch {
+      console.warn("SystemSettingsService: Usando defaults técnicos.");
     }
     
+    cachedSettings = defaults;
     return defaults;
   },
 
   async updateSettings(settings: Partial<SystemSettings>): Promise<void> {
     try {
       const docRef = doc(db, SETTINGS_DOC);
-      console.log("SystemSettingsService: Persistindo configurações...", settings);
-      // Garantimos que não enviamos campos undefined para o Firestore
       const cleanSettings = JSON.parse(JSON.stringify(settings));
       await setDoc(docRef, cleanSettings, { merge: true });
-      console.log("SystemSettingsService: Persistência concluída com sucesso.");
+      cachedSettings = null; // Invalida o cache
     } catch (e) {
-      console.error("SystemSettingsService: Falha ao salvar configurações.", e);
       throw new Error("Erro ao persistir no Firestore.");
     }
   }
