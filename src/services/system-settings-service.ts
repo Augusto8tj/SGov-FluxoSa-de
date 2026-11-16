@@ -17,23 +17,31 @@ export type SystemSettings = {
 const SETTINGS_DOC = "system_settings/global";
 
 export const systemSettingsService = {
+  /**
+   * Obtém as configurações globais do sistema.
+   * Aplica fallbacks para garantir que a URL do Ollama e o modelo padrão estejam sempre disponíveis.
+   */
   async getSettings(): Promise<SystemSettings> {
+    const defaults: SystemSettings = {
+      aiProvider: 'OPENROUTER',
+      aiModelId: SYSTEM_DEFAULT_MODEL,
+      ollamaBaseUrl: 'https://boxlike-barrack-silencer.ngrok-free.dev',
+      ollamaKeepAlive: '5m',
+      ollamaTemperature: 0.7
+    };
+
     try {
       const docRef = doc(db, SETTINGS_DOC);
       const snap = await getDoc(docRef);
       if (snap.exists()) {
-        return snap.data() as SystemSettings;
+        // Mescla os dados do Firestore com os padrões para garantir que campos novos não fiquem vazios
+        return { ...defaults, ...snap.data() } as SystemSettings;
       }
     } catch (e) {
-      console.warn("SystemSettingsService: Falha ao ler Firestore, usando defaults.", e);
+      console.warn("SystemSettingsService: Falha ao ler Firestore, usando defaults técnicos.", e);
     }
     
-    return {
-      aiProvider: 'OPENROUTER',
-      aiModelId: SYSTEM_DEFAULT_MODEL,
-      ollamaKeepAlive: '5m',
-      ollamaTemperature: 0.7
-    };
+    return defaults;
   },
 
   async updateSettings(settings: Partial<SystemSettings>): Promise<void> {
