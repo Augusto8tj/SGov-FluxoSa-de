@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Serviço central de Inteligência Artificial do SGov FluxoSaúde.
  * Suporta múltiplos provedores (OpenRouter, Google, Ollama) com base nas configurações do Firestore.

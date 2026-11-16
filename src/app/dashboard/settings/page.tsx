@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -39,8 +38,7 @@ import {
   DialogContent, 
   DialogFooter, 
   DialogHeader, 
-  DialogTitle,
-  DialogTrigger
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -96,7 +94,6 @@ export default function SettingsPage() {
   const loadData = useCallback(async () => {
     setLoadingInitial(true);
     try {
-      // Carregamento resiliente (um não impede o outro)
       const [uData, dData, vData, sData] = await Promise.allSettled([
         ubsService.getUnits(),
         driverService.getDrivers(),
@@ -124,7 +121,6 @@ export default function SettingsPage() {
     if (!settings) return;
     
     setIsSavingSettings(true);
-
     try {
       await systemSettingsService.updateSettings(settings);
       toast({ 

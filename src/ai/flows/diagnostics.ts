@@ -1,4 +1,3 @@
-
 'use server';
 
 import { ai } from "@/ai/ai-instance";
@@ -26,24 +25,30 @@ export const checkAiConnection = ai.defineFlow(
     if (settings.aiProvider === 'OLLAMA') {
       try {
         const baseUrl = settings.ollamaBaseUrl?.endsWith('/') ? settings.ollamaBaseUrl.slice(0, -1) : settings.ollamaBaseUrl;
-        const response = await fetch(`${baseUrl}/api/tags`);
+        const response = await fetch(`${baseUrl}/api/tags`, {
+          headers: { "ngrok-skip-browser-warning": "true" }
+        });
         if (!response.ok) throw new Error("Servidor Ollama inacessível.");
         
         const data = await response.json();
-        const modelNames = data.models?.map((m: any) => m.name) || [];
+        const modelNames = data.models?.map((m: any) => String(m.name)) || [];
         
         return {
-          status: 'online',
+          status: 'online' as const,
           provider: 'OLLAMA (Local)',
           models: modelNames
         };
       } catch (e: any) {
-        return { status: 'offline', provider: 'OLLAMA', error: e.message };
+        return { 
+          status: 'offline' as const, 
+          provider: 'OLLAMA', 
+          error: String(e.message) 
+        };
       }
     } else {
       // Validação simplificada para Cloud
       return {
-        status: 'online',
+        status: 'online' as const,
         provider: `${settings.aiProvider} (Cloud)`,
         models: [settings.aiModelId]
       };
