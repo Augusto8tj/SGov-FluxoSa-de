@@ -1,6 +1,7 @@
 
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { SYSTEM_DEFAULT_MODEL } from "@/ai/constants";
 
 export type SystemSettings = {
   aiProvider: 'GOOGLE' | 'OPENROUTER' | 'OLLAMA' | 'NVIDIA';
@@ -15,20 +16,30 @@ const SETTINGS_DOC = "system_settings/global";
 
 export const systemSettingsService = {
   async getSettings(): Promise<SystemSettings> {
-    const docRef = doc(db, SETTINGS_DOC);
-    const snap = await getDoc(docRef);
-    if (snap.exists()) {
-      return snap.data() as SystemSettings;
+    try {
+      const docRef = doc(db, SETTINGS_DOC);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        return snap.data() as SystemSettings;
+      }
+    } catch (e) {
+      console.warn("SystemSettingsService: Falha ao ler Firestore, usando defaults.", e);
     }
-    // Fallback default
+    
+    // Fallback default (Sempre retorna um objeto válido para não quebrar a UI)
     return {
       aiProvider: 'OPENROUTER',
-      aiModelId: 'nvidia/nemotron-nano-9b-v2:free',
+      aiModelId: SYSTEM_DEFAULT_MODEL,
     };
   },
 
   async updateSettings(settings: Partial<SystemSettings>): Promise<void> {
-    const docRef = doc(db, SETTINGS_DOC);
-    await setDoc(docRef, settings, { merge: true });
+    try {
+      const docRef = doc(db, SETTINGS_DOC);
+      await setDoc(docRef, settings, { merge: true });
+    } catch (e) {
+      console.error("SystemSettingsService: Falha ao salvar configurações.", e);
+      throw new Error("Erro ao persistir no Firestore.");
+    }
   }
 };

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -12,13 +13,14 @@ import {
   Zap, 
   Loader2, 
   Activity, 
-  Gauge,
   Globe,
   Database,
   RefreshCw,
   Lock,
   Trophy,
-  Play
+  Play,
+  FileJson,
+  Check
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +46,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
 import { runModelTest, ModelTesterOutput } from "@/ai/flows/model-tester-flow";
 import { cn } from "@/lib/utils";
 import { Vehicle, UBS, Driver } from "@/lib/types";
@@ -57,6 +58,7 @@ import { checkAiConnection } from "@/ai/flows/diagnostics";
 
 const AI_MODELS = [
   { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nemotron Nano 9B V2 (Padrão)" },
+  { id: "nvidia/nemotron-3.5-lightning:free", name: "NVIDIA Nemotron 3.5 Lightning" },
   { id: "meta-llama/llama-3.1-8b-instruct:free", name: "Llama 3.1 8B (Ultra Rápido)" },
   { id: "google/gemma-2-9b-it:free", name: "Google Gemma 2 9B" },
 ];
@@ -64,6 +66,7 @@ const AI_MODELS = [
 export default function SettingsPage() {
   const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  const [loadingInitial, setLoadingInitial] = useState(true);
   
   // AI Settings State
   const [settings, setSettings] = useState<SystemSettings | null>(null);
@@ -76,13 +79,16 @@ export default function SettingsPage() {
   const [aiTestPrompt, setAiTestPrompt] = useState("Analise a prioridade de transporte: Paciente em hemodiálise saindo de Lídice para o Hospital Municipal.");
   const [testResult, setTestResult] = useState<ModelTesterOutput | null>(null);
   const [isTestingAi, setIsTestingAi] = useState(false);
-  const [activeDebugTab, setActiveDebugTab] = useState("response");
 
   // Real Data States
   const [units, setUnits] = useState<UBS[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   
+  // Arena State
+  const [arenaRunning, setArenaRunning] = useState(false);
+  const [arenaResults, setArenaResults] = useState<any[]>([]);
+
   // Dialog States
   const [isUnitDialogOpen, setIsUnitDialogOpen] = useState(false);
   const [newUnit, setNewUnit] = useState<Partial<UBS>>({ 
@@ -96,19 +102,22 @@ export default function SettingsPage() {
   });
 
   const loadData = useCallback(async () => {
+    setLoadingInitial(true);
     try {
-      const [uData, dData, vData, sData] = await Promise.all([
-        ubsService.getUnits(),
-        driverService.getDrivers(),
-        vehicleService.getVehicles(),
-        systemSettingsService.getSettings()
-      ]);
+      // Carregamento individual para evitar que uma falha trave tudo
+      const uData = await ubsService.getUnits().catch(() => []);
+      const dData = await driverService.getDrivers().catch(() => []);
+      const vData = await vehicleService.getVehicles().catch(() => []);
+      const sData = await systemSettingsService.getSettings();
+      
       setUnits(uData);
       setDrivers(dData);
       setVehicles(vData);
       setSettings(sData);
     } catch (e) {
-      console.error("Settings: Error loading DB", e);
+      console.error("Settings: Critical error during load", e);
+    } finally {
+      setLoadingInitial(false);
     }
   }, []);
 
@@ -137,7 +146,6 @@ export default function SettingsPage() {
     }
     setIsSyncingModels(true);
     try {
-      // Usamos o fluxo de diagnóstico que faz o fetch no endpoint /api/tags
       const result = await checkAiConnection();
       if (result.status === 'online' && result.models) {
         setLocalModels(result.models);
@@ -145,29 +153,61 @@ export default function SettingsPage() {
       } else {
         toast({ variant: "destructive", title: "Falha na Conexão", description: result.error || "Ollama não respondeu." });
       }
-    } catch (err) {
+    } catch {
       toast({ variant: "destructive", title: "Erro Técnico", description: "Não foi possível conectar ao Ollama local." });
     } finally {
       setIsSyncingModels(false);
     }
   };
 
-  const handleTestAi = async () => {
-    setIsTestingAi(true);
-    setTestResult(null);
-    try {
-      const result = await runModelTest(aiTestPrompt, aiModel);
-      setTestResult(result);
-      if (result.error) {
-        toast({ variant: "destructive", title: "Erro no Modelo", description: "O modelo retornou um erro." });
-      } else {
-        toast({ title: "Análise Concluída", description: `Latência de ${result.latency}ms.` });
+  const handleRunArena = async () => {
+    setArenaRunning(true);
+    setArenaResults([]);
+    const results = [];
+    
+    for (const model of AI_MODELS) {
+      try {
+        const res = await runModelTest("Responda apenas 'OK'", model.id);
+        results.push({
+          name: model.name,
+          id: model.id,
+          latency: res.latency,
+          status: res.error ? 'ERROR' : 'SUCCESS',
+          error: res.error
+        });
+      } catch (err: any) {
+        results.push({ name: model.name, id: model.id, latency: 0, status: 'ERROR', error: err.message });
       }
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Falha no Laboratório", description: error.message });
-    } finally {
-      setIsTestingAi(false);
+      setArenaResults([...results]);
     }
+    setArenaRunning(false);
+    toast({ title: "Torneio Finalizado", description: "O ranking de eficiência foi atualizado." });
+  };
+
+  const handleExportJson = () => {
+    const diagnostic = {
+      reportId: `DIAG-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      municipalEntity: "Prefeitura de Rio Claro - RJ",
+      department: "Secretaria de Ordem Pública",
+      systemContext: {
+        activeModel: settings?.aiModelId,
+        environment: "BETA_PRODUCTION"
+      },
+      diagnostics: {
+        totalModelsTested: AI_MODELS.length,
+        successfulRequests: arenaResults.filter(r => r.status === 'SUCCESS').length,
+        failedRequests: arenaResults.filter(r => r.status === 'ERROR').length,
+      },
+      rawResults: arenaResults
+    };
+
+    const blob = new Blob([JSON.stringify(diagnostic, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `diagnostico-ia-rioclaro-${Date.now()}.json`;
+    link.click();
   };
 
   const handleAddUnit = async () => {
@@ -215,7 +255,16 @@ export default function SettingsPage() {
     }
   };
 
-  if (!mounted || !settings) return null;
+  if (!mounted || loadingInitial) {
+    return (
+      <div className="flex flex-col items-center justify-center py-40 gap-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Sincronizando Gabinete...</p>
+      </div>
+    );
+  }
+
+  if (!settings) return null;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -235,11 +284,10 @@ export default function SettingsPage() {
         <TabsContent value="ia-hybrid" className="space-y-6 outline-none">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            {/* Gateway de IA */}
             <Card className="border-none shadow-sm rounded-3xl overflow-hidden">
               <CardHeader className="bg-primary/5 p-6 border-b">
                 <div className="flex items-center gap-3">
-                  <div className="bg-primary p-2.5 rounded-2xl text-white shadow-lg shadow-primary/20">
+                  <div className="bg-primary p-2.5 rounded-2xl text-white shadow-lg">
                     <Globe className="h-6 w-6" />
                   </div>
                   <div>
@@ -267,29 +315,16 @@ export default function SettingsPage() {
                     </Select>
                   </div>
 
-                  {settings.aiProvider === 'OLLAMA' ? (
+                  {settings.aiProvider === 'OLLAMA' && (
                     <div className="space-y-4 animate-in slide-in-from-top-2">
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Ollama Base URL (Local/Tunnel)</Label>
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Ollama Base URL</Label>
                         <Input 
-                          placeholder="http://localhost:11434 ou https://ngrok-url..." 
+                          placeholder="http://localhost:11434" 
                           className="h-12 rounded-2xl bg-muted/20 border-none"
                           value={settings.ollamaBaseUrl || ""}
                           onChange={(e) => setSettings({...settings, ollamaBaseUrl: e.target.value})}
                         />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Token de Acesso (Bearer)</Label>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input 
-                            type="password"
-                            placeholder="Chave secreta do gateway..." 
-                            className="h-12 rounded-2xl bg-muted/20 border-none pl-10"
-                            value={settings.ollamaApiKey || ""}
-                            onChange={(e) => setSettings({...settings, ollamaApiKey: e.target.value})}
-                          />
-                        </div>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Peso Selecionado</Label>
@@ -299,20 +334,16 @@ export default function SettingsPage() {
                             onValueChange={(val) => setSettings({...settings, aiModelId: val})}
                           >
                             <SelectTrigger className="h-12 rounded-2xl bg-muted/20 border-none flex-1">
-                              <SelectValue placeholder="Selecione um modelo local..." />
+                              <SelectValue placeholder="Sincronize modelos..." />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl">
-                              {localModels.length > 0 ? (
-                                localModels.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)
-                              ) : (
-                                <SelectItem value="default" disabled>Sincronize para ver modelos</SelectItem>
-                              )}
+                              {localModels.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                             </SelectContent>
                           </Select>
                           <Button 
                             variant="outline" 
                             size="icon" 
-                            className="h-12 w-12 rounded-2xl border-dashed"
+                            className="h-12 w-12 rounded-2xl"
                             onClick={handleSyncOllama}
                             disabled={isSyncingModels}
                           >
@@ -321,7 +352,9 @@ export default function SettingsPage() {
                         </div>
                       </div>
                     </div>
-                  ) : (
+                  )}
+
+                  {settings.aiProvider !== 'OLLAMA' && (
                     <div className="space-y-2 animate-in slide-in-from-top-2">
                       <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Modelo Cloud Ativo</Label>
                       <Select 
@@ -339,7 +372,7 @@ export default function SettingsPage() {
                   )}
 
                   <Button 
-                    className="w-full h-12 rounded-2xl shadow-xl shadow-primary/20 font-black uppercase text-[10px] tracking-widest gap-2 mt-2"
+                    className="w-full h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest gap-2"
                     onClick={handleSaveSettings}
                     disabled={isSavingSettings}
                   >
@@ -350,62 +383,64 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Protocolo de Segurança */}
             <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-slate-900 text-white">
               <CardHeader className="p-6 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="bg-emerald-500 p-2.5 rounded-2xl text-white shadow-lg shadow-emerald-500/20">
+                  <div className="bg-emerald-500 p-2.5 rounded-2xl text-white shadow-lg">
                     <ShieldCheck className="h-6 w-6" />
                   </div>
                   <div>
                     <CardTitle className="text-lg font-black uppercase tracking-tight">Privacidade Rio Claro</CardTitle>
-                    <CardDescription className="text-slate-400 text-xs uppercase font-bold tracking-widest">Protocolo PII Masking Ativo</CardDescription>
+                    <CardDescription className="text-slate-400 text-xs">Protocolo PII Masking Ativo</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
-                <div className="bg-white/5 p-4 rounded-2xl border border-white/10 italic text-xs leading-relaxed text-slate-300">
-                  &quot;Toda informação enviada ao motor de IA passa por uma camada de filtragem regex que mascara CPFs, E-mails e Identidades, garantindo que o processamento logístico ocorra sem exposição de dados sensíveis.&quot;
+                <div className="bg-white/5 p-4 rounded-2xl italic text-xs text-slate-300">
+                  &quot;Toda informação enviada ao motor de IA passa por uma camada de filtragem que mascara dados sensíveis dos cidadãos.&quot;
                 </div>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
-                    <div className="flex items-center gap-2">
-                      <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[10px] font-black uppercase">Filtragem de CPF</span>
-                    </div>
+                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                    <span className="text-[10px] font-black uppercase">Filtragem de CPF</span>
                     <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[8px]">ATIVO</Badge>
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
-                    <div className="flex items-center gap-2">
-                      <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[10px] font-black uppercase">Filtragem de Email</span>
-                    </div>
+                  <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl">
+                    <span className="text-[10px] font-black uppercase">Filtragem de Email</span>
                     <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[8px]">ATIVO</Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
           </div>
 
-          {/* Arena SGov: Ranking de Modelos */}
           <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-50 p-6 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="bg-amber-500 p-2.5 rounded-2xl text-white shadow-lg shadow-amber-500/20">
+                <div className="bg-amber-500 p-2.5 rounded-2xl text-white shadow-lg">
                   <Trophy className="h-6 w-6" />
                 </div>
                 <div>
                   <CardTitle className="text-xl font-black uppercase tracking-tight">Arena SGov: Ranking de IA</CardTitle>
-                  <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Benchmark Municipal de Performance</CardDescription>
+                  <CardDescription className="text-xs uppercase font-bold text-muted-foreground">Benchmark Municipal de Performance</CardDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                 <Button variant="outline" size="sm" className="h-10 rounded-xl gap-2 font-bold text-[10px] uppercase">
-                   Exportar Diagnóstico JSON
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   className="h-10 rounded-xl gap-2 font-bold text-[10px] uppercase"
+                   onClick={handleExportJson}
+                   disabled={arenaResults.length === 0}
+                 >
+                   <FileJson className="h-4 w-4" /> Diagnóstico JSON
                  </Button>
-                 <Button className="h-10 rounded-xl gap-2 font-black text-[10px] uppercase shadow-lg shadow-primary/20">
-                   <Play className="h-3.5 w-3.5" /> Iniciar Torneio
+                 <Button 
+                   className="h-10 rounded-xl gap-2 font-black text-[10px] uppercase shadow-lg"
+                   onClick={handleRunArena}
+                   disabled={arenaRunning}
+                 >
+                   {arenaRunning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+                   {arenaRunning ? "Testando..." : "Iniciar Torneio"}
                  </Button>
               </div>
             </CardHeader>
@@ -415,7 +450,7 @@ export default function SettingsPage() {
                    <Zap className="h-5 w-5 text-amber-500" />
                  </div>
                  <p className="text-xs text-amber-800 font-medium leading-tight">
-                   Esta arena testa a latência real de todos os modelos gratuitos do OpenRouter contra o servidor de Rio Claro. O ranking ajuda a escolher o motor mais ágil para situações de emergência.
+                   Esta arena testa a latência real de todos os modelos gratuitos do OpenRouter contra o servidor de Rio Claro.
                  </p>
                </div>
                <div className="overflow-x-auto">
@@ -430,56 +465,54 @@ export default function SettingsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                       <TableRow className="hover:bg-primary/5 transition-colors">
-                         <TableCell className="pl-8"><Badge className="bg-amber-400 text-white border-none font-black text-[10px]">#1</Badge></TableCell>
-                         <TableCell className="font-bold text-sm">Nemotron Nano 9B V2 (Padrão)</TableCell>
-                         <TableCell className="font-mono text-xs text-emerald-600 font-black">210 ms</TableCell>
-                         <TableCell><Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-black uppercase">Excelente</Badge></TableCell>
-                         <TableCell className="text-right pr-8">
-                           <div className="inline-flex items-center gap-2">
-                             <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
-                               <div className="h-full w-[95%] bg-emerald-500 rounded-full" />
-                             </div>
-                             <span className="text-[10px] font-black text-emerald-600">95%</span>
-                           </div>
-                         </TableCell>
-                       </TableRow>
-                       <TableRow className="hover:bg-primary/5 transition-colors">
-                         <TableCell className="pl-8"><Badge className="bg-slate-300 text-slate-700 border-none font-black text-[10px]">#2</Badge></TableCell>
-                         <TableCell className="font-bold text-sm">Llama 3.1 8B (Ultra Rápido)</TableCell>
-                         <TableCell className="font-mono text-xs text-emerald-600 font-black">245 ms</TableCell>
-                         <TableCell><Badge className="bg-emerald-100 text-emerald-700 border-none text-[8px] font-black uppercase">Excelente</Badge></TableCell>
-                         <TableCell className="text-right pr-8">
-                           <div className="inline-flex items-center gap-2">
-                             <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
-                               <div className="h-full w-[90%] bg-emerald-500 rounded-full" />
-                             </div>
-                             <span className="text-[10px] font-black text-emerald-600">90%</span>
-                           </div>
-                         </TableCell>
-                       </TableRow>
-                       <TableRow className="hover:bg-primary/5 transition-colors">
-                         <TableCell className="pl-8"><Badge className="bg-orange-200 text-orange-700 border-none font-black text-[10px]">#3</Badge></TableCell>
-                         <TableCell className="font-bold text-sm">Google Gemma 2 9B</TableCell>
-                         <TableCell className="font-mono text-xs text-amber-600 font-black">380 ms</TableCell>
-                         <TableCell><Badge className="bg-amber-100 text-amber-700 border-none text-[8px] font-black uppercase">Bom</Badge></TableCell>
-                         <TableCell className="text-right pr-8">
-                           <div className="inline-flex items-center gap-2">
-                             <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
-                               <div className="h-full w-[70%] bg-amber-500 rounded-full" />
-                             </div>
-                             <span className="text-[10px] font-black text-amber-600">70%</span>
-                           </div>
-                         </TableCell>
-                       </TableRow>
+                       {arenaResults.length > 0 ? (
+                         [...arenaResults].sort((a,b) => a.latency - b.latency).map((res, idx) => (
+                           <TableRow key={res.id} className="hover:bg-primary/5 transition-colors">
+                             <TableCell className="pl-8">
+                               <Badge className={cn(
+                                 "border-none font-black text-[10px]",
+                                 idx === 0 ? "bg-amber-400 text-white" : "bg-slate-200 text-slate-600"
+                               )}>
+                                 #{idx + 1}
+                               </Badge>
+                             </TableCell>
+                             <TableCell>
+                               <div className="flex items-center gap-2">
+                                 <span className="font-bold text-sm">{res.name}</span>
+                                 {res.id === SYSTEM_DEFAULT_MODEL && <Badge className="bg-primary/10 text-primary text-[8px] h-4">PADRÃO</Badge>}
+                               </div>
+                             </TableCell>
+                             <TableCell className="font-mono text-xs font-black">
+                               {res.status === 'SUCCESS' ? `${res.latency} ms` : "---"}
+                             </TableCell>
+                             <TableCell>
+                               <Badge className={cn(
+                                 "border-none text-[8px] font-black uppercase",
+                                 res.status === 'SUCCESS' ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                               )}>
+                                 {res.status === 'SUCCESS' ? 'Excelente' : 'Falha'}
+                               </Badge>
+                             </TableCell>
+                             <TableCell className="text-right pr-8">
+                               {res.status === 'SUCCESS' && (
+                                 <div className="inline-flex items-center gap-2">
+                                   <div className="h-1.5 w-24 bg-slate-100 rounded-full overflow-hidden">
+                                     <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.max(10, 100 - (res.latency / 10))}%` }} />
+                                   </div>
+                                 </div>
+                               )}
+                             </TableCell>
+                           </TableRow>
+                         ))
+                       ) : (
+                         <TableRow>
+                           <TableCell colSpan={5} className="text-center py-10 text-muted-foreground italic text-xs uppercase tracking-widest">
+                             Clique em &quot;Iniciar Torneio&quot; para medir a performance
+                           </TableCell>
+                         </TableRow>
+                       )}
                     </TableBody>
                  </Table>
-               </div>
-               <div className="p-6 bg-slate-50 border-t flex items-center justify-between">
-                 <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                   Arena Sgov v1.2 &bull; Atualizado em Tempo Real
-                 </div>
-                 <p className="text-[9px] text-muted-foreground italic">O OpenRouter pode aplicar limites diários para modelos &apos;free&apos;.</p>
                </div>
             </CardContent>
           </Card>
