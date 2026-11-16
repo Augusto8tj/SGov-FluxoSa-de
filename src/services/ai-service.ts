@@ -28,7 +28,7 @@ export const aiService = {
       let url = "";
       const headers: Record<string, string> = { 
         "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true" // Suporte para túneis Ngrok conforme arquivo de referência
+        "ngrok-skip-browser-warning": "true" 
       };
       let body: any = {};
 
@@ -36,8 +36,6 @@ export const aiService = {
         if (!settings.ollamaBaseUrl) throw new Error("URL do Ollama não configurada.");
         
         const baseUrl = settings.ollamaBaseUrl.endsWith('/') ? settings.ollamaBaseUrl.slice(0, -1) : settings.ollamaBaseUrl;
-        
-        // Usando o endpoint de compatibilidade Chat do Ollama
         url = `${baseUrl}/api/chat`;
         
         if (settings.ollamaApiKey) {
@@ -46,7 +44,6 @@ export const aiService = {
             : `Bearer ${settings.ollamaApiKey}`;
         }
 
-        // Tratamento do keep_alive conforme arquivo de referência
         const keepAlive = settings.ollamaKeepAlive === "-1" ? -1 : settings.ollamaKeepAlive || "5m";
 
         body = {
@@ -57,10 +54,9 @@ export const aiService = {
           options: {
             temperature: settings.ollamaTemperature || 0.7
           },
-          format: "json" // Força o Ollama a retornar JSON puro
+          format: "json"
         };
       } else {
-        // Fallback para OpenRouter (Cloud)
         const apiKey = settings.openrouterApiKey || process.env.OPENROUTER_API_KEY;
         if (!apiKey) throw new Error("Chave de API (OpenRouter) ausente.");
 
@@ -77,7 +73,7 @@ export const aiService = {
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout para hardware local pesado
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
 
       const response = await fetch(url, {
         method: "POST",
@@ -95,14 +91,12 @@ export const aiService = {
 
       const data = await response.json();
       
-      // Mapeamento de resposta Chat (Ollama) vs Completion (OpenRouter)
       const content = settings.aiProvider === 'OLLAMA' 
         ? data.message?.content 
         : data.choices[0]?.message?.content;
 
       if (!content) throw new Error("O modelo retornou uma resposta vazia.");
 
-      // Limpeza de Markdown redundante
       const cleanContent = content.replace(/```json/g, "").replace(/```/g, "").trim();
 
       return {

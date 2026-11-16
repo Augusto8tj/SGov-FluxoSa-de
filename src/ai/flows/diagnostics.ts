@@ -46,7 +46,6 @@ export const checkAiConnection = ai.defineFlow(
         };
       }
     } else {
-      // Validação simplificada para Cloud
       return {
         status: 'online' as const,
         provider: `${settings.aiProvider} (Cloud)`,
