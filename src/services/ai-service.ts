@@ -1,9 +1,10 @@
 /**
  * @fileOverview Serviço central de Inteligência Artificial do SGov FluxoSaúde.
- * Gerencia chamadas para OpenRouter com limpeza rigorosa de saída JSON e timeout de segurança.
+ * Suporta múltiplos provedores (OpenRouter, Google, Ollama) com base nas configurações do Firestore.
  */
 
-import { SYSTEM_DEFAULT_MODEL } from "@/ai/constants";
+import { systemSettingsService } from "./system-settings-service";
+import { maskPII } from "@/lib/pii-masking";
 
 export type AiResponse<T> = {
   output: T | null;
@@ -13,64 +14,90 @@ export type AiResponse<T> = {
 
 export const aiService = {
   /**
-   * Executa uma chamada de IA com prompt e retorno estruturado.
-   * Inclui limpeza de marcações Markdown e timeout de 25 segundos para evitar travamentos.
+   * Executa uma chamada de IA com base no provedor configurado no sistema.
    */
   async generate<T>(prompt: string, schemaDescription: string): Promise<AiResponse<T>> {
     const startTime = Date.now();
-    const apiKey = process.env.OPENROUTER_API_KEY;
-
-    if (!apiKey) {
-      console.warn("AI Service: OPENROUTER_API_KEY não configurada.");
-      return { output: null, error: "API Key missing", latency: 0 };
-    }
-
-    // Timeout de segurança para evitar esperas de 2-5 minutos (limite de 25s)
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000);
+    const settings = await systemSettingsService.getSettings();
+    
+    // 1. Segurança: Mascaramento PII (LGPD)
+    const sanitizedPrompt = maskPII(prompt);
+    const fullPrompt = `${sanitizedPrompt}\n\nIMPORTANTE: Responda APENAS um objeto JSON válido seguindo esta estrutura: ${schemaDescription}. Não use markdown ou explicações.`;
 
     try {
-      const fullPrompt = `${prompt}\n\nIMPORTANTE: Sua resposta deve ser exclusivamente um objeto JSON seguindo esta estrutura: ${schemaDescription}. Não inclua blocos de código (markdown), explicações ou qualquer texto extra.`;
+      let response;
+      let url = "";
+      let headers: Record<string, string> = { "Content-Type": "application/json" };
+      let body: any = {};
 
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "HTTP-Referer": "https://sgov-fluxosaude.gov.br",
-          "X-Title": "SGov FluxoSaúde",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: SYSTEM_DEFAULT_MODEL,
+      if (settings.aiProvider === 'OLLAMA') {
+        if (!settings.ollamaBaseUrl) throw new Error("URL do Ollama não configurada.");
+        
+        const baseUrl = settings.ollamaBaseUrl.endsWith('/') ? settings.ollamaBaseUrl.slice(0, -1) : settings.ollamaBaseUrl;
+        url = `${baseUrl}/v1/chat/completions`;
+        
+        if (settings.ollamaApiKey) {
+          headers["Authorization"] = `Bearer ${settings.ollamaApiKey}`;
+        }
+
+        body = {
+          model: settings.aiModelId,
           messages: [{ role: "user", content: fullPrompt }],
-          temperature: 0.1 
-        }),
+          temperature: 0.1,
+          format: "json"
+        };
+      } else {
+        // Fallback para OpenRouter (Cloud)
+        const apiKey = settings.openrouterApiKey || process.env.OPENROUTER_API_KEY;
+        if (!apiKey) throw new Error("Chave de API (OpenRouter) ausente.");
+
+        url = "https://openrouter.ai/api/v1/chat/completions";
+        headers["Authorization"] = `Bearer ${apiKey}`;
+        headers["HTTP-Referer"] = "https://sgov-fluxosaude.gov.br";
+        headers["X-Title"] = "SGov FluxoSaúde";
+
+        body = {
+          model: settings.aiModelId || "nvidia/nemotron-nano-9b-v2:free",
+          messages: [{ role: "user", content: fullPrompt }],
+          temperature: 0.1
+        };
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+      response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
         signal: controller.signal
       });
 
       clearTimeout(timeoutId);
 
-      const data = await response.json();
-      const endTime = Date.now();
-      let content = data.choices?.[0]?.message?.content;
-
-      if (!response.ok || !content) {
-        throw new Error(data.error?.message || "Falha na resposta da IA");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `Falha no provedor (${response.status})`);
       }
 
-      // Limpeza de Markdown (```json ... ```)
+      const data = await response.json();
+      let content = data.choices[0]?.message?.content;
+
+      if (!content) throw new Error("O modelo retornou uma resposta vazia.");
+
+      // Limpeza de Markdown redundante
       content = content.replace(/```json/g, "").replace(/```/g, "").trim();
 
       return {
         output: JSON.parse(content) as T,
-        latency: endTime - startTime
+        latency: Date.now() - startTime
       };
+
     } catch (error: any) {
-      clearTimeout(timeoutId);
-      console.error("AI Service Error:", error.name === 'AbortError' ? 'Timeout de 25s atingido' : error.message);
+      console.error("AI Service Error:", error.message);
       return {
         output: null,
-        error: error.name === 'AbortError' ? 'Tempo limite de processamento atingido' : error.message,
+        error: error.message || "Erro desconhecido no processamento de IA.",
         latency: Date.now() - startTime
       };
     }
