@@ -34,8 +34,10 @@ export const systemSettingsService = {
       const docRef = doc(db, SETTINGS_DOC);
       const snap = await getDoc(docRef);
       if (snap.exists()) {
+        const data = snap.data();
+        console.log("SystemSettingsService: Configurações lidas do Firestore", data);
         // Mescla os dados do Firestore com os padrões para garantir que campos novos não fiquem vazios
-        return { ...defaults, ...snap.data() } as SystemSettings;
+        return { ...defaults, ...data } as SystemSettings;
       }
     } catch (e) {
       console.warn("SystemSettingsService: Falha ao ler Firestore, usando defaults técnicos.", e);
@@ -47,7 +49,11 @@ export const systemSettingsService = {
   async updateSettings(settings: Partial<SystemSettings>): Promise<void> {
     try {
       const docRef = doc(db, SETTINGS_DOC);
-      await setDoc(docRef, settings, { merge: true });
+      console.log("SystemSettingsService: Persistindo configurações...", settings);
+      // Garantimos que não enviamos campos undefined para o Firestore
+      const cleanSettings = JSON.parse(JSON.stringify(settings));
+      await setDoc(docRef, cleanSettings, { merge: true });
+      console.log("SystemSettingsService: Persistência concluída com sucesso.");
     } catch (e) {
       console.error("SystemSettingsService: Falha ao salvar configurações.", e);
       throw new Error("Erro ao persistir no Firestore.");

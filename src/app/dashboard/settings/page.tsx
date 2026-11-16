@@ -19,9 +19,8 @@ import {
   Trophy,
   Play,
   FileJson,
-  Check,
-  Thermometer,
-  Cpu
+  Cpu,
+  Thermometer
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,15 +47,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
-import { runModelTest, ModelTesterOutput } from "@/ai/flows/model-tester-flow";
+import { runModelTest } from "@/ai/flows/model-tester-flow";
 import { cn } from "@/lib/utils";
 import { Vehicle, UBS, Driver } from "@/lib/types";
 import { ubsService } from "@/services/ubs-service";
 import { driverService } from "@/services/driver-service";
 import { vehicleService } from "@/services/vehicle-service";
-import { SYSTEM_DEFAULT_MODEL } from "@/ai/constants";
 import { systemSettingsService, SystemSettings } from "@/services/system-settings-service";
-import { checkAiConnection } from "@/ai/flows/diagnostics";
 
 const AI_MODELS = [
   { id: "nvidia/nemotron-nano-9b-v2:free", name: "Nemotron Nano 9B V2 (Padrão)" },
@@ -100,17 +97,20 @@ export default function SettingsPage() {
   const loadData = useCallback(async () => {
     setLoadingInitial(true);
     try {
-      const uData = await ubsService.getUnits().catch(() => []);
-      const dData = await driverService.getDrivers().catch(() => []);
-      const vData = await vehicleService.getVehicles().catch(() => []);
-      const sData = await systemSettingsService.getSettings();
+      // Carregamento resiliente (um não impede o outro)
+      const [uData, dData, vData, sData] = await Promise.allSettled([
+        ubsService.getUnits(),
+        driverService.getDrivers(),
+        vehicleService.getVehicles(),
+        systemSettingsService.getSettings()
+      ]);
       
-      setUnits(uData);
-      setDrivers(dData);
-      setVehicles(vData);
-      setSettings(sData);
+      if (uData.status === 'fulfilled') setUnits(uData.value);
+      if (dData.status === 'fulfilled') setDrivers(dData.value);
+      if (vData.status === 'fulfilled') setVehicles(vData.value);
+      if (sData.status === 'fulfilled') setSettings(sData.value);
     } catch (e) {
-      console.error("Settings: Critical error during load", e);
+      console.error("Settings: Erro crítico no carregamento", e);
     } finally {
       setLoadingInitial(false);
     }
@@ -123,19 +123,31 @@ export default function SettingsPage() {
 
   const handleSaveSettings = async () => {
     if (!settings) return;
+    
     setIsSavingSettings(true);
+    console.log("Settings: Iniciando persistência...", settings);
+
     try {
       await systemSettingsService.updateSettings(settings);
-      toast({ title: "Configurações Salvas", description: "O motor híbrido foi atualizado com sucesso." });
-    } catch {
-      toast({ variant: "destructive", title: "Erro ao Salvar", description: "Falha na persistência do Firestore." });
+      toast({ 
+        title: "Configurações Salvas", 
+        description: `O motor ${settings.aiProvider} foi atualizado com sucesso.` 
+      });
+    } catch (error) {
+      console.error("Settings: Falha ao salvar", error);
+      toast({ 
+        variant: "destructive", 
+        title: "Erro ao Salvar", 
+        description: "Falha na comunicação com o banco de dados municipal." 
+      });
     } finally {
-      setIsSavingSettings(false);
+      // Garante que o botão destrave
+      setTimeout(() => setIsSavingSettings(false), 500);
     }
   };
 
   const formatBytes = (bytes: number) => {
-    if (!bytes) return '0 GB';
+    if (!bytes || bytes <= 0) return 'Tamanho N/I';
     return (bytes / (1024 ** 3)).toFixed(2) + ' GB';
   };
 
@@ -144,12 +156,16 @@ export default function SettingsPage() {
       toast({ variant: "destructive", title: "Ação Necessária", description: "Informe a URL do servidor Ollama primeiro." });
       return;
     }
+    
     setIsSyncingModels(true);
     try {
       const baseUrl = settings.ollamaBaseUrl.endsWith('/') ? settings.ollamaBaseUrl.slice(0, -1) : settings.ollamaBaseUrl;
       const headers: any = { "ngrok-skip-browser-warning": "true" };
+      
       if (settings.ollamaApiKey) {
-        headers["Authorization"] = settings.ollamaApiKey.startsWith('Bearer ') ? settings.ollamaApiKey : `Bearer ${settings.ollamaApiKey}`;
+        headers["Authorization"] = settings.ollamaApiKey.startsWith('Bearer ') 
+          ? settings.ollamaApiKey 
+          : `Bearer ${settings.ollamaApiKey}`;
       }
 
       const response = await fetch(`${baseUrl}/api/tags`, { headers });
@@ -160,8 +176,12 @@ export default function SettingsPage() {
         setLocalModels(data.models);
         toast({ title: "Sincronização Concluída", description: `Detectados ${data.models.length} modelos locais.` });
       }
-    } catch (e: any) {
-      toast({ variant: "destructive", title: "Falha na Conexão", description: "Verifique se o servidor Ollama está rodando e se a URL está correta (use https para Ngrok)." });
+    } catch (e) {
+      toast({ 
+        variant: "destructive", 
+        title: "Falha na Conexão", 
+        description: "Verifique se o servidor Ollama está rodando e se a URL está correta (use https para Ngrok)." 
+      });
     } finally {
       setIsSyncingModels(false);
     }
@@ -199,6 +219,7 @@ export default function SettingsPage() {
       department: "Secretaria de Ordem Pública",
       systemContext: {
         activeModel: settings?.aiModelId,
+        provider: settings?.aiProvider,
         environment: "BETA_PRODUCTION"
       },
       diagnostics: {
@@ -358,7 +379,7 @@ export default function SettingsPage() {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="5m">5 minutos (Padrão)</SelectItem>
-                                <SelectItem value="-1">Indefinido (Sempre Pronto)</SelectItem>
+                                <SelectItem value="-1">Aquecido Indefinidamente (Servidor Sempre Pronto)</SelectItem>
                                 <SelectItem value="30m">30 minutos</SelectItem>
                                 <SelectItem value="0">Descarregar Imediatamente</SelectItem>
                               </SelectContent>
