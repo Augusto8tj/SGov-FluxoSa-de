@@ -8,6 +8,8 @@ export type SystemSettings = {
   aiModelId: string;
   ollamaBaseUrl?: string;
   ollamaApiKey?: string;
+  ollamaKeepAlive?: string; // -1, 5m, 30m, 0
+  ollamaTemperature?: number;
   googleApiKey?: string;
   openrouterApiKey?: string;
 };
@@ -26,10 +28,11 @@ export const systemSettingsService = {
       console.warn("SystemSettingsService: Falha ao ler Firestore, usando defaults.", e);
     }
     
-    // Fallback default (Sempre retorna um objeto válido para não quebrar a UI)
     return {
       aiProvider: 'OPENROUTER',
       aiModelId: SYSTEM_DEFAULT_MODEL,
+      ollamaKeepAlive: '5m',
+      ollamaTemperature: 0.7
     };
   },
 

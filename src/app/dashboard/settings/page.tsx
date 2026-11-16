@@ -16,11 +16,12 @@ import {
   Globe,
   Database,
   RefreshCw,
-  Lock,
   Trophy,
   Play,
   FileJson,
-  Check
+  Check,
+  Thermometer,
+  Cpu
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { runModelTest, ModelTesterOutput } from "@/ai/flows/model-tester-flow";
 import { cn } from "@/lib/utils";
@@ -71,14 +73,8 @@ export default function SettingsPage() {
   // AI Settings State
   const [settings, setSettings] = useState<SystemSettings | null>(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
-  const [localModels, setLocalModels] = useState<string[]>([]);
+  const [localModels, setLocalModels] = useState<any[]>([]);
   const [isSyncingModels, setIsSyncingModels] = useState(false);
-
-  // IA Lab State
-  const [aiModel, setAiModel] = useState(SYSTEM_DEFAULT_MODEL);
-  const [aiTestPrompt, setAiTestPrompt] = useState("Analise a prioridade de transporte: Paciente em hemodiálise saindo de Lídice para o Hospital Municipal.");
-  const [testResult, setTestResult] = useState<ModelTesterOutput | null>(null);
-  const [isTestingAi, setIsTestingAi] = useState(false);
 
   // Real Data States
   const [units, setUnits] = useState<UBS[]>([]);
@@ -104,7 +100,6 @@ export default function SettingsPage() {
   const loadData = useCallback(async () => {
     setLoadingInitial(true);
     try {
-      // Carregamento individual para evitar que uma falha trave tudo
       const uData = await ubsService.getUnits().catch(() => []);
       const dData = await driverService.getDrivers().catch(() => []);
       const vData = await vehicleService.getVehicles().catch(() => []);
@@ -139,6 +134,11 @@ export default function SettingsPage() {
     }
   };
 
+  const formatBytes = (bytes: number) => {
+    if (!bytes) return '0 GB';
+    return (bytes / (1024 ** 3)).toFixed(2) + ' GB';
+  };
+
   const handleSyncOllama = async () => {
     if (!settings?.ollamaBaseUrl) {
       toast({ variant: "destructive", title: "Ação Necessária", description: "Informe a URL do servidor Ollama primeiro." });
@@ -146,15 +146,22 @@ export default function SettingsPage() {
     }
     setIsSyncingModels(true);
     try {
-      const result = await checkAiConnection();
-      if (result.status === 'online' && result.models) {
-        setLocalModels(result.models);
-        toast({ title: "Sincronização Concluída", description: `Detectados ${result.models.length} modelos locais.` });
-      } else {
-        toast({ variant: "destructive", title: "Falha na Conexão", description: result.error || "Ollama não respondeu." });
+      const baseUrl = settings.ollamaBaseUrl.endsWith('/') ? settings.ollamaBaseUrl.slice(0, -1) : settings.ollamaBaseUrl;
+      const headers: any = { "ngrok-skip-browser-warning": "true" };
+      if (settings.ollamaApiKey) {
+        headers["Authorization"] = settings.ollamaApiKey.startsWith('Bearer ') ? settings.ollamaApiKey : `Bearer ${settings.ollamaApiKey}`;
       }
-    } catch {
-      toast({ variant: "destructive", title: "Erro Técnico", description: "Não foi possível conectar ao Ollama local." });
+
+      const response = await fetch(`${baseUrl}/api/tags`, { headers });
+      if (!response.ok) throw new Error("Servidor Ollama inacessível.");
+      
+      const data = await response.json();
+      if (data.models) {
+        setLocalModels(data.models);
+        toast({ title: "Sincronização Concluída", description: `Detectados ${data.models.length} modelos locais.` });
+      }
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Falha na Conexão", description: "Verifique se o servidor Ollama está rodando e se a URL está correta (use https para Ngrok)." });
     } finally {
       setIsSyncingModels(false);
     }
@@ -317,17 +324,63 @@ export default function SettingsPage() {
 
                   {settings.aiProvider === 'OLLAMA' && (
                     <div className="space-y-4 animate-in slide-in-from-top-2">
-                      <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Ollama Base URL</Label>
-                        <Input 
-                          placeholder="http://localhost:11434" 
-                          className="h-12 rounded-2xl bg-muted/20 border-none"
-                          value={settings.ollamaBaseUrl || ""}
-                          onChange={(e) => setSettings({...settings, ollamaBaseUrl: e.target.value})}
-                        />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Ollama URL (com https://)</Label>
+                          <Input 
+                            placeholder="https://seu-tunnel.ngrok-free.dev" 
+                            className="h-12 rounded-2xl bg-muted/20 border-none"
+                            value={settings.ollamaBaseUrl || ""}
+                            onChange={(e) => setSettings({...settings, ollamaBaseUrl: e.target.value})}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">API Key / Proxy Token</Label>
+                          <Input 
+                            type="password"
+                            placeholder="Opcional" 
+                            className="h-12 rounded-2xl bg-muted/20 border-none"
+                            value={settings.ollamaApiKey || ""}
+                            onChange={(e) => setSettings({...settings, ollamaApiKey: e.target.value})}
+                          />
+                        </div>
                       </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                         <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Permanência em VRAM</Label>
+                            <Select 
+                              value={settings.ollamaKeepAlive} 
+                              onValueChange={(val) => setSettings({...settings, ollamaKeepAlive: val})}
+                            >
+                              <SelectTrigger className="h-12 rounded-2xl bg-muted/20 border-none">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="5m">5 minutos (Padrão)</SelectItem>
+                                <SelectItem value="-1">Indefinido (Sempre Pronto)</SelectItem>
+                                <SelectItem value="30m">30 minutos</SelectItem>
+                                <SelectItem value="0">Descarregar Imediatamente</SelectItem>
+                              </SelectContent>
+                            </Select>
+                         </div>
+                         <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Temperatura: {settings.ollamaTemperature}</Label>
+                              <Thermometer className="h-3 w-3 text-primary" />
+                            </div>
+                            <Slider 
+                              value={[settings.ollamaTemperature || 0.7]} 
+                              max={1} 
+                              step={0.1} 
+                              onValueChange={(val) => setSettings({...settings, ollamaTemperature: val[0]})}
+                              className="py-2"
+                            />
+                         </div>
+                      </div>
+
                       <div className="space-y-2">
-                        <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Peso Selecionado</Label>
+                        <Label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Peso Selecionado (Hardware Local)</Label>
                         <div className="flex gap-2">
                           <Select 
                             value={settings.aiModelId} 
@@ -337,7 +390,14 @@ export default function SettingsPage() {
                               <SelectValue placeholder="Sincronize modelos..." />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl">
-                              {localModels.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                              {localModels.map(m => (
+                                <SelectItem key={m.name} value={m.name}>
+                                  <div className="flex items-center gap-2">
+                                    <Cpu className="h-3 w-3 opacity-50" />
+                                    <span>{m.name} ({formatBytes(m.size)})</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                           <Button 
@@ -346,10 +406,12 @@ export default function SettingsPage() {
                             className="h-12 w-12 rounded-2xl"
                             onClick={handleSyncOllama}
                             disabled={isSyncingModels}
+                            title="Buscar modelos no servidor local"
                           >
                             <RefreshCw className={cn("h-4 w-4", isSyncingModels && "animate-spin")} />
                           </Button>
                         </div>
+                        <p className="text-[10px] text-muted-foreground italic px-1">O sistema suporta modelos Vision e Deep Think via Ollama.</p>
                       </div>
                     </div>
                   )}
@@ -372,7 +434,7 @@ export default function SettingsPage() {
                   )}
 
                   <Button 
-                    className="w-full h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest gap-2"
+                    className="w-full h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest gap-2 shadow-lg shadow-primary/20"
                     onClick={handleSaveSettings}
                     disabled={isSavingSettings}
                   >
@@ -450,7 +512,7 @@ export default function SettingsPage() {
                    <Zap className="h-5 w-5 text-amber-500" />
                  </div>
                  <p className="text-xs text-amber-800 font-medium leading-tight">
-                   Esta arena testa a latência real de todos os modelos gratuitos do OpenRouter contra o servidor de Rio Claro.
+                   Esta arena testa a latência real dos modelos contra o servidor de Rio Claro. Note que modelos locais dependem da sua GPU.
                  </p>
                </div>
                <div className="overflow-x-auto">
@@ -479,7 +541,7 @@ export default function SettingsPage() {
                              <TableCell>
                                <div className="flex items-center gap-2">
                                  <span className="font-bold text-sm">{res.name}</span>
-                                 {res.id === SYSTEM_DEFAULT_MODEL && <Badge className="bg-primary/10 text-primary text-[8px] h-4">PADRÃO</Badge>}
+                                 {res.id === settings.aiModelId && <Badge className="bg-primary/10 text-primary text-[8px] h-4">ATIVO</Badge>}
                                </div>
                              </TableCell>
                              <TableCell className="font-mono text-xs font-black">

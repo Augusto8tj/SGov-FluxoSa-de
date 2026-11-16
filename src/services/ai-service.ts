@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Serviço central de Inteligência Artificial do SGov FluxoSaúde.
  * Suporta múltiplos provedores (OpenRouter, Google, Ollama) com base nas configurações do Firestore.
@@ -27,24 +28,38 @@ export const aiService = {
     try {
       let response;
       let url = "";
-      let headers: Record<string, string> = { "Content-Type": "application/json" };
+      let headers: Record<string, string> = { 
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true" // Suporte para túneis Ngrok conforme arquivo de referência
+      };
       let body: any = {};
 
       if (settings.aiProvider === 'OLLAMA') {
         if (!settings.ollamaBaseUrl) throw new Error("URL do Ollama não configurada.");
         
         const baseUrl = settings.ollamaBaseUrl.endsWith('/') ? settings.ollamaBaseUrl.slice(0, -1) : settings.ollamaBaseUrl;
-        url = `${baseUrl}/v1/chat/completions`;
+        
+        // Usando o endpoint de compatibilidade Chat do Ollama
+        url = `${baseUrl}/api/chat`;
         
         if (settings.ollamaApiKey) {
-          headers["Authorization"] = `Bearer ${settings.ollamaApiKey}`;
+          headers["Authorization"] = settings.ollamaApiKey.startsWith('Bearer ') 
+            ? settings.ollamaApiKey 
+            : `Bearer ${settings.ollamaApiKey}`;
         }
+
+        // Tratamento do keep_alive conforme arquivo de referência
+        const keepAlive = settings.ollamaKeepAlive === "-1" ? -1 : settings.ollamaKeepAlive || "5m";
 
         body = {
           model: settings.aiModelId,
           messages: [{ role: "user", content: fullPrompt }],
-          temperature: 0.1,
-          format: "json"
+          stream: false,
+          keep_alive: keepAlive,
+          options: {
+            temperature: settings.ollamaTemperature || 0.7
+          },
+          format: "json" // Força o Ollama a retornar JSON puro
         };
       } else {
         // Fallback para OpenRouter (Cloud)
@@ -59,12 +74,12 @@ export const aiService = {
         body = {
           model: settings.aiModelId || "nvidia/nemotron-nano-9b-v2:free",
           messages: [{ role: "user", content: fullPrompt }],
-          temperature: 0.1
+          temperature: settings.ollamaTemperature || 0.7
         };
       }
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout para hardware local pesado
 
       response = await fetch(url, {
         method: "POST",
@@ -81,7 +96,11 @@ export const aiService = {
       }
 
       const data = await response.json();
-      let content = data.choices[0]?.message?.content;
+      
+      // Mapeamento de resposta Chat (Ollama) vs Completion (OpenRouter)
+      let content = settings.aiProvider === 'OLLAMA' 
+        ? data.message?.content 
+        : data.choices[0]?.message?.content;
 
       if (!content) throw new Error("O modelo retornou uma resposta vazia.");
 
