@@ -15,6 +15,9 @@ import { MOCK_VEHICLES } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "vehicles";
 
+/**
+ * @fileOverview Serviço de frota com suporte a telemetria mock.
+ */
 export const vehicleService = {
   async getVehicles(): Promise<Vehicle[]> {
     try {
@@ -26,6 +29,7 @@ export const vehicleService = {
         ...doc.data()
       } as Vehicle));
 
+      // Modo Demo: Garante que o Chefe de TI veja veículos com telemetria
       return firestoreData.length > 0 ? firestoreData : MOCK_VEHICLES;
     } catch {
       return MOCK_VEHICLES;
@@ -42,7 +46,7 @@ export const vehicleService = {
       });
       return docRef.id;
     } catch {
-      throw new Error("Erro ao registrar veículo oficial.");
+      throw new Error("Erro ao persistir veículo oficial.");
     }
   },
 
@@ -54,7 +58,7 @@ export const vehicleService = {
         updatedAt: new Date().toISOString()
       });
     } catch {
-      throw new Error("Erro ao atualizar informações da viatura.");
+      throw new Error("Erro ao atualizar metadados da viatura.");
     }
   },
 
@@ -63,7 +67,7 @@ export const vehicleService = {
       const docRef = doc(db, COLLECTION_NAME, id);
       await deleteDoc(docRef);
     } catch {
-      throw new Error("Erro ao remover veículo da frota.");
+      throw new Error("Erro ao expurgar veículo da frota.");
     }
   }
 };

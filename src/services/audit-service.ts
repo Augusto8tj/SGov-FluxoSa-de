@@ -12,6 +12,9 @@ import { MOCK_AUDIT_LOGS } from "@/lib/mock-data";
 
 const COLLECTION_NAME = "audit_logs";
 
+/**
+ * @fileOverview Serviço de auditoria com suporte a dados mock técnicos para TI.
+ */
 export const auditService = {
   async getLogs(): Promise<any[]> {
     try {
@@ -26,9 +29,10 @@ export const auditService = {
         ...doc.data()
       }));
 
+      // Fallback para mock se o Firestore estiver vazio (Essencial para demonstração ao Chefe de TI)
       return firestoreData.length > 0 ? firestoreData : MOCK_AUDIT_LOGS;
     } catch (error) {
-      console.warn("Audit Service Error - Using Mock:", error);
+      console.warn("Audit Service: Firestore offline ou vazio. Usando Mock técnico.");
       return MOCK_AUDIT_LOGS;
     }
   },
@@ -40,7 +44,7 @@ export const auditService = {
         timestamp: new Date().toISOString()
       });
     } catch (e) {
-      console.error("Failed to log action", e);
+      console.error("Failed to log technical action", e);
     }
   }
 };
