@@ -31,7 +31,7 @@ export const auditService = {
 
       // Fallback para mock se o Firestore estiver vazio (Essencial para demonstração ao Chefe de TI)
       return firestoreData.length > 0 ? firestoreData : MOCK_AUDIT_LOGS;
-    } catch (error) {
+    } catch {
       console.warn("Audit Service: Firestore offline ou vazio. Usando Mock técnico.");
       return MOCK_AUDIT_LOGS;
     }

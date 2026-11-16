@@ -26,9 +26,8 @@ export const aiService = {
     const fullPrompt = `${sanitizedPrompt}\n\nIMPORTANTE: Responda APENAS um objeto JSON válido seguindo esta estrutura: ${schemaDescription}. Não use markdown ou explicações.`;
 
     try {
-      let response;
       let url = "";
-      let headers: Record<string, string> = { 
+      const headers: Record<string, string> = { 
         "Content-Type": "application/json",
         "ngrok-skip-browser-warning": "true" // Suporte para túneis Ngrok conforme arquivo de referência
       };
@@ -81,7 +80,7 @@ export const aiService = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout para hardware local pesado
 
-      response = await fetch(url, {
+      const response = await fetch(url, {
         method: "POST",
         headers,
         body: JSON.stringify(body),
@@ -98,17 +97,17 @@ export const aiService = {
       const data = await response.json();
       
       // Mapeamento de resposta Chat (Ollama) vs Completion (OpenRouter)
-      let content = settings.aiProvider === 'OLLAMA' 
+      const content = settings.aiProvider === 'OLLAMA' 
         ? data.message?.content 
         : data.choices[0]?.message?.content;
 
       if (!content) throw new Error("O modelo retornou uma resposta vazia.");
 
       // Limpeza de Markdown redundante
-      content = content.replace(/```json/g, "").replace(/```/g, "").trim();
+      const cleanContent = content.replace(/```json/g, "").replace(/```/g, "").trim();
 
       return {
-        output: JSON.parse(content) as T,
+        output: JSON.parse(cleanContent) as T,
         latency: Date.now() - startTime
       };
 

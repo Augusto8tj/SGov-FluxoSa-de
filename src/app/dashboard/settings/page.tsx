@@ -12,7 +12,6 @@ import {
   BrainCircuit, 
   Zap, 
   Loader2, 
-  Activity, 
   Globe,
   Database,
   RefreshCw,
@@ -109,8 +108,8 @@ export default function SettingsPage() {
       if (dData.status === 'fulfilled') setDrivers(dData.value);
       if (vData.status === 'fulfilled') setVehicles(vData.value);
       if (sData.status === 'fulfilled') setSettings(sData.value);
-    } catch (e) {
-      console.error("Settings: Erro crítico no carregamento", e);
+    } catch {
+      console.error("Settings: Erro crítico no carregamento");
     } finally {
       setLoadingInitial(false);
     }
@@ -125,7 +124,6 @@ export default function SettingsPage() {
     if (!settings) return;
     
     setIsSavingSettings(true);
-    console.log("Settings: Iniciando persistência...", settings);
 
     try {
       await systemSettingsService.updateSettings(settings);
@@ -141,7 +139,6 @@ export default function SettingsPage() {
         description: "Falha na comunicação com o banco de dados municipal." 
       });
     } finally {
-      // Garante que o botão destrave
       setTimeout(() => setIsSavingSettings(false), 500);
     }
   };
@@ -176,7 +173,7 @@ export default function SettingsPage() {
         setLocalModels(data.models);
         toast({ title: "Sincronização Concluída", description: `Detectados ${data.models.length} modelos locais.` });
       }
-    } catch (e) {
+    } catch {
       toast({ 
         variant: "destructive", 
         title: "Falha na Conexão", 
